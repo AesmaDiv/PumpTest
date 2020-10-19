@@ -1,0 +1,39 @@
+import vars
+from AesmaLib import Journal
+
+
+def get_table_value(table: str, column: str, condition: dict):
+    result = None
+    records: list = get_records(table, [column], condition)
+    if records and len(records) > 0:
+        result = records[0]
+    return result
+
+
+def get_records(table: str, columns: list = [], conditions: dict = {}, order_by: str = ''):
+    try:
+        result = None
+        if vars.db.connect(vars.path_to_db):
+            result = vars.db.read(table, columns, conditions, order_by)
+            vars.db.disconnect()
+    except IOError as error:
+        Journal.log(__name__ + " Error: " + str(error))
+    return result
+
+
+def update_record(table: str, record: dict):
+    try:
+        result = False
+        if vars.db.connect(vars.path_to_db):
+            if vars.db.update(table, record):
+                result = True
+            vars.db.disconnect()
+    except BaseException as error:
+        Journal.log(__name__ + " Error: " + str(error))
+    return result
+
+
+def parse_string_to_floats(name: str):
+    string = vars.pump_type[name]
+    result = [float(value) for value in string.split(',')]
+    return result
