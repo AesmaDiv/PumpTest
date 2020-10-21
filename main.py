@@ -3,12 +3,10 @@
 import faulthandler
 import sys
 
-from PyQt5.QtCore import QPoint
 from PyQt5.QtWidgets import QApplication
 
 import vars
 from AesmaLib import Journal
-from AppClasses.Functions import funcsCommon
 from AppClasses.UI.MainWindow.MainWindow import Window as mainWindow
 
 

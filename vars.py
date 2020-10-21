@@ -20,5 +20,3 @@ dictPump = {}
 dictTest = {}
 graph_info: PumpGraph = None
 markers: Markers = None
-testt: int = 3
-
