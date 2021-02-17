@@ -20,10 +20,6 @@ def remove_greater(array: list, value, is_including=False):
     return result, index
 
 
-def apply_coef(array: list, coef):
-    return [v * coef for v in array]
-
-
 def split_to_subarrays(array: list, elements_count: int, with_reminder=False):
     result = []
     subarrays_count = len(array) // elements_count

@@ -5,22 +5,23 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-import vars
-from AesmaLib import Journal
-from AppClasses.UI.MainWindow.MainWindow import Window as mainWindow
+from AesmaLib import journal
+from Globals import gvars
+from GUI.MainWindow.MainWindow import Window as mainWindow
 
+if __name__ == '__main__':
+    journal.log(__name__, '\t', "*** Starting application ***")
+    faulthandler.enable()
+    app = QApplication(sys.argv)
 
-Journal.log(__name__, "\t*** Starting application ***")
-faulthandler.enable()
-app = QApplication(sys.argv)
+    gvars.wnd_main = mainWindow()
+    gvars.wnd_main.prepare()
+    gvars.wnd_main.show()
 
-vars.wnd_main = mainWindow()
-vars.wnd_main.prepare()
-vars.wnd_main.show()
+    app.exec_()
+    faulthandler.disable()
+    journal.log(__name__, '\t', "*** Exiting application ***")
 
-app.exec_()
-faulthandler.disable()
-Journal.log(__name__, "\t*** Exiting application ***")
 # adam = Adam5K('10.10.10.10', 502, 1)
 # adam.connect()
 # adam.setReadingThread(True)
@@ -31,4 +32,3 @@ Journal.log(__name__, "\t*** Exiting application ***")
 #     pass
 # adam.setReadingThread(False)
 # adam.disconnect(False)
-

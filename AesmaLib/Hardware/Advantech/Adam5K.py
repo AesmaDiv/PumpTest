@@ -41,12 +41,12 @@ class Adam5K:
         try:
             self._sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except BaseException as ex:
-            print('Adam5K:', 'initialization error: ' + str(ex))
-        print('Adam5K:', 'initialized')
+            print('Adam5K:', '\tinitialization error: ' + str(ex))
+        print('Adam5K:', '\tinitialized')
 
     def __del__(self):
         self.disconnect()
-        print('Adam5K:', 'destroyed')
+        print('Adam5K:', '\tdestroyed')
 
     def connect(self):
         if self._is_connected:
@@ -60,7 +60,7 @@ class Adam5K:
                 msg = 'socket connected'
             except BaseException as ex:
                 msg = 'error connecting socket:', self._conn
-        print('Adam5K:', 'connect:', msg)
+        print('Adam5K:', '\tconnect:', msg)
         return self._is_connected
 
     def disconnect(self):
@@ -74,13 +74,13 @@ class Adam5K:
             self._sock.close()
             self._is_connected = False
             msg = 'socket disconnected'
-        print('Adam5K:', 'disconnect:', msg)
+        print('Adam5K:', '\tdisconnect:', msg)
 
     def startReading(self):
         if not self._is_connected:
-            print('Adam5K:', 'startReading:', 'not connected')
+            print('Adam5K:', '\tstartReading:', 'not connected')
         elif self._is_reading:
-            print('Adam5K:', 'startReading:', 'already reading', )
+            print('Adam5K:', '\tstartReading:', 'already reading', )
         else:
             self._is_reading = True
             self._thread_iteration = 0
@@ -112,12 +112,12 @@ class Adam5K:
     def setValue(self, slot_type: SlotType, slot: int, channel: int, value):
         command = self._buildCommand_Register('WRITE', slot_type, slot, channel, value)
         self._sendCommand(command)
-        print('Adam5K:', 'setValue:', slot_type.value, slot, channel, value)
+        print('Adam5K:', '\tsetValue:', slot_type.value, slot, channel, value)
 
     def setSlot(self, slot_type: SlotType, slot: int, pattern: list):
         command = self._buildCommand_Slot(slot_type, slot, pattern)
         self._sendCommand(command)
-        print('Adam5K:', 'setSlot:', slot_type.value, slot, pattern)
+        print('Adam5K:', '\tsetSlot:', slot_type.value, slot, pattern)
 
     def getValue(self, slot_type: SlotType, slot: int, channel: int):
         if not self._is_reading:
@@ -166,7 +166,7 @@ class Adam5K:
                 data_bytes = data_bytes[9:9 + data_count]
             result = self._parseBytes(slot_type, data_bytes)
         except BaseException as ex:
-            print('Adam5K:', '_getValues error:', str(ex))
+            print('Adam5K:', '\t_getValues error:', str(ex))
         return result
 
     def _getBits(self, value: int):
@@ -212,7 +212,7 @@ class Adam5K:
             result.extend(pattern)
         prefix = bytearray(len(result).to_bytes(6, 'big'))
         result[0:0] = prefix
-        print('Adam5K:', '_buildSlotCommand:', 'command=', result)
+        print('Adam5K:', '\t_buildSlotCommand:', 'command=', result)
         return result
 
     def _sendCommand(self, command):

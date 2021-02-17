@@ -1,8 +1,9 @@
-from PyQt5.QtWidgets import QApplication, QGroupBox, QLineEdit, QComboBox, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QGroupBox, QComboBox
+from PyQt5.QtWidgets import QLineEdit, QPushButton, QWidget
 
-from AesmaLib import Journal, AesmaFuncs
-from AppClasses.Functions import funcsTable, funcsSpinner, funcsDB, funcsMessages
-import vars
+from AesmaLib import journal, AesmaFuncs
+from Functions import funcsTable, funcsSpinner, funcs_db, funcsMessages
+from Globals import gvars
 
 
 class Info:
@@ -38,49 +39,49 @@ class Test(Info):
     @staticmethod
     def load(test_id: int = 0):
         if test_id <= 0:
-            data: dict = funcsTable.get_row(vars.wnd_main.tableTests)
+            data: dict = funcsTable.get_row(gvars.wnd_main.tableTests)
             if data and 'ID' in data.keys():
                 test_id: int = data['ID']
             else:
                 return False
-        vars.dictTest = funcsDB.get_record('Tests', conditions={'ID': test_id})
+        gvars.dictTest = funcs_db.get_record('Tests', conditions={'ID': test_id})
 
         return True
 
     @staticmethod
     def clear(group: QGroupBox):
-        vars.dictTest.clear()
+        gvars.dictTest.clear()
         Info.clear(group)
 
     @staticmethod
     def display():
-        vars.wnd_main.txtDateTime.setText(vars.dictTest['DateTime'])
-        vars.wnd_main.txtOrderNum.setText(vars.dictTest['OrderNum'])
-        vars.wnd_main.txtLocation.setText(vars.dictTest['Location'])
-        vars.wnd_main.txtLease.setText(vars.dictTest['Lease'])
-        vars.wnd_main.txtWell.setText(vars.dictTest['Well'])
-        vars.wnd_main.txtDaysRun.setText(str(vars.dictTest['DaysRun']))
-        funcsSpinner.select_item_containing(vars.wnd_main.cmbCustomers, {'ID': vars.dictTest['Customer']})
-        funcsSpinner.select_item_containing(vars.wnd_main.cmbAssembly, vars.dictTest['Assembly'])
+        gvars.wnd_main.txtDateTime.setText(gvars.dictTest['DateTime'])
+        gvars.wnd_main.txtOrderNum.setText(gvars.dictTest['OrderNum'])
+        gvars.wnd_main.txtLocation.setText(gvars.dictTest['Location'])
+        gvars.wnd_main.txtLease.setText(gvars.dictTest['Lease'])
+        gvars.wnd_main.txtWell.setText(gvars.dictTest['Well'])
+        gvars.wnd_main.txtDaysRun.setText(str(gvars.dictTest['DaysRun']))
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbCustomers, {'ID': gvars.dictTest['Customer']})
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbAssembly, gvars.dictTest['Assembly'])
         Test.fill_points_table()
         pass
 
     @staticmethod
     def fill_points_table():
-        funcsTable.clear_table(vars.wnd_main.tablePoints)
-        if vars.dictTest['Flows'] and vars.dictTest['Lifts'] and vars.dictTest['Powers']:
-            points = [[val.strip() for val in vars.dictTest['Flows'].split(',')],
-                      [val.strip() for val in vars.dictTest['Lifts'].split(',')],
-                      [val.strip() for val in vars.dictTest['Powers'].split(',')]]
+        funcsTable.clear_table(gvars.wnd_main.tablePoints)
+        if gvars.dictTest['Flows'] and gvars.dictTest['Lifts'] and gvars.dictTest['Powers']:
+            points = [[val.strip() for val in gvars.dictTest['Flows'].split(',')],
+                      [val.strip() for val in gvars.dictTest['Lifts'].split(',')],
+                      [val.strip() for val in gvars.dictTest['Powers'].split(',')]]
             for i in range(len(points[0])):
-                funcsTable.add_row(vars.wnd_main.tablePoints,
+                funcsTable.add_row(gvars.wnd_main.tablePoints,
                                    {'flow': points[0][i], 'lift': points[1][i], 'power': points[2][i]})
 
     @staticmethod
     def check_exist():
         test_id: int = 0
-        order_num: str = vars.wnd_main.txtOrderNum.text()
-        record = funcsDB.get_value('Tests', 'ID', {'OrderNum': order_num})
+        order_num: str = gvars.wnd_main.txtOrderNum.text()
+        record = funcs_db.get_value('Tests', 'ID', {'OrderNum': order_num})
         if record is not None and len(record):
             test_id = record['ID']
         return test_id
@@ -89,95 +90,95 @@ class Test(Info):
     def check_all_filled():
         result: bool = True
         missing = []
-        result &= check_value(vars.wnd_main.txtOrderNum.text(), 'Наряд-заказ\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(vars.wnd_main.cmbCustomers), 'Заказчик\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(vars.wnd_main.cmbAssembly), 'Сборка\n', missing)
-        # result &= check_value(vars.wnd_main.txtLocation.text(), 'Месторождение\n', missing)
-        # result &= check_value(vars.wnd_main.txtLease.text(), 'Куст\n', missing)
-        # result &= check_value(vars.wnd_main.txtWell.text(), 'Скважина\n', missing)
-        # result &= check_value(int(vars.wnd_main.txtDaysRun.text()), 'Суткопробег\n', missing)
+        result &= check_value(gvars.wnd_main.txtOrderNum.text(), 'Наряд-заказ\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbCustomers), 'Заказчик\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbAssembly), 'Сборка\n', missing)
+        # result &= check_value(gvars.wnd_main.txtLocation.text(), 'Месторождение\n', missing)
+        # result &= check_value(gvars.wnd_main.txtLease.text(), 'Куст\n', missing)
+        # result &= check_value(gvars.wnd_main.txtWell.text(), 'Скважина\n', missing)
+        # result &= check_value(int(gvars.wnd_main.txtDaysRun.text()), 'Суткопробег\n', missing)
         if not result:
             message = ''.join(missing)
             funcsMessages.show("Внимание", "Добавьте информацию о насосе:\n" + message)
         return result
 
     @staticmethod
-    def save_to_vars_info():
-        vars.dictTest['Pump'] = vars.dictPump['ID']
-        vars.dictTest['DateTime'] = vars.wnd_main.txtDateTime.text()
-        vars.dictTest['Customer'] = AesmaFuncs.safe_parse_to(int,
-                                                             funcsSpinner.get_current_value(vars.wnd_main.cmbCustomers,
+    def save_to_gvars_info():
+        gvars.dictTest['Pump'] = gvars.dictPump['ID']
+        gvars.dictTest['DateTime'] = gvars.wnd_main.txtDateTime.text()
+        gvars.dictTest['Customer'] = AesmaFuncs.safe_parse_to(int,
+                                                             funcsSpinner.get_current_value(gvars.wnd_main.cmbCustomers,
                                                                                             'ID'))
-        vars.dictTest['Assembly'] = funcsSpinner.get_current_value(vars.wnd_main.cmbAssembly)
-        vars.dictTest['OrderNum'] = vars.wnd_main.txtOrderNum.text()
-        vars.dictTest['Location'] = vars.wnd_main.txtLocation.text()
-        vars.dictTest['Lease'] = vars.wnd_main.txtLease.text()
-        vars.dictTest['Well'] = vars.wnd_main.txtWell.text()
-        vars.dictTest['DaysRun'] = vars.wnd_main.txtDaysRun.text()
+        gvars.dictTest['Assembly'] = funcsSpinner.get_current_value(gvars.wnd_main.cmbAssembly)
+        gvars.dictTest['OrderNum'] = gvars.wnd_main.txtOrderNum.text()
+        gvars.dictTest['Location'] = gvars.wnd_main.txtLocation.text()
+        gvars.dictTest['Lease'] = gvars.wnd_main.txtLease.text()
+        gvars.dictTest['Well'] = gvars.wnd_main.txtWell.text()
+        gvars.dictTest['DaysRun'] = gvars.wnd_main.txtDaysRun.text()
         return True
 
     @staticmethod
     def save_to_db_info():
-        return funcsDB.insert_record('Tests', vars.dictTest)
+        return funcs_db.insert_record('Tests', gvars.dictTest)
 
     @staticmethod
     def save_info():
         return Test.check_all_filled() and \
-               Test.save_to_vars_info() and \
+               Test.save_to_gvars_info() and \
                Test.save_to_db_info()
 
     @staticmethod
-    def save_to_vars_data():
-        points = funcsTable.get_data(vars.wnd_main.tablePoints)
+    def save_to_gvars_data():
+        points = funcsTable.get_data(gvars.wnd_main.tablePoints)
         points_data = AesmaFuncs.merge_dictionaries(points)
-        vars.dictTest['Flows'] = ', '.join(map(str, points_data['flow']))
-        vars.dictTest['Lifts'] = ', '.join(map(str, points_data['lift']))
-        vars.dictTest['Powers'] = ', '.join(map(str, points_data['power']))
+        gvars.dictTest['Flows'] = ', '.join(map(str, points_data['flow']))
+        gvars.dictTest['Lifts'] = ', '.join(map(str, points_data['lift']))
+        gvars.dictTest['Powers'] = ', '.join(map(str, points_data['power']))
         return True
 
     @staticmethod
     def save_to_db_data():
-        return funcsDB.update_record('Tests', vars.dictTest)
+        return funcs_db.update_record('Tests', gvars.dictTest)
 
     @staticmethod
     def save_data():
-        return Test.save_to_vars_data() and Test.save_to_db_data()
+        return Test.save_to_gvars_data() and Test.save_to_db_data()
 
 
 class Pump(Info):
     @staticmethod
     def load(pump_id: int = 0):
         if pump_id <= 0:
-            pump_id = vars.dictTest['Pump'] if vars.dictTest else 0
+            pump_id = gvars.dictTest['Pump'] if gvars.dictTest else 0
             if not pump_id:
                 return False
-        vars.dictPump = funcsDB.get_record('Pumps', conditions={'ID': pump_id})
-        type_id: int = vars.dictPump['Type']
+        gvars.dictPump = funcs_db.get_record('Pumps', conditions={'ID': pump_id})
+        type_id: int = gvars.dictPump['Type']
         Type.load(type_id)
         return True
 
     @staticmethod
     def clear(group: QGroupBox):
-        vars.dictPump.clear()
-        vars.dictType.clear()
+        gvars.dictPump.clear()
+        gvars.dictType.clear()
         Info.clear(group)
 
     @staticmethod
     def display():
-        funcsSpinner.select_item_containing(vars.wnd_main.cmbProducers, {'ID': vars.dictType['Producer']})
-        funcsSpinner.select_item_containing(vars.wnd_main.cmbTypes, {'ID':  vars.dictPump['Type']})
-        funcsSpinner.select_item_containing(vars.wnd_main.cmbSerials, {'Serial': vars.dictPump['Serial']})
-        vars.wnd_main.txtLength.setText(vars.dictPump['Length'])
-        vars.wnd_main.txtStages.setText(str(vars.dictPump['Stages']))
-        vars.wnd_main.txtShaft.setText(vars.dictPump['Shaft'])
-        vars.wnd_main.groupPumpInfo.repaint()
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbProducers, {'ID': gvars.dictType['Producer']})
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbTypes, {'ID':  gvars.dictPump['Type']})
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbSerials, {'Serial': gvars.dictPump['Serial']})
+        gvars.wnd_main.txtLength.setText(gvars.dictPump['Length'])
+        gvars.wnd_main.txtStages.setText(str(gvars.dictPump['Stages']))
+        gvars.wnd_main.txtShaft.setText(gvars.dictPump['Shaft'])
+        gvars.wnd_main.groupPumpInfo.repaint()
         pass
 
     @staticmethod
     def check_exist():
         pump_id: int = 0
-        serial = funcsSpinner.get_current_value(vars.wnd_main.cmbSerials)
-        record = funcsDB.get_value('Pumps', 'ID', {'Serial': serial})
+        serial = funcsSpinner.get_current_value(gvars.wnd_main.cmbSerials)
+        record = funcs_db.get_value('Pumps', 'ID', {'Serial': serial})
         if record is not None and len(record):
             pump_id = record['ID']
         return pump_id
@@ -186,74 +187,74 @@ class Pump(Info):
     def check_all_filled():
         result: bool = True
         missing = []
-        result &= check_value(funcsSpinner.get_current_value(vars.wnd_main.cmbProducers), 'Производитель\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(vars.wnd_main.cmbTypes), 'Типоразмер\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(vars.wnd_main.cmbSerials), 'Заводской номер\n', missing)
-        result &= check_value(vars.wnd_main.txtLength.text(), 'Длина\n', missing)
-        result &= check_value(vars.wnd_main.txtStages.text(), 'Кол-во ступеней\n', missing)
-        # result &= check_value(vars.wnd_main.txtShaft.text(), 'Вылет вала\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducers), 'Производитель\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes), 'Типоразмер\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerials), 'Заводской номер\n', missing)
+        result &= check_value(gvars.wnd_main.txtLength.text(), 'Длина\n', missing)
+        result &= check_value(gvars.wnd_main.txtStages.text(), 'Кол-во ступеней\n', missing)
+        # result &= check_value(gvars.wnd_main.txtShaft.text(), 'Вылет вала\n', missing)
         if not result:
             message = ''.join(missing)
             funcsMessages.show("Внимание", "Добавьте информацию о насосе:\n" + message)
         return result
 
     @staticmethod
-    def save_to_vars():
-        vars.dictPump['Type'] = AesmaFuncs.safe_parse_to(int, funcsSpinner.get_current_value(vars.wnd_main.cmbTypes, 'ID'))
-        vars.dictPump['Serial'] = str(funcsSpinner.get_current_value(vars.wnd_main.cmbSerials))
-        vars.dictPump['Length'] = vars.wnd_main.txtLength.text()
-        vars.dictPump['Stages'] = AesmaFuncs.safe_parse_to(int, vars.wnd_main.txtStages.text())
-        vars.dictPump['Shaft'] = vars.wnd_main.txtShaft.text()
-        # vars.pump_type['Producer'] = int(funcsSpinner.get_current_value(vars.wnd_main.cmbProducers, 'ID'))
+    def save_to_gvars():
+        gvars.dictPump['Type'] = AesmaFuncs.safe_parse_to(int, funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes, 'ID'))
+        gvars.dictPump['Serial'] = str(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerials))
+        gvars.dictPump['Length'] = gvars.wnd_main.txtLength.text()
+        gvars.dictPump['Stages'] = AesmaFuncs.safe_parse_to(int, gvars.wnd_main.txtStages.text())
+        gvars.dictPump['Shaft'] = gvars.wnd_main.txtShaft.text()
+        # gvars.pump_type['Producer'] = int(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducers, 'ID'))
         return True
 
     @staticmethod
     def save_to_db():
-        return funcsDB.insert_record('Pumps', vars.dictPump)
+        return funcs_db.insert_record('Pumps', gvars.dictPump)
 
     @staticmethod
     def save():
-        return Pump.check_all_filled() and Pump.save_to_vars() and Pump.save_to_db()
+        return Pump.check_all_filled() and Pump.save_to_gvars() and Pump.save_to_db()
 
 
 class Type:
     @staticmethod
     def load(type_id: int = 0):
         if type_id <= 0:
-            type_id = vars.dictPump['Type'] if vars.dictPump else 0
+            type_id = gvars.dictPump['Type'] if gvars.dictPump else 0
             if not type_id:
                 return False
-        vars.dictType = funcsDB.get_record('Types', conditions={'ID': type_id})
+        gvars.dictType = funcs_db.get_record('Types', conditions={'ID': type_id})
         return True
 
     @staticmethod
     def clear(group: QGroupBox):
-        vars.dictType.clear()
+        gvars.dictType.clear()
         Info.clear(group)
 
     @staticmethod
     def display():
-        # vars.wnd_main.txtType_Date.setText(vars.pump_type['Date'])
-        # vars.wnd_main.txtType_Rpm.setText(str(vars.pump_type['Rpm']))
-        # vars.wnd_main.txtType_Min.setText(str(vars.pump_type['Min']))
-        # vars.wnd_main.txtType_Nom.setText(str(vars.pump_type['Nom']))
-        # vars.wnd_main.txtType_Max.setText(str(vars.pump_type['Max']))
+        # gvars.wnd_main.txtType_Date.setText(gvars.pump_type['Date'])
+        # gvars.wnd_main.txtType_Rpm.setText(str(gvars.pump_type['Rpm']))
+        # gvars.wnd_main.txtType_Min.setText(str(gvars.pump_type['Min']))
+        # gvars.wnd_main.txtType_Nom.setText(str(gvars.pump_type['Nom']))
+        # gvars.wnd_main.txtType_Max.setText(str(gvars.pump_type['Max']))
         pass
 
     @staticmethod
     def clear():
-        # vars.wnd_main.txtType_Date.clear()
-        # vars.wnd_main.txtType_Rpm.clear()
-        # vars.wnd_main.txtType_Min.clear()
-        # vars.wnd_main.txtType_Nom.clear()
-        # vars.wnd_main.txtType_Max.clear()
+        # gvars.wnd_main.txtType_Date.clear()
+        # gvars.wnd_main.txtType_Rpm.clear()
+        # gvars.wnd_main.txtType_Min.clear()
+        # gvars.wnd_main.txtType_Nom.clear()
+        # gvars.wnd_main.txtType_Max.clear()
         pass
 
     @staticmethod
     def check_exist():
         type_id: int = 0
-        text: str = funcsSpinner.get_current_value(vars.wnd_main.cmbTypes)
-        record = funcsDB.get_value('Types', 'ID', {'Name': text})
+        text: str = funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes)
+        record = funcs_db.get_value('Types', 'ID', {'Name': text})
         if record is not None and len(record):
             type_id = record['ID']
         return type_id
@@ -261,14 +262,14 @@ class Type:
     @staticmethod
     def store():
         # try:
-        #     vars.pump_type['Date'] = vars.wnd_main.txtTypeDate.toPlainText()
-        #     vars.pump_type['Rpm'] = int(vars.wnd_main.txtTypeRpm.toPlainText())
-        #     vars.pump_type['Min'] = int(vars.wnd_main.txtTypeMin.toPlainText())
-        #     vars.pump_type['Nom'] = int(vars.wnd_main.txtTypeNom.toPlainText())
-        #     vars.pump_type['Max'] = int(vars.wnd_main.txtTypeMax.toPlainText())
+        #     gvars.pump_type['Date'] = gvars.wnd_main.txtTypeDate.toPlainText()
+        #     gvars.pump_type['Rpm'] = int(gvars.wnd_main.txtTypeRpm.toPlainText())
+        #     gvars.pump_type['Min'] = int(gvars.wnd_main.txtTypeMin.toPlainText())
+        #     gvars.pump_type['Nom'] = int(gvars.wnd_main.txtTypeNom.toPlainText())
+        #     gvars.pump_type['Max'] = int(gvars.wnd_main.txtTypeMax.toPlainText())
         #     return True
         # except BaseException as error:
-        #     Journal.log(__name__ + " error: " + str(error))
+        #     journal.log(__name__ + " error: " + str(error))
         #     return False
         pass
 

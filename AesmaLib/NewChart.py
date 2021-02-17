@@ -48,7 +48,7 @@ class DynamicSpline(QChart):
             series.attachAxis(axis)
             self._axies.append(axis)
 # def temp(x, y, xx, yy, xxx, yyy):
-#     hbox: QHBoxLayout = vars.wnd_main.horizontalLayout
+#     hbox: QHBoxLayout = gvars.wnd_main.horizontalLayout
 #     hbox.children().clear()
 #     hbox.removeItem(hbox.itemAt(0))
 #
