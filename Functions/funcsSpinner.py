@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QComboBox, QCompleter
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from AesmaLib import journal
+from AesmaLib.journal import Journal
 
 
 def fill(combo: QComboBox, rows: list, display_key: str = '', with_completer=False):
@@ -82,7 +82,7 @@ def __find_index_in_display(model: QStandardItemModel, value):
                 result = index.row()
                 return result
     except BaseException as error:
-        journal.log(__name__ + " Error: " + str(error))
+        Journal.log(__name__ + " Error: " + str(error))
     return 0
 
 
@@ -103,5 +103,5 @@ def __find_index_in_user(model: QStandardItemModel, value):
                             if data[key] == val:
                                 return result
     except BaseException as error:
-        journal.log(__name__ + " Error: " + str(error))
+        Journal.log(__name__ + " Error: " + str(error))
     return 0

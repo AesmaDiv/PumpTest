@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QHeaderView, QFrame
 from PyQt5 import QtCore
 
-from AesmaLib import journal
+from AesmaLib.journal import Journal
 from AppClasses.Pump import Point
 from GUI import Events, Models, PumpGraph
 from Functions import funcs_db, funcsTable, funcsSpinner, funcsAdam
@@ -13,7 +13,7 @@ from GUI.Markers import Markers
 
 
 def register_events():
-    journal.log("MainWindow::", "\tregistering events")
+    Journal.log("MainWindow::", "\tregistering events")
     gvars.wnd_main.tableTests.selectionModel().currentChanged.connect(Events.on_changed_testlist)
 
     gvars.wnd_main.cmbProducers.currentIndexChanged.connect(Events.on_changed_combo_producers)
@@ -54,7 +54,6 @@ def register_events():
 
     funcsAdam.broadcaster.event.connect(Events.on_adam_data_received)
     # gvars.markers.eventMove.connect(Events.on_markers_move)
-    pass
 
 
 def set_color_scheme():
@@ -68,7 +67,7 @@ def set_color_scheme():
 
 # FILL CONTROLS
 def init_test_list():
-    journal.log("MainWindow::", "\tinitializing test list")
+    Journal.log("MainWindow::", "\tinitializing test list")
     gvars.wnd_main.tableTests.setColumnWidth(0, 50)
     gvars.wnd_main.tableTests.setColumnWidth(1, 150)
     gvars.wnd_main.tableTests.setColumnWidth(2, 80)
@@ -77,34 +76,24 @@ def init_test_list():
     tests_headers = ['№', 'Дата-Время', 'Наряд-Заказ', 'Заводской номер']
     tests_headers_sizes = [50, 150, 200, 200]
     tests_resizes = [QHeaderView.Fixed, QHeaderView.Fixed, QHeaderView.Stretch, QHeaderView.Stretch]
-    # tests_data = funcs_db.execute_query(gvars.testlist_query)
-    tests_data = funcs_db.get_records(
-        table=gvars.testlist_query['table'],
-        columns=gvars.testlist_query['columns'],
-        conditions=gvars.testlist_query['inner'],
-        order_by=gvars.testlist_query['order'])
+    tests_data = funcs_db.execute_query(gvars.testlist_query)
     gvars.wnd_main.tests_filter = Models.FilterModel(gvars.wnd_main)
     gvars.wnd_main.tests_filter.setDynamicSortFilter(True)
     funcsTable.init(gvars.wnd_main.tableTests, display=tests_display, filter_proxy=gvars.wnd_main.tests_filter,
-                    # data=tests_data,
+                    data=tests_data,
                     headers=tests_headers, headers_sizes=tests_headers_sizes, headers_resizes=tests_resizes)
 
 
 def fill_test_list():
-    journal.log("MainWindow::", "\tfilling test list")
-    # tests_data = funcs_db.execute_query(gvars.testlist_query)
-    tests_data = funcs_db.get_records(
-        table=gvars.testlist_query['table'],
-        columns=gvars.testlist_query['columns'],
-        conditions=gvars.testlist_query['inner'],
-        order_by=gvars.testlist_query['order'])
+    Journal.log("MainWindow::", "\tfilling test list")
+    tests_data = funcs_db.execute_query(gvars.testlist_query)
     funcsTable.set_data(gvars.wnd_main.tableTests, tests_data)
     funcsTable.select_row(gvars.wnd_main.tableTests, 0)
     # funcs_db.set_permission('Tests', False)
 
 
 def init_points_list():
-    journal.log("MainWindow::", "\tinitializing points list")
+    Journal.log("MainWindow::", "\tinitializing points list")
     gvars.wnd_main.tablePoints.setColumnWidth(0, 90)
     gvars.wnd_main.tablePoints.setColumnWidth(1, 90)
     gvars.wnd_main.tablePoints.setColumnWidth(2, 90)
@@ -118,7 +107,7 @@ def init_points_list():
 
 
 def fill_spinners():
-    journal.log("MainWindow::", "\tfilling spinners ->")
+    Journal.log("MainWindow::", "\tfilling spinners ->")
     fill_spinner(gvars.wnd_main.cmbProducers, 'Producers', ['ID', 'Name'], 1)
     fill_spinner(gvars.wnd_main.cmbCustomers, 'Customers', ['ID', 'Name'], 1, with_completer=True)
     fill_spinner(gvars.wnd_main.cmbTypes, 'Types', ['ID', 'Name', 'Producer'], 1, with_completer=True)
@@ -128,7 +117,7 @@ def fill_spinners():
 
 
 def fill_spinner(spinner, table, columns, index, conditions=None, order_by='Name Asc', with_completer=False):
-    journal.log("MainWindow::", "\t--> filling", table)
+    Journal.log("MainWindow::", "\t--> filling", table)
     if conditions is None: conditions = {}
     items = ['', 'Новый', 'Ремонт']
     if not table == 'Assembly':
@@ -138,8 +127,8 @@ def fill_spinner(spinner, table, columns, index, conditions=None, order_by='Name
 
 # GRAPH
 def init_graph():
-    journal.log("MainWindow::", "\tinitializing graph widget")
-    gvars.graph_info = PumpGraph.PumpGraph(100, 100, gvars.path_to_pix)
+    Journal.log("MainWindow::", "\tinitializing graph widget")
+    gvars.graph_info = PumpGraph.PumpGraph(100, 100, gvars.path_to_pic)
     gvars.graph_info.setMargins([10, 10, 10, 10])
     gvars.markers = Markers(['test_lift', 'test_power'], gvars.graph_info)
     gvars.markers.setMarkerColor('test_lift', QtCore.Qt.blue)

@@ -3,13 +3,13 @@ from PyQt5.QtCore import Qt
 from AppClasses import Infos
 from Functions import funcsCommon, funcsSpinner, funcsGraph, funcsMessages
 from Functions import funcsTest, funcsWindow, funcsAdam, funcsTable
-from AesmaLib import journal
+from AesmaLib.journal import Journal
 from Globals import gvars
 
 
 # TESTLIST
 def on_changed_testlist():
-    journal.log("Event::", "\ttest list changed", funcsTable.get_row(gvars.wnd_main.tableTests)['ID'])
+    Journal.log("Event::", "\ttest list changed", funcsTable.get_row(gvars.wnd_main.tableTests)['ID'])
     Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, True)
     Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
     if Infos.Test.load() and Infos.Pump.load(gvars.dictTest['Pump']):
@@ -25,7 +25,7 @@ def on_changed_testlist():
 
 # PUMP INFO
 def on_clicked_pump_new():
-    journal.log("Event::", "\tnew pump clicked")
+    Journal.log("Event::", "\tnew pump clicked")
     Infos.Test.clear(gvars.wnd_main.groupTestInfo)
     Infos.Type.clear()
     Infos.Pump.clear(gvars.wnd_main.groupPumpInfo)
@@ -34,7 +34,7 @@ def on_clicked_pump_new():
 
 
 def on_clicked_pump_save():
-    journal.log("Event::", "\tsave pump clicked")
+    Journal.log("Event::", "\tsave pump clicked")
     if Infos.Type.check_exist():
         if Infos.Pump.check_exist() or Infos.Pump.save():
             Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
@@ -43,7 +43,7 @@ def on_clicked_pump_save():
 
 
 def on_clicked_pump_cancel():
-    journal.log("Event::", "\tnew pump cancel clicked")
+    Journal.log("Event::", "\tnew pump cancel clicked")
     Infos.Pump.clear(gvars.wnd_main.groupPumpInfo)
     Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
     pass
@@ -51,7 +51,7 @@ def on_clicked_pump_cancel():
 
 # TEST INFO
 def on_clicked_test_new():
-    journal.log("Event::", "\tnew test clicked")
+    Journal.log("Event::", "\tnew test clicked")
     Infos.Test.clear(gvars.wnd_main.groupTestInfo)
     Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, False)
     funcsCommon.set_current_date()
@@ -59,7 +59,7 @@ def on_clicked_test_new():
 
 
 def on_clicked_test_info_save():
-    journal.log("Event::", "\tsave test clicked")
+    Journal.log("Event::", "\tsave test clicked")
     test_id: int = Infos.Test.check_exist()
     if test_id:
         if funcsMessages.ask("Внимание", "Тест с таким наряд-заказом\nуже присутствует в базе.\nХотите его выбрать?"):
@@ -76,7 +76,7 @@ def on_clicked_test_info_save():
 
 
 def on_clicked_test_info_cancel():
-    journal.log("Event::", "\tnew test cancel clicked")
+    Journal.log("Event::", "\tnew test cancel clicked")
     Infos.Test.clear(gvars.wnd_main.groupTestInfo)
     Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, True)
     pass
@@ -85,7 +85,7 @@ def on_clicked_test_info_cancel():
 # PUMP AND TEST INFO PARAMS
 def on_changed_combo_producers(index):
     values = gvars.wnd_main.cmbProducers.currentData(Qt.UserRole)
-    journal.log("Event::", "\tproducer changed to ", values['Name'])
+    Journal.log("Event::", "\tproducer changed to ", values['Name'])
     conditions: dict = {'Producer': values['ID']} if type(values) is dict and 'ID' in values else {}
     funcsWindow.fill_spinner(gvars.wnd_main.cmbTypes, 'Types', ['ID', 'Name', 'Producer'], 1, conditions)
 
@@ -93,7 +93,7 @@ def on_changed_combo_producers(index):
 def on_changed_combo_types(index):
     if index:
         values = gvars.wnd_main.cmbTypes.currentData(Qt.UserRole)
-        journal.log("Event::", "\ttype changed to", values['Name'])
+        Journal.log("Event::", "\ttype changed to", values['Name'])
         if type(values) is dict and 'ID' in values:
             type_id = values['ID']
             gvars.wnd_main.groupTestFrame.setTitle(values['Name'])
@@ -105,7 +105,7 @@ def on_changed_combo_types(index):
 
 
 def on_changed_combo_serials(index):
-    journal.log("Event::", "\tserial changed")
+    Journal.log("Event::", "\tserial changed")
     if index:
         values = gvars.wnd_main.cmbSerials.currentData(Qt.UserRole)
         if type(values) is dict and 'ID' in values:
@@ -125,21 +125,21 @@ def on_clicked_save():
 
 
 def on_clicked_filter_reset():
-    journal.log("Event::", "\treset filter clicked")
+    Journal.log("Event::", "\treset filter clicked")
     funcsCommon.Filters.reset()
     Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, True)
     Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
 
 
 def on_clicked_go_test():
-    journal.log("Event::", "\tgo to testing clicked")
+    Journal.log("Event::", "\tgo to testing clicked")
     gvars.wnd_main.stackedWidget.setCurrentIndex(1)
     funcsGraph.display_charts(gvars.markers)
     gvars.markers.repositionFor(gvars.graph_info)
 
 
 def on_clicked_go_back():
-    journal.log("Event::", "\tgo back clicked")
+    Journal.log("Event::", "\tgo back clicked")
     gvars.wnd_main.stackedWidget.setCurrentIndex(0)
     funcsGraph.display_charts(gvars.wnd_main.frameGraphInfo)
 
@@ -166,7 +166,7 @@ def on_changed_test_values():
 
 
 def on_clicked_add_point():
-    journal.log("Event::", "\tadd point clicked")
+    Journal.log("Event::", "\tadd point clicked")
     gvars.markers.addKnots()
     funcsTest.add_point_to_list()
     funcsTest.add_points_to_charts()
@@ -174,7 +174,7 @@ def on_clicked_add_point():
 
 
 def on_clicked_remove_point():
-    journal.log("Event::", "\tremove point clicked")
+    Journal.log("Event::", "\tremove point clicked")
     gvars.markers.removeKnots()
     funcsTest.remove_last_point_from_list()
     funcsTest.remove_last_points_from_charts()
@@ -182,7 +182,7 @@ def on_clicked_remove_point():
 
 
 def on_clicked_clear_curve():
-    journal.log("Event::", "\tmoving chart to graph")
+    Journal.log("Event::", "\tmoving chart to graph")
     gvars.markers.clearAllKnots()
     funcsTest.clear_points_from_list()
     funcsTest.clear_points_from_charts()
@@ -190,7 +190,7 @@ def on_clicked_clear_curve():
 
 
 def on_changed_filter_apply(text: str):
-    journal.log("Event::", "\tapply filter clicked")
+    Journal.log("Event::", "\tapply filter clicked")
     funcsCommon.Filters.apply()
 
 

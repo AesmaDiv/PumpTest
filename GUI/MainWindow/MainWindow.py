@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMainWindow
 from PyQt5 import uic
 from Functions import funcsCommon, funcs_db, funcsWindow, funcsTest
 from AppClasses import Infos
-from AesmaLib import journal
+from AesmaLib.journal import Journal
 from Globals import gvars
 
 
@@ -11,19 +11,19 @@ class Window(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
-            journal.log("MainWindow::", "\tLoading UI form")
+            Journal.log("MainWindow::", "\tLoading UI form")
             path = os.path.dirname(__file__)
             path += "/mainwindow.ui"
             uic.loadUi(path, self)
         except IOError as error:
-            journal.log("MainWindow::", "\terror:", str(error))
+            Journal.log("MainWindow::", "\terror:", str(error))
 
     def __del__(self):
         pass
 
     @staticmethod
     def prepare():
-        journal.log("MainWindow::", "\tPreparing UI form")
+        Journal.log("MainWindow::", "\tPreparing UI form")
         try:
             funcsWindow.init_test_list()
             funcsWindow.fill_test_list()
@@ -33,10 +33,10 @@ class Window(QMainWindow):
             funcsWindow.set_color_scheme()
             funcsWindow.register_events()
         except BaseException as error:
-            journal.log("MainWindow::", "\terror:", str(error))
+            Journal.log("MainWindow::", "\terror:", str(error))
 
     def show(self):
-        journal.log("MainWindow::", "\tShowing UI form")
+        Journal.log("MainWindow::", "\tShowing UI form")
         super().show()
         self.move(1, 1)
         funcsCommon.Filters.switch_others()
@@ -49,28 +49,28 @@ class Window(QMainWindow):
     @staticmethod
     def __display_record():
         if Infos.Pump.load() and Infos.Test.load():
-            journal.log("MainWindow::", "\tshowing record")
+            Journal.log("MainWindow::", "\tshowing record")
             Infos.Test.display()
             Infos.Pump.display()
             Infos.Type.display()
 
     @staticmethod
     def __create_record():
-        journal.log("MainWindow::", "\tclearing record")
+        Journal.log("MainWindow::", "\tclearing record")
         Infos.Test.clear()
         Infos.Pump.clear()
         Infos.Type.clear()
 
     @staticmethod
     def __store_record(self):
-        journal.log("MainWindow::", "\tsaving record")
+        Journal.log("MainWindow::", "\tsaving record")
         # self.__store_type_info()
         # self.__store_pump_info()
         if Infos.Test.save_to_gvars_info():
             if funcs_db.update_record('Tests', gvars.dictTest):
-                journal.log("MainWindow::", "\trecord updated success")
+                Journal.log("MainWindow::", "\trecord updated success")
                 self.__fill_testlist()
             else:
-                journal.log("MainWindow::", "\terror updating record")
+                Journal.log("MainWindow::", "\terror updating record")
 
 # READ RECORD

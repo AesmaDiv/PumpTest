@@ -5,12 +5,12 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from AesmaLib import journal
+from AesmaLib.journal import Journal
 from Globals import gvars
 from GUI.MainWindow.MainWindow import Window as mainWindow
 
 if __name__ == '__main__':
-    journal.log(__name__, '\t', "*** Starting application ***")
+    Journal.log(__name__, '\t', "*** Starting application ***")
     faulthandler.enable()
     app = QApplication(sys.argv)
 
@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     app.exec_()
     faulthandler.disable()
-    journal.log(__name__, '\t', "*** Exiting application ***")
+    Journal.log(__name__, '\t', "*** Exiting application ***")
 
 # adam = Adam5K('10.10.10.10', 502, 1)
 # adam.connect()

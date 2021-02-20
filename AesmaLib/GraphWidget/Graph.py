@@ -6,7 +6,7 @@ from PyQt5.QtCore import QPointF, Qt, QRectF, QSizeF, QSize, QEvent
 from AesmaLib.GraphWidget.Axis import Axis
 from AesmaLib.GraphWidget.Chart import Chart
 from AesmaLib.GraphWidget import SplineFuncs
-from AesmaLib import journal
+from AesmaLib.journal import Journal
 
 is_logged = True
 is_updated = False
@@ -35,7 +35,7 @@ class Graph(QWidget):
         if len(margins) == 4:
             self._margins = margins
         else:
-            if is_logged: journal.log(__name__, '\tError:: margins len incorrect')
+            if is_logged: Journal.log(__name__, '\tError:: margins len incorrect')
 
     def getMargins(self):
         return self._margins
@@ -46,31 +46,31 @@ class Graph(QWidget):
                       self.height() - self._margins[1] - self._margins[3])
 
     def addChart(self, chart: Chart, name: str):
-        if is_logged: journal.log(__name__, "\tadding chart", name)
+        if is_logged: Journal.log(__name__, "\tadding chart", name)
         self._charts.update({name: chart})
         self._updateBaseChart(chart, name)
 
     def removeChart(self, name: str):
         if name in self._charts.keys():
-            if is_logged: journal.log(__name__, "\tremoving chart", name)
+            if is_logged: Journal.log(__name__, "\tremoving chart", name)
             del self._charts[name]
             if self._base_chart == name:
                 self._updateBaseChart(None, 'none')
 
     def replaceChart(self, chart: Chart, name: str):
         if name in self._charts.keys():
-            if is_logged: journal.log(__name__, "\treplacing chart", name)
+            if is_logged: Journal.log(__name__, "\treplacing chart", name)
             self._charts.update({name: chart})
             if self._base_chart == name:
                 self._updateBaseChart(chart, name)
 
     def clearCharts(self):
-        if is_logged: journal.log(__name__, "\tclearing charts")
+        if is_logged: Journal.log(__name__, "\tclearing charts")
         self._charts.clear()
         self._updateBaseChart(None, 'none')
 
     def paintEvent(self, event):
-        if is_logged: journal.log(__name__, "\tpaintEvent -> begin *************")
+        if is_logged: Journal.log(__name__, "\tpaintEvent -> begin *************")
         painter = QPainter()
         painter.begin(self)
         painter.setRenderHints(QPainter.Antialiasing, True)
@@ -78,11 +78,11 @@ class Graph(QWidget):
         self._drawCharts(painter)
         self._drawBorder(painter)
         painter.end()
-        if is_logged: journal.log(__name__, "\tpaintEvent -> end *************")
+        if is_logged: Journal.log(__name__, "\tpaintEvent -> end *************")
 
     def _drawGrid(self, painter: QPainter):
         if len(self._charts):
-            if is_logged: journal.log(__name__, "\tdrawGrid ->")
+            if is_logged: Journal.log(__name__, "\tdrawGrid ->")
             step_x = self.getDrawArea().width() / self._divs_x
             step_y = self.getDrawArea().height() / self._divs_y
 
@@ -97,7 +97,7 @@ class Graph(QWidget):
 
     def _drawGridBackground(self, painter: QPainter):
         if is_logged:
-            journal.log(__name__, "\tdrawing grid background")
+            Journal.log(__name__, "\tdrawing grid background")
         x, y = self._margins[0], self._margins[1]
         painter.fillRect(QRectF(QPointF(0, 0),
                                 QSizeF(self.width(),
@@ -109,7 +109,7 @@ class Graph(QWidget):
                          self._grid_background)
 
     def _drawGridLinesX(self, painter: QPainter, step):
-        if is_logged: journal.log(__name__, "\tdrawing grid lines X")
+        if is_logged: Journal.log(__name__, "\tdrawing grid lines X")
         axis: Axis = self._charts[self._base_chart].getAxis('x')
         for i, div in axis.generateDivSteps():
             if i == 0 or i == self._divs_x or div == 0.0:
@@ -124,7 +124,7 @@ class Graph(QWidget):
                                      self.height() - self._margins[3]))
 
     def _drawGridLinesY(self, painter: QPainter, step: float):
-        if is_logged: journal.log(__name__, "\tdrawing grid lines Y")
+        if is_logged: Journal.log(__name__, "\tdrawing grid lines Y")
         axis: Axis = self._charts[self._base_chart].getAxis('y')
         for i, div in axis.generateDivSteps():
             if i == 0 or i == self._divs_y or div == 0.0:
@@ -140,7 +140,7 @@ class Graph(QWidget):
 
     def _drawGridDivsX(self, painter: QPainter, step: float):
         if len(self._charts) > 0:
-            if is_logged: journal.log(__name__, "\tdrawing grid divisions X")
+            if is_logged: Journal.log(__name__, "\tdrawing grid divisions X")
             axis: Axis = self._charts[self._base_chart].getAxis('x')
             fm = QFontMetricsF(self._grid_font)
             for i, div in axis.generateDivSteps():
@@ -153,7 +153,7 @@ class Graph(QWidget):
 
     def _drawGridDivsY(self, painter: QPainter, step: float):
         if len(self._charts) > 0:
-            if is_logged: journal.log(__name__, "\tdrawing grid divisions Y")
+            if is_logged: Journal.log(__name__, "\tdrawing grid divisions Y")
             axis: Axis = self._charts[self._base_chart].getAxis('y')
             fm = QFontMetricsF(self._grid_font)
             for i, div in axis.generateDivSteps():
@@ -165,7 +165,7 @@ class Graph(QWidget):
                                  text)
 
     def _drawBorder(self, painter: QPainter):
-        if is_logged: journal.log(__name__, "\tdrawing border")
+        if is_logged: Journal.log(__name__, "\tdrawing border")
         pen = painter.pen()
         painter.setPen(self._grid_border_pen)
         painter.drawRect(0, 0,
@@ -174,7 +174,7 @@ class Graph(QWidget):
         painter.setPen(pen)
 
     def _drawCharts(self, painter: QPainter):
-        if is_logged: journal.log(__name__, "\tdrawCharts ->")
+        if is_logged: Journal.log(__name__, "\tdrawCharts ->")
         transform: QTransform = QTransform()
         transform.setMatrix(1, 0, 0,
                             0, 1, 0,
@@ -192,7 +192,7 @@ class Graph(QWidget):
                             0, 0, 1)
 
     def _drawChart(self, painter: QPainter, chart: Chart, flag=''):
-        if is_logged: journal.log(__name__, "\tdrawing chart", chart.getName())
+        if is_logged: Journal.log(__name__, "\tdrawing chart", chart.getName())
         if len(chart.getPoints('x')) > 1:
             points = chart.getTranslatedPoints(
                 self.getDrawArea().width(),
@@ -208,11 +208,11 @@ class Graph(QWidget):
                 return
             Graph.drawCurve(painter, Graph.getBSpline(points), chart.getPen())
         else:
-            journal.log(__name__, "\tchart", chart.getName(), "is empty")
+            Journal.log(__name__, "\tchart", chart.getName(), "is empty")
 
     def _updateBaseChart(self, chart: Chart, name: str):
         if self._base_chart == 'none' or name == 'none':
-            if is_logged: journal.log(__name__, "\tupdating base chart to", name)
+            if is_logged: Journal.log(__name__, "\tupdating base chart to", name)
             self._base_chart = name
             self._divs_x = chart.getAxis('x').getDivs() if chart else 1
             self._divs_y = chart.getAxis('y').getDivs() if chart else 1

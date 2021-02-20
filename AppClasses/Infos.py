@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QApplication, QGroupBox, QComboBox
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QWidget
 
-from AesmaLib import journal, AesmaFuncs
+from AesmaLib import aesma_funcs
+from AesmaLib.journal import Journal
 from Functions import funcsTable, funcsSpinner, funcs_db, funcsMessages
 from Globals import gvars
 
@@ -106,7 +107,7 @@ class Test(Info):
     def save_to_gvars_info():
         gvars.dictTest['Pump'] = gvars.dictPump['ID']
         gvars.dictTest['DateTime'] = gvars.wnd_main.txtDateTime.text()
-        gvars.dictTest['Customer'] = AesmaFuncs.safe_parse_to(int,
+        gvars.dictTest['Customer'] = aesma_funcs.safe_parse_to(int,
                                                              funcsSpinner.get_current_value(gvars.wnd_main.cmbCustomers,
                                                                                             'ID'))
         gvars.dictTest['Assembly'] = funcsSpinner.get_current_value(gvars.wnd_main.cmbAssembly)
@@ -130,7 +131,7 @@ class Test(Info):
     @staticmethod
     def save_to_gvars_data():
         points = funcsTable.get_data(gvars.wnd_main.tablePoints)
-        points_data = AesmaFuncs.merge_dictionaries(points)
+        points_data = aesma_funcs.merge_dictionaries(points)
         gvars.dictTest['Flows'] = ', '.join(map(str, points_data['flow']))
         gvars.dictTest['Lifts'] = ', '.join(map(str, points_data['lift']))
         gvars.dictTest['Powers'] = ', '.join(map(str, points_data['power']))
@@ -200,10 +201,10 @@ class Pump(Info):
 
     @staticmethod
     def save_to_gvars():
-        gvars.dictPump['Type'] = AesmaFuncs.safe_parse_to(int, funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes, 'ID'))
+        gvars.dictPump['Type'] = aesma_funcs.safe_parse_to(int, funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes, 'ID'))
         gvars.dictPump['Serial'] = str(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerials))
         gvars.dictPump['Length'] = gvars.wnd_main.txtLength.text()
-        gvars.dictPump['Stages'] = AesmaFuncs.safe_parse_to(int, gvars.wnd_main.txtStages.text())
+        gvars.dictPump['Stages'] = aesma_funcs.safe_parse_to(int, gvars.wnd_main.txtStages.text())
         gvars.dictPump['Shaft'] = gvars.wnd_main.txtShaft.text()
         # gvars.pump_type['Producer'] = int(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducers, 'ID'))
         return True
@@ -269,7 +270,7 @@ class Type:
         #     gvars.pump_type['Max'] = int(gvars.wnd_main.txtTypeMax.toPlainText())
         #     return True
         # except BaseException as error:
-        #     journal.log(__name__ + " error: " + str(error))
+        #     Journal.log(__name__ + " error: " + str(error))
         #     return False
         pass
 

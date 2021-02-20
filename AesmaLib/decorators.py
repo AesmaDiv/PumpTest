@@ -1,4 +1,9 @@
+"""
+    Модуль для универсальных декораторов
+"""
+
 class Singleton(type):
+    """ Декоратор синглтона """
     _instances = {}
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:

@@ -104,8 +104,18 @@ class SqliteDB(Database):
         query = self._builder.build_delete(table, conditions)
         return self.execute(query)
 
+    @connect_execute_disconnect
+    def execute_with_retval(self, query: str):
+        """ Executing sql query WITH return value """
+        result = None
+        if self.execute(query):
+            records = self._cursor.fetchall()
+            result = [dict(row) for row in records]
+        return result
+
+
     def execute(self, query: str):
-        """ Executing sql query """
+        """ Executing sql query WITHOUT return value """
         try:
             self._cursor.execute(query)
             self._connection.commit()
@@ -121,8 +131,7 @@ class SqliteDB(Database):
         if not path.exists(self._db_path):
             print(__name__, f"\tError:: wrong database file {self._db_path}")
             return False
-        else:
-            return True
+        return True
 
 
 class SqlQueryBuilder(metaclass=Singleton):
@@ -134,7 +143,7 @@ class SqlQueryBuilder(metaclass=Singleton):
         if self._check_not_empty([table]):
             cols = ",".join(map(str, columns)) if columns else "*"
             conds = self._create_conditions(conditions)
-            ordr = self._create_order([order])
+            ordr = self._create_order(order)
             result = f"Select {cols} From {table} {conds} {ordr}"
             result = self._secure(result)
         return result
@@ -193,29 +202,15 @@ class SqlQueryBuilder(metaclass=Singleton):
         """ Creating string containing WHERE conditions for Sql query """
         result = ""
         if self._check_not_empty([conditions]):
-            prefix = self._create_inner_join(conditions)
-            if len(prefix):
-                result += prefix
             vals = self._create_values(conditions, " And ")
-            if len(vals):
-                result += f" Where {vals}"
-        return result.strip()
-
-    @staticmethod
-    def _create_inner_join(conditions: dict) -> str:
-        """ Create Inner Joins string for query"""
-        result = ""
-        for k, v in conditions.items():
-            if 'inner' in k.lower():
-                conditions.pop(k)
-                result = f"{k}={v}"
-                break
+            if vals:
+                result = f"Where {vals}"
         return result
 
     @staticmethod
-    def _create_order(order: list) -> str:
+    def _create_order(order: str) -> str:
         """ Creating string containing ORDER BY for Sql query """
-        return f"Order by {', '.join(order)}" if order else ""
+        return f"Order by {order}" if order else ""
 
     @staticmethod
     def _check_not_empty(args: list) -> bool:

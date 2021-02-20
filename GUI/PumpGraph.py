@@ -2,7 +2,8 @@ from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPolygonF, QPen, QTrans
 from PyQt5.QtGui import QFontMetricsF, QShowEvent
 from PyQt5.QtCore import QPointF, Qt, QSize
 from AesmaLib.GraphWidget.Graph import Graph, Chart, Axis
-from AesmaLib import ArrayFuncs, journal
+from AesmaLib import aesma_funcs
+from AesmaLib.journal import Journal
 
 
 is_logged = True
@@ -50,12 +51,12 @@ class PumpGraph(Graph):
         self.setMargins([10, 10, 10, 10])
 
     def clearChartsData(self):
-        if is_logged: journal.log(__name__, "\tclearing charts data")
+        if is_logged: Journal.log(__name__, "\tclearing charts data")
         self._charts_data.clear()
 
     def _drawGrid(self, painter: QPainter):
         if len(self._charts):
-            if is_logged: journal.log(__name__, "\tdrawGrid ->")
+            if is_logged: Journal.log(__name__, "\tdrawGrid ->")
             self._calculateMargins()
 
             step_x = self.getDrawArea().width() / self._divs_x
@@ -74,7 +75,7 @@ class PumpGraph(Graph):
             painter.setPen(pen)
 
     def _drawGridRanges(self, painter: QPainter):
-        if is_logged: journal.log(__name__, "\tdrawing grid ranges")
+        if is_logged: Journal.log(__name__, "\tdrawing grid ranges")
         self._calculateLimits()
         x0 = self._margins[0] + self._limits_pixel[0]
         x1 = self._margins[0] + self._limits_pixel[1]
@@ -94,7 +95,7 @@ class PumpGraph(Graph):
 
     def _drawGridLinesX(self, painter: QPainter, step: float):
         if self._grid_divs['x0'].is_ready:
-            if is_logged: journal.log(__name__, "\tdrawing grid lines X")
+            if is_logged: Journal.log(__name__, "\tdrawing grid lines X")
             divs = self._grid_divs['x0'].divs
             for i in range(len(divs)):
                 self._grid_pen.setStyle(Qt.SolidLine if divs[i] == 0 else Qt.DotLine)
@@ -105,11 +106,11 @@ class PumpGraph(Graph):
                                  QPointF(coord,
                                          self.height() - self._margins[3]))
         else:
-            if is_logged: journal.log(__name__, "\tError -> grid divs X not ready")
+            if is_logged: Journal.log(__name__, "\tError -> grid divs X not ready")
 
     def _drawGridLinesY(self, painter: QPainter, step: float):
         if self._grid_divs['y0'].is_ready:
-            if is_logged: journal.log(__name__, "\tdrawing grid lines Y")
+            if is_logged: Journal.log(__name__, "\tdrawing grid lines Y")
             divs = self._grid_divs['y0'].divs
             for i in range(1, len(divs)):
                 self._grid_pen.setStyle(Qt.SolidLine if divs[i] == 0 else Qt.DotLine)
@@ -120,11 +121,11 @@ class PumpGraph(Graph):
                                  QPointF(self.width() - self._margins[2],
                                          coord))
         else:
-            if is_logged: journal.log(__name__, "\tError -> grid divs Y not ready")
+            if is_logged: Journal.log(__name__, "\tError -> grid divs Y not ready")
 
     def _drawGridDivsX(self, painter: QPainter, step: float):
         if self._grid_divs['x0'].is_ready:
-            if is_logged: journal.log(__name__, "\tdrawing grid divisions X")
+            if is_logged: Journal.log(__name__, "\tdrawing grid divisions X")
             fm = QFontMetricsF(self._grid_font)
             divs = self._grid_divs['x0'].divs
             pen = painter.pen()
@@ -140,7 +141,7 @@ class PumpGraph(Graph):
 
     def _drawGridDivsY(self, painter: QPainter, step: float, axis_name='y0'):
         if self._grid_divs[axis_name].is_ready:
-            if is_logged: journal.log(__name__, "\tdrawing grid divisions Y", axis_name)
+            if is_logged: Journal.log(__name__, "\tdrawing grid divisions Y", axis_name)
             fm = QFontMetricsF(self._grid_font)
             divs = self._grid_divs[axis_name].divs
             pen = painter.pen()
@@ -161,7 +162,7 @@ class PumpGraph(Graph):
             painter.setPen(pen)
 
     def _drawCharts(self, painter: QPainter):
-        if is_logged: journal.log(__name__, "\tdrawCharts ->")
+        if is_logged: Journal.log(__name__, "\tdrawCharts ->")
         transform: QTransform = QTransform()
         self._preparingChartsData()
         self._setCanvasTransform(painter, transform)
@@ -175,7 +176,7 @@ class PumpGraph(Graph):
                 self._drawLimits(painter, data['limits'], chart)
 
     def _drawChartsKnotsAndCurves(self, painter: QPainter):
-        if is_logged: journal.log(__name__, "\tdrawing charts curves and knots")
+        if is_logged: Journal.log(__name__, "\tdrawing charts curves and knots")
         for chart, data in self._charts_data.items():
             if len(data['knots']) > 1:
                 if chart.getVisibility():
@@ -184,15 +185,15 @@ class PumpGraph(Graph):
                     painter.setPen(chart.getPen())
                     painter.setBrush(chart.getPen().color())
                     if "knots" in chart.getOptions():
-                        if is_logged: journal.log(__name__, "\tdrawing knots for", chart.getName())
+                        if is_logged: Journal.log(__name__, "\tdrawing knots for", chart.getName())
                         self._drawKnots(painter, data['knots'])
                     painter.setBrush(brush)
-                    if is_logged: journal.log(__name__, "\tdrawing curve for", chart.getName())
+                    if is_logged: Journal.log(__name__, "\tdrawing curve for", chart.getName())
                     Graph.drawCurve(painter, data['curve'], chart.getPen())
                     painter.setPen(pen)
 
     def _drawLimits(self, painter: QPainter, limits: list, chart: Chart):
-        if is_logged: journal.log(__name__, "\tdrawing limits for", chart.getName())
+        if is_logged: Journal.log(__name__, "\tdrawing limits for", chart.getName())
         points_hi, points_lo = limits
         if is_limits_polygon:
             self._drawCurveLimitPolygon(painter, points_hi + points_lo)
@@ -257,19 +258,19 @@ class PumpGraph(Graph):
                             0, 0, 1)
 
     def _preparingChartsData(self):
-        if is_logged: journal.log(__name__, "\tpreparing charts datas ->")
+        if is_logged: Journal.log(__name__, "\tpreparing charts datas ->")
         for chart in self._charts.values():
             self._prepareChartData(chart)
 
     def _prepareChartData(self, chart: Chart):
-        if is_logged: journal.log(__name__, "\t-> preparing chart data for", chart.getName())
+        if is_logged: Journal.log(__name__, "\t-> preparing chart data for", chart.getName())
         knots = self._getChartKnots(chart)
         curve = self._getChartCurve(chart, knots)
         limits = self._getChartLimits(chart, curve)
         self._charts_data.update({chart: {'knots': knots, 'curve': curve, 'limits': limits}})
 
     def _getChartKnots(self, chart: Chart):
-        if is_logged: journal.log(__name__, "\t-> getting knots for", chart.getName())
+        if is_logged: Journal.log(__name__, "\t-> getting knots for", chart.getName())
         result = []
         if len(chart.getPoints()) > 1:
             result = chart.getTranslatedPoints(
@@ -279,16 +280,16 @@ class PumpGraph(Graph):
         return result
 
     def _getChartCurve(self, chart: Chart, knots: list):
-        if is_logged: journal.log(__name__, "\t-> getting curve for", chart.getName())
+        if is_logged: Journal.log(__name__, "\t-> getting curve for", chart.getName())
         result = Graph.getBSpline(knots) if len(knots) > 2 else knots
         return result
 
     def _getChartLimits(self, chart: Chart, curve: list):
         if 'limit' in chart.getOptions():
-            if is_logged: journal.log(__name__, "\t-> getting limits for", chart.getName())
+            if is_logged: Journal.log(__name__, "\t-> getting limits for", chart.getName())
             coords_x, coords_y = self._calculateLimitPoints(curve)
-            coords_y_hi = ArrayFuncs.apply_coef(coords_y, chart.getCoefs()[0])
-            coords_y_lo = ArrayFuncs.apply_coef(coords_y, chart.getCoefs()[1])
+            coords_y_hi = list(map(lambda x: x * chart.getCoefs()[0], coords_y))
+            coords_y_lo = list(map(lambda x: x * chart.getCoefs()[1], coords_y))
             result_hi = Graph.packCoordsToPoints(coords_x, coords_y_hi)
             result_lo = Graph.packCoordsToPoints(coords_x, coords_y_lo)
             if is_limits_polygon:
@@ -299,8 +300,8 @@ class PumpGraph(Graph):
 
     def _calculateLimitPoints(self, points: list):
         result_x, result_y = Graph.unpackPointsToCoords(points)
-        result_x, first = ArrayFuncs.remove_lesser(result_x, self._limits_pixel[0])
-        result_x, last = ArrayFuncs.remove_greater(result_x, self._limits_pixel[2])
+        result_x, first = aesma_funcs.remove_lesser(result_x, self._limits_pixel[0])
+        result_x, last = aesma_funcs.remove_greater(result_x, self._limits_pixel[2])
         if first >= 0:
             del result_y[:first]
         if last >= 0:
@@ -323,7 +324,7 @@ class Divisions:
         self.is_ready: bool = False
 
     def prepare(self, axis: Axis):
-        if is_logged: journal.log(__name__, "\tpreparing grid divisions", self.name)
+        if is_logged: Journal.log(__name__, "\tpreparing grid divisions", self.name)
         fm = QFontMetricsF(self.font)
         self.divs.clear()
         for i, div in axis.generateDivSteps():

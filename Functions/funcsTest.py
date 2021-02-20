@@ -1,7 +1,8 @@
 from PyQt5.QtCore import QPoint, QPointF, Qt
 from PyQt5.QtGui import QPen
 
-from AesmaLib import AesmaFuncs, journal
+from AesmaLib import aesma_funcs
+from AesmaLib.journal import Journal
 from AesmaLib.GraphWidget.Chart import Chart
 from Functions import funcsTable, funcsGraph
 from Globals import gvars
@@ -13,7 +14,7 @@ __ENGIGE_MSG = {False: 'ЗАПУСК ДВИГАТЕЛЯ', True: 'ОСТАНОВ�
 
 
 def switch_test_running_state():
-    if is_logged: journal.log(__name__, "\tswitching test running state to", str(is_test_running))
+    if is_logged: Journal.log(__name__, "\tswitching test running state to", str(is_test_running))
     gvars.wnd_main.btnTest.setText(__ENGIGE_MSG[is_test_running])
     gvars.wnd_main.btnGoBack.setEnabled(not is_test_running)
 
@@ -32,18 +33,18 @@ def move_markers():
 def add_point_to_list():
     flow, lift, power = get_flow_lift_power()
     data = {'flow': flow, 'lift': lift, 'power': power}
-    if is_logged: journal.log(__name__, "\tadding point to list", data)
+    if is_logged: Journal.log(__name__, "\tadding point to list", data)
     funcsTable.add_row(gvars.wnd_main.tablePoints, data)
     pass
 
 
 def remove_last_point_from_list():
-    if is_logged: journal.log(__name__, "\tremoving last point from list")
+    if is_logged: Journal.log(__name__, "\tremoving last point from list")
     funcsTable.remove_last_row(gvars.wnd_main.tablePoints)
 
 
 def clear_points_from_list():
-    if is_logged: journal.log(__name__, "\tclearing points from list")
+    if is_logged: Journal.log(__name__, "\tclearing points from list")
     funcsTable.clear_table(gvars.wnd_main.tablePoints)
 
 
@@ -120,7 +121,7 @@ def get_chart(chart_name: str):
 
 
 def get_flow_lift_power():
-    flow = AesmaFuncs.safe_parse_to_float(gvars.wnd_main.txtFlow.text())
-    lift = AesmaFuncs.safe_parse_to_float(gvars.wnd_main.txtLift.text())
-    power = AesmaFuncs.safe_parse_to_float(gvars.wnd_main.txtPower.text())
+    flow = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtFlow.text())
+    lift = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtLift.text())
+    power = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtPower.text())
     return flow, lift, power

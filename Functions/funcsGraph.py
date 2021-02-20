@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtWidgets import QFrame
 
 from AesmaLib.GraphWidget.Chart import Chart
-from AesmaLib import AesmaFuncs
+from AesmaLib import aesma_funcs
 from Globals import gvars
 
 
@@ -22,7 +22,7 @@ def draw_charts():
 
 def display_charts(frame: QFrame):
     gvars.graph_info.renderToImage(frame.size())
-    frame.setStyleSheet("QFrame { background-image: url('" + gvars.path_to_pix + "'); }")
+    frame.setStyleSheet("QFrame { background-image: url('" + gvars.path_to_pic + "'); }")
 
 
 def load_charts():
@@ -40,9 +40,9 @@ def get_points(of='ethalon'):
     if source['Flows'] is not None and source['Lifts'] is not None and source['Powers'] is not None:
         try:
             coeff = 0.7457 if is_ethalon else 1
-            flows = [AesmaFuncs.safe_parse_to(float, val) for val in source['Flows'].split(',')]
-            lifts = [AesmaFuncs.safe_parse_to(float, val) for val in source['Lifts'].split(',')]
-            powers = [AesmaFuncs.safe_parse_to(float, val) * coeff for val in source['Powers'].split(',')]
+            flows = [aesma_funcs.safe_parse_to(float, val) for val in source['Flows'].split(',')]
+            lifts = [aesma_funcs.safe_parse_to(float, val) for val in source['Lifts'].split(',')]
+            powers = [aesma_funcs.safe_parse_to(float, val) * coeff for val in source['Powers'].split(',')]
             if is_ethalon:
                 lifts.reverse()
                 powers.reverse()

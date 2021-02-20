@@ -3,18 +3,16 @@
 """
 from Globals import gvars
 
+
 def execute_query(query: str):
     """ Выполенение запроса к БД """
-    result = None
-    if gvars.db.connect():
-        result = gvars.db.execute(query)
-        gvars.db.disconnect()
+    result = gvars.db.execute_with_retval(query)
     return result
 
 
-def get_value(table: str, column: str, condition: dict):
+def get_value(table: str, column: str, conditions: dict):
     """ Получение значения из записи """
-    records = get_records(table, [column], condition)
+    records = get_records(table, [column], conditions)
     result = records[0] if not records is None else None
     return result
 

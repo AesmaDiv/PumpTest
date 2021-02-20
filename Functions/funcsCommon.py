@@ -3,7 +3,8 @@ from PyQt5.Qt import QModelIndex
 from GUI.Models import ListModel
 from Functions import funcsTable, funcsMessages, funcsWindow, funcsSpinner
 from AppClasses import Infos
-from AesmaLib import journal, AesmaFuncs
+from AesmaLib import aesma_funcs
+from AesmaLib.journal import Journal
 from Globals import gvars
 
 
@@ -69,13 +70,13 @@ def parse_points():
         gvars.dictType['Powers'] = parse_string_to_floats('Powers_String')
         return True
     except BaseException as error:
-        journal.log(__name__ + " error: " + str(error))
+        Journal.log(__name__ + " error: " + str(error))
         return False
 
 
 def parse_string_to_floats(name: str):
     string = gvars.dictType[name]
-    result = [AesmaFuncs.safe_parse_to_float(value) for value in string.split(',')]
+    result = [aesma_funcs.safe_parse_to_float(value) for value in string.split(',')]
     return result
 
 
