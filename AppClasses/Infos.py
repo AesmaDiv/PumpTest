@@ -131,7 +131,7 @@ class Test(Info):
     @staticmethod
     def save_to_gvars_data():
         points = funcsTable.get_data(gvars.wnd_main.tablePoints)
-        points_data = aesma_funcs.merge_dictionaries(points)
+        points_data = aesma_funcs.combine_dicts(points)
         gvars.dictTest['Flows'] = ', '.join(map(str, points_data['flow']))
         gvars.dictTest['Lifts'] = ', '.join(map(str, points_data['lift']))
         gvars.dictTest['Powers'] = ', '.join(map(str, points_data['power']))

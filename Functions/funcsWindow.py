@@ -76,7 +76,7 @@ def init_test_list():
     tests_headers = ['№', 'Дата-Время', 'Наряд-Заказ', 'Заводской номер']
     tests_headers_sizes = [50, 150, 200, 200]
     tests_resizes = [QHeaderView.Fixed, QHeaderView.Fixed, QHeaderView.Stretch, QHeaderView.Stretch]
-    tests_data = funcs_db.execute_query(gvars.testlist_query)
+    tests_data = funcs_db.execute_query(gvars.TESTLIST_QUERY)
     gvars.wnd_main.tests_filter = Models.FilterModel(gvars.wnd_main)
     gvars.wnd_main.tests_filter.setDynamicSortFilter(True)
     funcsTable.init(gvars.wnd_main.tableTests, display=tests_display, filter_proxy=gvars.wnd_main.tests_filter,
@@ -86,7 +86,7 @@ def init_test_list():
 
 def fill_test_list():
     Journal.log("MainWindow::", "\tfilling test list")
-    tests_data = funcs_db.execute_query(gvars.testlist_query)
+    tests_data = funcs_db.execute_query(gvars.TESTLIST_QUERY)
     funcsTable.set_data(gvars.wnd_main.tableTests, tests_data)
     funcsTable.select_row(gvars.wnd_main.tableTests, 0)
     # funcs_db.set_permission('Tests', False)
@@ -128,7 +128,7 @@ def fill_spinner(spinner, table, columns, index, conditions=None, order_by='Name
 # GRAPH
 def init_graph():
     Journal.log("MainWindow::", "\tinitializing graph widget")
-    gvars.graph_info = PumpGraph.PumpGraph(100, 100, gvars.path_to_pic)
+    gvars.graph_info = PumpGraph.PumpGraph(100, 100, gvars.PATH_TO_PIC)
     gvars.graph_info.setMargins([10, 10, 10, 10])
     gvars.markers = Markers(['test_lift', 'test_power'], gvars.graph_info)
     gvars.markers.setMarkerColor('test_lift', QtCore.Qt.blue)

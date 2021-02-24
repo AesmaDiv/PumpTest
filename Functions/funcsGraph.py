@@ -22,7 +22,7 @@ def draw_charts():
 
 def display_charts(frame: QFrame):
     gvars.graph_info.renderToImage(frame.size())
-    frame.setStyleSheet("QFrame { background-image: url('" + gvars.path_to_pic + "'); }")
+    frame.setStyleSheet("QFrame { background-image: url('" + gvars.PATH_TO_PIC + "'); }")
 
 
 def load_charts():

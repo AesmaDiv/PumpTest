@@ -1,3 +1,6 @@
+"""
+    Модуль основного окна программы
+"""
 import os
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5 import uic
@@ -8,6 +11,7 @@ from Globals import gvars
 
 
 class Window(QMainWindow):
+    """ Класс основного окна программы """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
@@ -23,19 +27,18 @@ class Window(QMainWindow):
 
     @staticmethod
     def prepare():
+        """ Подготовка окна к отображению - инициализация компонентов """
         Journal.log("MainWindow::", "\tPreparing UI form")
-        try:
-            funcsWindow.init_test_list()
-            funcsWindow.fill_test_list()
-            funcsWindow.init_points_list()
-            funcsWindow.fill_spinners()
-            funcsWindow.init_graph()
-            funcsWindow.set_color_scheme()
-            funcsWindow.register_events()
-        except BaseException as error:
-            Journal.log("MainWindow::", "\terror:", str(error))
+        funcsWindow.init_test_list()
+        funcsWindow.fill_test_list()
+        funcsWindow.init_points_list()
+        funcsWindow.fill_spinners()
+        funcsWindow.init_graph()
+        funcsWindow.set_color_scheme()
+        funcsWindow.register_events()
 
     def show(self):
+        """ Отображение окна """
         Journal.log("MainWindow::", "\tShowing UI form")
         super().show()
         self.move(1, 1)
@@ -43,11 +46,11 @@ class Window(QMainWindow):
         Infos.Test.set_readonly(self.groupTestInfo, True)
         Infos.Pump.set_readonly(self.groupPumpInfo, True)
         funcsTest.switch_test_running_state()
-        pass
 
 # FUNCTIONAL
     @staticmethod
     def __display_record():
+        """ Отображение записи """
         if Infos.Pump.load() and Infos.Test.load():
             Journal.log("MainWindow::", "\tshowing record")
             Infos.Test.display()
@@ -55,14 +58,16 @@ class Window(QMainWindow):
             Infos.Type.display()
 
     @staticmethod
-    def __create_record():
+    def __clear_record():
+        """ Очистка информации о записи """
         Journal.log("MainWindow::", "\tclearing record")
         Infos.Test.clear()
         Infos.Pump.clear()
         Infos.Type.clear()
 
-    @staticmethod
+    @classmethod
     def __store_record(self):
+        """ Сохранение записи """
         Journal.log("MainWindow::", "\tsaving record")
         # self.__store_type_info()
         # self.__store_pump_info()
@@ -72,5 +77,3 @@ class Window(QMainWindow):
                 self.__fill_testlist()
             else:
                 Journal.log("MainWindow::", "\terror updating record")
-
-# READ RECORD

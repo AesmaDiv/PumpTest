@@ -47,21 +47,3 @@ class DynamicSpline(QChart):
             axis.setMax(maximum * 1.1)
             series.attachAxis(axis)
             self._axies.append(axis)
-# def temp(x, y, xx, yy, xxx, yyy):
-#     hbox: QHBoxLayout = gvars.wnd_main.horizontalLayout
-#     hbox.children().clear()
-#     hbox.removeItem(hbox.itemAt(0))
-#
-#     # m_x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-#     # m_y = [x*x for x in m_x]
-#
-#     chart = NewChart.DynamicSpline()
-#     chart.setTitle("Dynamic spline chart")
-#     chart.legend().hide()
-#     chart.addPoints('first', x, y, Qt.blue)
-#     chart.addPoints('second', xx, yy, Qt.red)
-#     chart.addPoints('third', xxx, yyy, Qt.green)
-#     # chart.setAnimationOptions(QChart.AllAnimations)
-#     view = QChartView(chart)
-#     view.setRenderHint(QPainter.Antialiasing)  # 抗锯齿
-#     hbox.addWidget(view)

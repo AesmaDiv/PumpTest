@@ -12,20 +12,20 @@ limits_pen = QPen(QColor(200, 200, 0, 20), 1, Qt.SolidLine)
 
 
 class PumpGraph(Graph):
-    def __init__(self, width: int, height: int, path_to_pic: str, parent=None):
+    def __init__(self, width: int, height: int, PATH_TO_PIC: str, parent=None):
         Graph.__init__(self, width, height, parent)
         self.setGeometry(0, 0, width, height)
         self._limits_value = [0, 0, 0]
         self._limits_pixel = [0, 0, 0]
         self._grid_divs: dict = {}
         self._charts_data = {}
-        self._path_to_pic = path_to_pic
+        self._PATH_TO_PIC = PATH_TO_PIC
 
     def renderToImage(self, size: QSize):
         self.setGeometry(0, 0, size.width(), size.height())
         pixmap = QPixmap(self.size())
         self.render(pixmap)
-        pixmap.save(self._path_to_pic)
+        pixmap.save(self._PATH_TO_PIC)
 
     def setLimits(self, minimum: float, nominal: float, maximum: float):
         self._limits_value = [minimum, nominal, maximum]

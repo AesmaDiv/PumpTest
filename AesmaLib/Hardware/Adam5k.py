@@ -1,13 +1,19 @@
+"""
+    AesmaDiv 2021
+    Модуль для работы с Advantech Adam5000TCP
+"""
 import socket
 import threading
 from enum import Enum
+from array import array
 from bitstring import BitArray
 from bitarray import bitarray
-from array import array
 
 
 class Adam5K:
+    """ Класс для работы с Advantech Adam5000TCP """
     class SlotType(Enum):
+        """ Тип слота """
         ALL = 'ALL'
         ANALOG = 'ANALOG'
         DIGITAL = 'DIGITAL'

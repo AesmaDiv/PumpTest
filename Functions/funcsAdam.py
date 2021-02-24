@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QThread, QObject, pyqtSignal
-from AesmaLib.Hardware.Advantech.Adam5K import Adam5K
+from AesmaLib.Hardware.Adam5k import Adam5K
 import threading
 from Globals import gvars, adam_config
 

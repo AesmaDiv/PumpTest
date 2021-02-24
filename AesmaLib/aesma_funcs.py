@@ -1,10 +1,6 @@
 """
     Модуль вспомогательных функций для всякий операций
 """
-from collections import defaultdict
-from itertools import chain
-from operator import methodcaller
-
 
 def safe_parse_to(to_type: type, string: str, default=None):
     """ Безопасная конвертация типов """
@@ -19,13 +15,17 @@ def safe_parse_to_float(string: str):
     return safe_parse_to(float, string, default=0.0)
 
 
-def merge_dictionaries(list_of_dicts: list):
+def combine_dicts(list_of_dicts: list):
     """ Объединение списка словарей """
-    dd = defaultdict(list)
-    dict_items = map(methodcaller('items'), list_of_dicts)
-    for k, v in chain.from_iterable(dict_items):
-        dd[k].append(v)
-    return dd
+    if list_of_dicts:
+        if len(list_of_dicts) == 1:
+            return list_of_dicts[0]
+        if isinstance(list_of_dicts[0], dict):
+            list_of_keys = list(list_of_dicts[0].keys())
+            list_of_vals = [list(d.values()) for d in list_of_dicts]
+            result = dict(zip(list_of_keys, list_of_vals))
+            return dict(result)
+    return dict()
 
 
 def remove_lesser(array: list, value, is_including=False):
