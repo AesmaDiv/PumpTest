@@ -28,12 +28,13 @@ def combine_dicts(list_of_dicts: list):
     return dict()
 
 
-def remove_lesser(array: list, value, is_including=False):
-    """ Удаление из списка значений МЕНЬШЕ чем 'value'
+def remove_lesser(sorted_array: list, value, is_including=False):
+    """ Удаляет из упорядоченого списка значения МЕНЬШЕ чем 'value'
         'is_including' - включительно
-        возвращает новый список и новую длину
+        возвращает новый список и индекс первого елемента
+        соответствующего условию
     """
-    result, index = array.copy(), -1
+    result, index = sorted_array.copy(), -1
     if result:
         indices = [i for i, v in enumerate(result) if v < value]
         if indices:
@@ -43,12 +44,13 @@ def remove_lesser(array: list, value, is_including=False):
     return result, index
 
 
-def remove_greater(array: list, value, is_including=False):
-    """ Удаление из списка значений БОЛЬШЕ чем 'value'
+def remove_greater(sorted_array: list, value, is_including=False):
+    """ Удаляет из упорядоченого списка значения БОЛЬШЕ чем 'value'
         'is_including' - включительно
-        возвращает новый список и новую длину
+        возвращает новый список и индекс последнего елемента
+        соответствующего условию
     """
-    result, index = array.copy(), -1
+    result, index = sorted_array.copy(), -1
     if result:
         indices = [i for i, v in enumerate(result) if v > value]
         if indices:

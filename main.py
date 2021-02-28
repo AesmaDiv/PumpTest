@@ -18,7 +18,7 @@ if __name__ == '__main__':
     faulthandler.enable()
     app = QApplication(sys.argv)
 
-    gvars.wnd_main = gvars.mainwindow()
+    gvars.wnd_main = gvars.MainWindow()
     gvars.wnd_main.prepare()
     gvars.wnd_main.show()
 

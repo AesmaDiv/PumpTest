@@ -27,7 +27,7 @@ class Window(QMainWindow):
 
     @staticmethod
     def prepare():
-        """ Подготовка окна к отображению - инициализация компонентов """
+        """ Инициализация компонентов и подготовка основного окна """
         Journal.log("MainWindow::", "\tPreparing UI form")
         funcsWindow.init_test_list()
         funcsWindow.fill_test_list()
@@ -57,15 +57,13 @@ class Window(QMainWindow):
             Infos.Pump.display()
             Infos.Type.display()
 
-    @staticmethod
-    def __clear_record():
+    def __clear_record(self):
         """ Очистка информации о записи """
         Journal.log("MainWindow::", "\tclearing record")
-        Infos.Test.clear()
-        Infos.Pump.clear()
-        Infos.Type.clear()
+        Infos.Test.clear(self.groupTestInfo)
+        Infos.Pump.clear(self.groupPumpInfo)
+        Infos.Type.clear(None)
 
-    @classmethod
     def __store_record(self):
         """ Сохранение записи """
         Journal.log("MainWindow::", "\tsaving record")

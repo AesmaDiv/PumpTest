@@ -1,8 +1,13 @@
-from PyQt5.QtWidgets import QApplication, QGroupBox, QComboBox
+"""
+    Модуль содержащий классы для отображения связанной информации:
+    Test - информация по испытанию
+    Pump - информация по насосу
+    Type - информация по типу
+"""
+from PyQt5.QtWidgets import QGroupBox, QComboBox
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QWidget
 
 from AesmaLib import aesma_funcs
-from AesmaLib.journal import Journal
 from Functions import funcsTable, funcsSpinner, funcs_db, funcsMessages
 from Globals import gvars
 
@@ -10,13 +15,14 @@ from Globals import gvars
 class Info:
     @staticmethod
     def clear(group: QGroupBox):
-        widgets = group.findChildren(QWidget)
-        for item in widgets:
-            if isinstance(item, QLineEdit):
-                item.clear()
-            elif isinstance(item, QComboBox):
-                item.setCurrentIndex(0)
-        group.repaint()
+        if group:
+            widgets = group.findChildren(QWidget)
+            for item in widgets:
+                if isinstance(item, QLineEdit):
+                    item.clear()
+                elif isinstance(item, QComboBox):
+                    item.setCurrentIndex(0)
+            group.repaint()
 
     @staticmethod
     def set_readonly(group: QGroupBox, state: bool):
@@ -229,9 +235,8 @@ class Type:
         return True
 
     @staticmethod
-    def clear(group: QGroupBox):
+    def clear():
         gvars.dictType.clear()
-        Info.clear(group)
 
     @staticmethod
     def display():
@@ -242,14 +247,14 @@ class Type:
         # gvars.wnd_main.txtType_Max.setText(str(gvars.pump_type['Max']))
         pass
 
-    @staticmethod
-    def clear():
+    # @staticmethod
+    # def clear():
         # gvars.wnd_main.txtType_Date.clear()
         # gvars.wnd_main.txtType_Rpm.clear()
         # gvars.wnd_main.txtType_Min.clear()
         # gvars.wnd_main.txtType_Nom.clear()
         # gvars.wnd_main.txtType_Max.clear()
-        pass
+        # pass
 
     @staticmethod
     def check_exist():

@@ -1,15 +1,15 @@
 """
     Глобальные переменные
 """
-from GUI.mainwindow import Window as mainwindow
-from GUI.PumpWindow import Window as pumpwindow
+from GUI.mainwindow import Window as MainWindow
+from GUI.PumpWindow import Window as PumpWindow
 from GUI.PumpGraph import PumpGraph
 from GUI.Markers import Markers
 from AesmaLib.database import SqliteDB
 
 
-wnd_main: mainwindow    # основное окно программы
-wnd_pump: pumpwindow    # окно описания типа насоса
+wnd_main: MainWindow    # основное окно программы
+wnd_pump: PumpWindow    # окно описания типа насоса
 
 PATH_TO_DB = './Files/pump.sqlite'  # путь к файлу базы данных
 PATH_TO_PIC = './Files/pic.png'     # путь к картинке графика испытания

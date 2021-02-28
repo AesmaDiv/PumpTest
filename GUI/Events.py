@@ -85,7 +85,7 @@ def on_clicked_test_info_cancel():
 # PUMP AND TEST INFO PARAMS
 def on_changed_combo_producers(index):
     values = gvars.wnd_main.cmbProducers.currentData(Qt.UserRole)
-    Journal.log("Event::", "\tproducer changed to ", values['Name'])
+    Journal.log("Event::", "\tproducer changed to ", values['Name'] if values else "None")
     conditions: dict = {'Producer': values['ID']} if type(values) is dict and 'ID' in values else {}
     funcsWindow.fill_spinner(gvars.wnd_main.cmbTypes, 'Types', ['ID', 'Name', 'Producer'], 1, conditions)
 
