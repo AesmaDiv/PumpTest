@@ -127,8 +127,8 @@ class FilterModel(QSortFilterProxyModel):
 
     def applyFilter(self, filters=None):
         """ применение фильтра """
-        self._filters = filters if type(filters) is list else None
-        self._conditions = filters if type(filters) is dict else None
+        self._filters = filters if isinstance(filters, list) else None
+        self._conditions = filters if isinstance(filters, dict) else None
         self.setFilterFixedString("")
 
     def filterAcceptsRow(self, source_row, source_parent):

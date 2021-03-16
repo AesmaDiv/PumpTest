@@ -28,36 +28,50 @@ def combine_dicts(list_of_dicts: list):
     return dict()
 
 
-def remove_lesser(sorted_array: list, value, is_including=False):
+def remove_lesser(sorted_array: list, value, is_included=False):
     """ Удаляет из упорядоченого списка значения МЕНЬШЕ чем 'value'
-        'is_including' - включительно
+        'is_included' - включительно
         возвращает новый список и индекс первого елемента
-        соответствующего условию
     """
-    result, index = sorted_array.copy(), -1
-    if result:
-        indices = [i for i, v in enumerate(result) if v < value]
-        if indices:
-            index = max(indices)
-            index += 2 if is_including else 1
+    return remove_from(sorted_array, value, '<', is_included)
+
+
+def remove_greater(sorted_array: list, value, is_included=False):
+    """ Удаляет из упорядоченого списка значения БОЛЬШЕ чем 'value'
+        'is_included' - включительно
+        возвращает новый список и индекс последнего елемента
+    """
+    return remove_from(sorted_array, value, '>', is_included)
+
+
+def remove_from(sorted_array: list, value, condition='>', is_included=False):
+    """ Удаляет из упорядоченого списка значения удовлетворяющие
+        'condition':
+            '>' - больше, чем 'value'
+            '<' - меньше, чем 'value'
+        'is_included' - включительно
+        возвращает новый список и индекс последнего елемента
+    """
+    result = sorted_array.copy()
+    index = get_next(result, value, is_included)
+    if 0 < index < len(result):
+        if condition == '>':
+            del result[index:]
+        else:
             del result[:index]
     return result, index
 
 
-def remove_greater(sorted_array: list, value, is_including=False):
-    """ Удаляет из упорядоченого списка значения БОЛЬШЕ чем 'value'
-        'is_including' - включительно
-        возвращает новый список и индекс последнего елемента
-        соответствующего условию
-    """
-    result, index = sorted_array.copy(), -1
-    if result:
-        indices = [i for i, v in enumerate(result) if v > value]
-        if indices:
-            index = min(indices)
-            index -= 1 if is_including else 0
-            del result[index:]
-    return result, index
+def get_next(sorted_array: list, value, is_including=False):
+    """ Находит индекс первого элемента равного или больше value """
+    if sorted_array:
+        func = lambda x: x >= value if is_including else x > value
+        try:
+            result = next(i for i, v in enumerate(sorted_array) if func(v))
+        except StopIteration:
+            result = len(sorted_array)
+    return result
+
 
 
 def split_to_subarrays(array: list, elements_count: int, with_reminder=False):
