@@ -70,7 +70,6 @@ class Record():
             return items[0]['ID']
         return 0
 
-
     def save(self) -> bool:
         """ сохраняет запись в таблицу БД:
         добавляет новую и сохраняет ID или обновляет существующую
