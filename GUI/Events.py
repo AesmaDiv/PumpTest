@@ -1,66 +1,113 @@
+"""
+    Модуль содержащий функции обработки событий
+"""
 from PyQt5.QtCore import Qt
 
-from AppClasses import Infos
 from Functions import funcsCommon, funcsSpinner, funcsGraph, funcsMessages
-from Functions import funcsTest, funcsWindow, funcsAdam, funcsTable
+from Functions import funcsTest, funcs_wnd, funcsAdam, funcsTable
 from AesmaLib.journal import Journal
 from Globals import gvars
 
 
-# TESTLIST
 def on_changed_testlist():
-    Journal.log("Event::", "\ttest list changed", funcsTable.get_row(gvars.wnd_main.tableTests)['ID'])
-    Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, True)
-    Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
-    if Infos.Test.load() and Infos.Pump.load(gvars.dictTest['Pump']):
-        Infos.Pump.display()
-        Infos.Test.display()
-        Infos.Type.display()
+    """ выбор теста """
+    wnd = gvars.wnd_main
+    Journal.log("Event::", "\ttest list changed",
+                funcsTable.get_row(wnd.tableTests)['ID'])
+    funcs_wnd.group_lock(wnd.groupTestInfo, True)
+    funcs_wnd.group_lock(wnd.groupPumpInfo, True)
+    funcs_wnd.clear_record(True)
+    funcs_wnd.display_record()
+
+
+def on_changed_combo_producers(index):
+    """ выбор производителя """
+    item = gvars.wnd_main.cmbProducer.currentData(Qt.UserRole)
+    Journal.log("Event::", "\tproducer changed to ",
+                item['Name'] if item else "None")
+    if isinstance(item, dict) and 'ID' in item:
+        db_params = {'columns': ['ID', 'Name', 'Producer'],
+                     'conditions': {'Producer': item['ID']}}
+        funcs_wnd.fill_spinner(gvars.wnd_main.cmbType, 'Types', db_params, 1)
+
+
+def on_changed_combo_types(index):
+    """ выбор типоразмера """
+    if index:
+        wnd = gvars.wnd_main
+        item = wnd.cmbType.currentData(Qt.UserRole)
+        Journal.log("Event::", "\ttype changed to", item['Name'])
+        if isinstance(item, dict) and 'ID' in item:
+            type_id = item['ID']
+            prod_id = item['Producer']
+            wnd.groupTestFrame.setTitle(item['Name'])
+            if not funcsSpinner.get_current_value(wnd.cmbProducer):
+                funcsSpinner.select_item_containing(wnd.cmbProducer, prod_id)
+                funcsSpinner.select_item_containing(wnd.cmbType, type_id)
+            # elif gvars.rec_type.load(type_id):
+            #     funcsGraph.draw_charts()
+
+
+def on_changed_combo_serials(index):
+    """ выбор заводского номера """
+    Journal.log("Event::", "\tserial changed")
+    wnd = gvars.wnd_main
+    if index:
+        item = wnd.cmbSerial.currentData(Qt.UserRole)
+        if isinstance(item, dict) and 'ID' in item:
+            pump_id = item['ID']
+            if gvars.rec_pump.load(pump_id):
+                funcs_wnd.group_display(wnd.groupPumpInfo, gvars.rec_pump)
     else:
-        Infos.Pump.clear(gvars.wnd_main.groupPumpInfo)
-        Infos.Test.clear(gvars.wnd_main.groupTestInfo)
-        Infos.Type.clear()
-    funcsGraph.draw_charts()
+        funcsSpinner.select_item_containing(wnd.cmbProducer, '')
+        funcsSpinner.select_item_containing(wnd.cmbType, '')
+        funcs_wnd.group_clear(wnd.groupPumpInfo)
+        # gvars.rec_pump.clear()
+        # gvars.rec_type.clear()
+    # funcsGraph.draw_charts()
+
 
 
 # PUMP INFO
 def on_clicked_pump_new():
+    """ нажата кнопка добавления нового насоса """
     Journal.log("Event::", "\tnew pump clicked")
-    Infos.Test.clear(gvars.wnd_main.groupTestInfo)
-    Infos.Type.clear()
-    Infos.Pump.clear(gvars.wnd_main.groupPumpInfo)
-    Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, False)
-    pass
+    funcs_wnd.group_lock(gvars.wnd_main.groupPumpInfo, False)
+    funcs_wnd.group_clear(gvars.wnd_main.groupPumpInfo)
 
 
 def on_clicked_pump_save():
+    """ нажата кнопка сохранения нового насоса """
     Journal.log("Event::", "\tsave pump clicked")
-    if Infos.Type.check_exist():
-        if Infos.Pump.check_exist() or Infos.Pump.save():
-            Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
+    if gvars.rec_type.check_exist({}):
+        if gvars.rec_pump.check_exist({}) or gvars.rec_pump.save():
+            funcs_wnd.group_lock(gvars.wnd_main.groupPumpInfo, True)
     else:
         funcsMessages.show("Ошибка", "Такого типоразмера нет в базе.")
 
 
 def on_clicked_pump_cancel():
+    """ нажата кнопка отмены добавления нового насоса """
     Journal.log("Event::", "\tnew pump cancel clicked")
-    Infos.Pump.clear(gvars.wnd_main.groupPumpInfo)
-    Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
-    pass
+    wnd = gvars.wnd_main
+    funcs_wnd.group_display(wnd.groupPumpInfo, gvars.rec_pump)
+    funcs_wnd.group_lock(wnd.groupPumpInfo, True)
 
 
 # TEST INFO
 def on_clicked_test_new():
+    """ нажата кнопка добавления нового теста """
     Journal.log("Event::", "\tnew test clicked")
-    Infos.Test.clear(gvars.wnd_main.groupTestInfo)
-    Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, False)
+    wnd = gvars.wnd_main
+    funcs_wnd.group_lock(wnd.groupTestInfo, False)
+    funcs_wnd.group_clear(wnd.groupTestInfo)
     funcsCommon.set_current_date()
-    pass
 
 
 def on_clicked_test_info_save():
+    """ нажата кнопка сохранения нового теста """
     Journal.log("Event::", "\tsave test clicked")
-    test_id: int = Infos.Test.check_exist()
+    test_id = Infos.Test.check_exist()
     if test_id:
         if funcsMessages.ask("Внимание", "Тест с таким наряд-заказом\nуже присутствует в базе.\nХотите его выбрать?"):
             funcsCommon.select_test(test_id)
@@ -68,7 +115,7 @@ def on_clicked_test_info_save():
             return
     else:
         if Infos.Test.save_info():
-            funcsWindow.fill_test_list()
+            funcs_wnd.fill_test_list()
         else:
             return
     Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, True)
@@ -76,47 +123,11 @@ def on_clicked_test_info_save():
 
 
 def on_clicked_test_info_cancel():
+    """ нажата кнопка отмены добавления нового теста """
     Journal.log("Event::", "\tnew test cancel clicked")
-    Infos.Test.clear(gvars.wnd_main.groupTestInfo)
-    Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, True)
-    pass
-
-
-# PUMP AND TEST INFO PARAMS
-def on_changed_combo_producers(index):
-    values = gvars.wnd_main.cmbProducers.currentData(Qt.UserRole)
-    Journal.log("Event::", "\tproducer changed to ", values['Name'] if values else "None")
-    conditions: dict = {'Producer': values['ID']} if type(values) is dict and 'ID' in values else {}
-    funcsWindow.fill_spinner(gvars.wnd_main.cmbTypes, 'Types', ['ID', 'Name', 'Producer'], 1, conditions)
-
-
-def on_changed_combo_types(index):
-    if index:
-        values = gvars.wnd_main.cmbTypes.currentData(Qt.UserRole)
-        Journal.log("Event::", "\ttype changed to", values['Name'])
-        if type(values) is dict and 'ID' in values:
-            type_id = values['ID']
-            gvars.wnd_main.groupTestFrame.setTitle(values['Name'])
-            if not funcsSpinner.get_current_value(gvars.wnd_main.cmbProducers):
-                funcsSpinner.select_item_containing(gvars.wnd_main.cmbProducers, values['Producer'])
-                funcsSpinner.select_item_containing(gvars.wnd_main.cmbTypes, type_id)
-            # elif Infos.Type.load(type_id):
-            #     funcsGraph.draw_charts()
-
-
-def on_changed_combo_serials(index):
-    Journal.log("Event::", "\tserial changed")
-    if index:
-        values = gvars.wnd_main.cmbSerials.currentData(Qt.UserRole)
-        if type(values) is dict and 'ID' in values:
-            pump_id = values['ID']
-            if Infos.Pump.load(pump_id):
-                Infos.Pump.display()
-    else:
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbProducers, '')
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbTypes, '')
-        Infos.Pump.clear(gvars.wnd_main.groupPumpInfo)
-    # funcsGraph.draw_charts()
+    wnd = gvars.wnd_main
+    funcs_wnd.group_display(wnd.groupTestInfo, gvars.rec_test)
+    funcs_wnd.group_lock(wnd.groupTestInfo, True)
 
 
 def on_clicked_save():
@@ -126,12 +137,13 @@ def on_clicked_save():
 
 def on_clicked_filter_reset():
     Journal.log("Event::", "\treset filter clicked")
-    funcsCommon.Filters.reset()
-    Infos.Test.set_readonly(gvars.wnd_main.groupTestInfo, True)
-    Infos.Pump.set_readonly(gvars.wnd_main.groupPumpInfo, True)
+    funcs_wnd.testlist_filter_reset()
+    funcs_wnd.group_lock(gvars.wnd_main.groupTestInfo, True)
+    funcs_wnd.group_lock(gvars.wnd_main.groupPumpInfo, True)
 
 
 def on_clicked_go_test():
+    """ нажата кнопка перехода к тестированию """
     Journal.log("Event::", "\tgo to testing clicked")
     gvars.wnd_main.stackedWidget.setCurrentIndex(1)
     funcsGraph.display_charts(gvars.markers)
@@ -139,6 +151,7 @@ def on_clicked_go_test():
 
 
 def on_clicked_go_back():
+    """ нажата кнопка возврата на основное окно """
     Journal.log("Event::", "\tgo back clicked")
     gvars.wnd_main.stackedWidget.setCurrentIndex(0)
     funcsGraph.display_charts(gvars.wnd_main.frameGraphInfo)
@@ -146,6 +159,7 @@ def on_clicked_go_back():
 
 # TEST
 def on_clicked_test():
+    """ нажата кнопка начала/остановки испытания """
     funcsTest.is_test_running = not funcsTest.is_test_running
     funcsTest.switch_charts_visibility()
     funcsTest.switch_test_running_state()
@@ -158,11 +172,6 @@ def on_clicked_test_data_save():
         title = 'ОШИБКА'
         message = 'Запись заблокирована'
     funcsMessages.show(title, message)
-
-
-def on_changed_test_values():
-    funcsTest.move_markers()
-    pass
 
 
 def on_clicked_add_point():
@@ -191,11 +200,11 @@ def on_clicked_clear_curve():
 
 def on_changed_filter_apply(text: str):
     Journal.log("Event::", "\tapply filter clicked")
-    funcsCommon.Filters.apply()
+    funcs_wnd.testlist_filter_apply()
 
 
 def on_radio_changed():
-    funcsCommon.Filters.switch_others()
+    funcs_wnd.testlist_filter_switch()
 
 
 def on_clicked_adam_connection():
@@ -207,7 +216,13 @@ def on_clicked_adam_connection():
 def on_adam_data_received(sensors: dict):
     point_data = {key: sensors[key] for key in ['rpm', 'torque', 'pressure_in', 'pressure_out']}
     point_data['flow'] = sensors[gvars.active_flowmeter]
-    funcsWindow.display_sensors(sensors)
+    funcs_wnd.display_sensors(sensors)
+
+
+def on_changed_sensors():
+    """ изменения значений датчиков """
+    funcsTest.move_markers()
+    pass
 
 
 def on_markers_move(point_data: dict):

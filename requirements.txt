@@ -1,6 +1,6 @@
 # requirements for Pump project
 PyQt5>=5.15.1
-bitstring>=3.1.7
-bitarray>=1.6.0
+# bitstring>=3.1.7
+# bitarray>=1.6.0
 matplotlib>=3.3.2
 scipy>=1.5.3

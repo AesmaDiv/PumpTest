@@ -58,7 +58,7 @@ class SqliteDB(Database):
         """ Setting path to db file """
         self._db_path = db_path
 
-    def connect(self, db_path=""):
+    def connect(self, db_path="") -> bool:
         """ Connecting to database"""
         if not self._is_connected:
             if self._check_db_path(db_path):
@@ -77,7 +77,7 @@ class SqliteDB(Database):
 
     @connect_execute_disconnect
     def select(self, table: str, columns: list=None,
-               conditions: dict=None, order_by: str=''):
+               conditions: dict=None, order_by: str='') -> list:
         """ Getting records from database"""
         result = []
         query = self._builder.build_select(table, columns, conditions, order_by)
@@ -87,19 +87,19 @@ class SqliteDB(Database):
         return result
 
     @connect_execute_disconnect
-    def insert(self, table: str, record: dict):
+    def insert(self, table: str, record: dict) -> int:
         """ Inserting record to database """
         query = self._builder.build_insert(table, record)
-        return self.execute(query)
+        return self._cursor.lastrowid if self.execute(query) else 0
 
     @connect_execute_disconnect
-    def update(self, table: str, record: dict, conditions: dict=None):
+    def update(self, table: str, record: dict, conditions: dict=None) -> bool:
         """ Updating record in database """
         query = self._builder.build_update(table, record, conditions)
         return self.execute(query)
 
     @connect_execute_disconnect
-    def delete(self, table: str, conditions: dict):
+    def delete(self, table: str, conditions: dict) -> bool:
         """ Deleting record from database """
         query = self._builder.build_delete(table, conditions)
         return self.execute(query)
@@ -114,13 +114,16 @@ class SqliteDB(Database):
         return result
 
 
-    def execute(self, query: str):
+    def execute(self, query: str) -> bool:
         """ Executing sql query WITHOUT return value """
         try:
             self._cursor.execute(query)
             self._connection.commit()
             return True
         except sqlite3.OperationalError as error:
+            print(__name__, f"\tError:: {str(error)}")
+            return False
+        except sqlite3.IntegrityError as error:
             print(__name__, f"\tError:: {str(error)}")
             return False
 
@@ -157,7 +160,7 @@ class SqlQueryBuilder(metaclass=Singleton):
                 rec.pop('ID')
             cols = ",".join(map(self._key_to_str, rec.keys()))
             vals = ",".join(map(self._val_to_str, rec.values()))
-            result = f"Insert Into {table} ({cols}) Values ({vals})"
+            result = f"Insert Into {table} ({cols}) Values ({vals})"""
             result = self._secure(result)
         return result
 
@@ -239,4 +242,4 @@ class SqlQueryBuilder(metaclass=Singleton):
     @staticmethod
     def _val_to_str(val) -> str:
         """ Converting VALUE to proper string format for Sql query """
-        return f"'{val}'" if isinstance(val, str) else str(val)
+        return f"'{val}'" if isinstance(val, str) else str(val) if val else "NULL"

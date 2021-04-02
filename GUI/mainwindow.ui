@@ -848,7 +848,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QComboBox" name="cmbProducers">
+         <widget class="QComboBox" name="cmbProducer">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -901,7 +901,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QComboBox" name="cmbSerials">
+         <widget class="QComboBox" name="cmbSerial">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -1044,7 +1044,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QComboBox" name="cmbTypes">
+         <widget class="QComboBox" name="cmbType">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -1314,7 +1314,7 @@
          <number>2</number>
         </property>
         <item row="1" column="1">
-         <widget class="QComboBox" name="cmbCustomers">
+         <widget class="QComboBox" name="cmbCustomer">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -3163,7 +3163,7 @@
      <x>0</x>
      <y>0</y>
      <width>1180</width>
-     <height>24</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPump_main_window">

@@ -6,6 +6,7 @@ from GUI.PumpWindow import Window as PumpWindow
 from GUI.PumpGraph import PumpGraph
 from GUI.Markers import Markers
 from AesmaLib.database import SqliteDB
+from Classes.pump_classes import RecordType, RecordTest, RecordPump
 
 
 wnd_main: MainWindow    # основное окно программы
@@ -20,9 +21,9 @@ TESTLIST_QUERY = \
    Limit 100'''                     # sql запрос для списка тестов
 
 db = SqliteDB(PATH_TO_DB)           # база данных
-dictType = {}                       # данные по типу насоса
-dictPump = {}                       # данные по текущему насосу
-dictTest = {}                       # данные по испытанию
+rec_test = RecordTest(db)            # данные по типу насоса
+rec_pump = RecordPump(db)            # данные по текущему насосу
+rec_type = RecordType(db)            # данные по испытанию
 graph_info: PumpGraph = None        # график испытания
 markers: Markers = None             # маркеры на графике (расход, мощность, кпд)
 active_flowmeter: str = 'flow2'     # текущий расходомер

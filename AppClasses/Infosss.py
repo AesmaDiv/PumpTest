@@ -51,35 +51,35 @@ class Test(Info):
                 test_id: int = data['ID']
             else:
                 return False
-        gvars.dictTest = funcs_db.get_record('Tests', conditions={'ID': test_id})
+        gvars.rec_test = funcs_db.get_record('Tests', conditions={'ID': test_id})
 
         return True
 
     @staticmethod
     def clear(group: QGroupBox):
-        gvars.dictTest.clear()
+        gvars.rec_test.clear()
         Info.clear(group)
 
     @staticmethod
     def display():
-        gvars.wnd_main.txtDateTime.setText(gvars.dictTest['DateTime'])
-        gvars.wnd_main.txtOrderNum.setText(gvars.dictTest['OrderNum'])
-        gvars.wnd_main.txtLocation.setText(gvars.dictTest['Location'])
-        gvars.wnd_main.txtLease.setText(gvars.dictTest['Lease'])
-        gvars.wnd_main.txtWell.setText(gvars.dictTest['Well'])
-        gvars.wnd_main.txtDaysRun.setText(str(gvars.dictTest['DaysRun']))
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbCustomers, {'ID': gvars.dictTest['Customer']})
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbAssembly, gvars.dictTest['Assembly'])
+        gvars.wnd_main.txtDateTime.setText(gvars.rec_test['DateTime'])
+        gvars.wnd_main.txtOrderNum.setText(gvars.rec_test['OrderNum'])
+        gvars.wnd_main.txtLocation.setText(gvars.rec_test['Location'])
+        gvars.wnd_main.txtLease.setText(gvars.rec_test['Lease'])
+        gvars.wnd_main.txtWell.setText(gvars.rec_test['Well'])
+        gvars.wnd_main.txtDaysRun.setText(str(gvars.rec_test['DaysRun']))
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbCustomers, {'ID': gvars.rec_test['Customer']})
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbAssembly, gvars.rec_test['Assembly'])
         Test.fill_points_table()
         pass
 
     @staticmethod
     def fill_points_table():
         funcsTable.clear_table(gvars.wnd_main.tablePoints)
-        if gvars.dictTest['Flows'] and gvars.dictTest['Lifts'] and gvars.dictTest['Powers']:
-            points = [[val.strip() for val in gvars.dictTest['Flows'].split(',')],
-                      [val.strip() for val in gvars.dictTest['Lifts'].split(',')],
-                      [val.strip() for val in gvars.dictTest['Powers'].split(',')]]
+        if gvars.rec_test['Flows'] and gvars.rec_test['Lifts'] and gvars.rec_test['Powers']:
+            points = [[val.strip() for val in gvars.rec_test['Flows'].split(',')],
+                      [val.strip() for val in gvars.rec_test['Lifts'].split(',')],
+                      [val.strip() for val in gvars.rec_test['Powers'].split(',')]]
             for i in range(len(points[0])):
                 funcsTable.add_row(gvars.wnd_main.tablePoints,
                                    {'flow': points[0][i], 'lift': points[1][i], 'power': points[2][i]})
@@ -111,22 +111,22 @@ class Test(Info):
 
     @staticmethod
     def save_to_gvars_info():
-        gvars.dictTest['Pump'] = gvars.dictPump['ID']
-        gvars.dictTest['DateTime'] = gvars.wnd_main.txtDateTime.text()
-        gvars.dictTest['Customer'] = aesma_funcs.safe_parse_to(int,
+        gvars.rec_test['Pump'] = gvars.rec_pump['ID']
+        gvars.rec_test['DateTime'] = gvars.wnd_main.txtDateTime.text()
+        gvars.rec_test['Customer'] = aesma_funcs.safe_parse_to(int,
                                                              funcsSpinner.get_current_value(gvars.wnd_main.cmbCustomers,
                                                                                             'ID'))
-        gvars.dictTest['Assembly'] = funcsSpinner.get_current_value(gvars.wnd_main.cmbAssembly)
-        gvars.dictTest['OrderNum'] = gvars.wnd_main.txtOrderNum.text()
-        gvars.dictTest['Location'] = gvars.wnd_main.txtLocation.text()
-        gvars.dictTest['Lease'] = gvars.wnd_main.txtLease.text()
-        gvars.dictTest['Well'] = gvars.wnd_main.txtWell.text()
-        gvars.dictTest['DaysRun'] = gvars.wnd_main.txtDaysRun.text()
+        gvars.rec_test['Assembly'] = funcsSpinner.get_current_value(gvars.wnd_main.cmbAssembly)
+        gvars.rec_test['OrderNum'] = gvars.wnd_main.txtOrderNum.text()
+        gvars.rec_test['Location'] = gvars.wnd_main.txtLocation.text()
+        gvars.rec_test['Lease'] = gvars.wnd_main.txtLease.text()
+        gvars.rec_test['Well'] = gvars.wnd_main.txtWell.text()
+        gvars.rec_test['DaysRun'] = gvars.wnd_main.txtDaysRun.text()
         return True
 
     @staticmethod
     def save_to_db_info():
-        return funcs_db.insert_record('Tests', gvars.dictTest)
+        return funcs_db.insert_record('Tests', gvars.rec_test)
 
     @staticmethod
     def save_info():
@@ -138,14 +138,14 @@ class Test(Info):
     def save_to_gvars_data():
         points = funcsTable.get_data(gvars.wnd_main.tablePoints)
         points_data = aesma_funcs.combine_dicts(points)
-        gvars.dictTest['Flows'] = ', '.join(map(str, points_data['flow']))
-        gvars.dictTest['Lifts'] = ', '.join(map(str, points_data['lift']))
-        gvars.dictTest['Powers'] = ', '.join(map(str, points_data['power']))
+        gvars.rec_test['Flows'] = ', '.join(map(str, points_data['flow']))
+        gvars.rec_test['Lifts'] = ', '.join(map(str, points_data['lift']))
+        gvars.rec_test['Powers'] = ', '.join(map(str, points_data['power']))
         return True
 
     @staticmethod
     def save_to_db_data():
-        return funcs_db.update_record('Tests', gvars.dictTest)
+        return funcs_db.update_record('Tests', gvars.rec_test)
 
     @staticmethod
     def save_data():
@@ -156,35 +156,35 @@ class Pump(Info):
     @staticmethod
     def load(pump_id: int = 0):
         if pump_id <= 0:
-            pump_id = gvars.dictTest['Pump'] if gvars.dictTest else 0
+            pump_id = gvars.rec_test['Pump'] if gvars.rec_test else 0
             if not pump_id:
                 return False
-        gvars.dictPump = funcs_db.get_record('Pumps', conditions={'ID': pump_id})
-        type_id: int = gvars.dictPump['Type']
+        gvars.rec_pump = funcs_db.get_record('Pumps', conditions={'ID': pump_id})
+        type_id: int = gvars.rec_pump['Type']
         Type.load(type_id)
         return True
 
     @staticmethod
     def clear(group: QGroupBox):
-        gvars.dictPump.clear()
-        gvars.dictType.clear()
+        gvars.rec_pump.clear()
+        gvars.rec_type.clear()
         Info.clear(group)
 
     @staticmethod
     def display():
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbProducers, {'ID': gvars.dictType['Producer']})
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbTypes, {'ID':  gvars.dictPump['Type']})
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbSerials, {'Serial': gvars.dictPump['Serial']})
-        gvars.wnd_main.txtLength.setText(gvars.dictPump['Length'])
-        gvars.wnd_main.txtStages.setText(str(gvars.dictPump['Stages']))
-        gvars.wnd_main.txtShaft.setText(gvars.dictPump['Shaft'])
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbProducer, {'ID': gvars.rec_type['Producer']})
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbType, {'ID':  gvars.rec_pump['Type']})
+        funcsSpinner.select_item_containing(gvars.wnd_main.cmbSerial, {'Serial': gvars.rec_pump['Serial']})
+        gvars.wnd_main.txtLength.setText(gvars.rec_pump['Length'])
+        gvars.wnd_main.txtStages.setText(str(gvars.rec_pump['Stages']))
+        gvars.wnd_main.txtShaft.setText(gvars.rec_pump['Shaft'])
         gvars.wnd_main.groupPumpInfo.repaint()
         pass
 
     @staticmethod
     def check_exist():
         pump_id: int = 0
-        serial = funcsSpinner.get_current_value(gvars.wnd_main.cmbSerials)
+        serial = funcsSpinner.get_current_value(gvars.wnd_main.cmbSerial)
         record = funcs_db.get_value('Pumps', 'ID', {'Serial': serial})
         if record is not None and len(record):
             pump_id = record['ID']
@@ -194,9 +194,9 @@ class Pump(Info):
     def check_all_filled():
         result: bool = True
         missing = []
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducers), 'Производитель\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes), 'Типоразмер\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerials), 'Заводской номер\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducer), 'Производитель\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbType), 'Типоразмер\n', missing)
+        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerial), 'Заводской номер\n', missing)
         result &= check_value(gvars.wnd_main.txtLength.text(), 'Длина\n', missing)
         result &= check_value(gvars.wnd_main.txtStages.text(), 'Кол-во ступеней\n', missing)
         # result &= check_value(gvars.wnd_main.txtShaft.text(), 'Вылет вала\n', missing)
@@ -207,17 +207,17 @@ class Pump(Info):
 
     @staticmethod
     def save_to_gvars():
-        gvars.dictPump['Type'] = aesma_funcs.safe_parse_to(int, funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes, 'ID'))
-        gvars.dictPump['Serial'] = str(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerials))
-        gvars.dictPump['Length'] = gvars.wnd_main.txtLength.text()
-        gvars.dictPump['Stages'] = aesma_funcs.safe_parse_to(int, gvars.wnd_main.txtStages.text())
-        gvars.dictPump['Shaft'] = gvars.wnd_main.txtShaft.text()
-        # gvars.pump_type['Producer'] = int(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducers, 'ID'))
+        gvars.rec_pump['Type'] = aesma_funcs.safe_parse_to(int, funcsSpinner.get_current_value(gvars.wnd_main.cmbType, 'ID'))
+        gvars.rec_pump['Serial'] = str(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerial))
+        gvars.rec_pump['Length'] = gvars.wnd_main.txtLength.text()
+        gvars.rec_pump['Stages'] = aesma_funcs.safe_parse_to(int, gvars.wnd_main.txtStages.text())
+        gvars.rec_pump['Shaft'] = gvars.wnd_main.txtShaft.text()
+        # gvars.pump_type['Producer'] = int(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducer, 'ID'))
         return True
 
     @staticmethod
     def save_to_db():
-        return funcs_db.insert_record('Pumps', gvars.dictPump)
+        return funcs_db.insert_record('Pumps', gvars.rec_pump)
 
     @staticmethod
     def save():
@@ -228,15 +228,15 @@ class Type:
     @staticmethod
     def load(type_id: int = 0):
         if type_id <= 0:
-            type_id = gvars.dictPump['Type'] if gvars.dictPump else 0
+            type_id = gvars.rec_pump['Type'] if gvars.rec_pump else 0
             if not type_id:
                 return False
-        gvars.dictType = funcs_db.get_record('Types', conditions={'ID': type_id})
+        gvars.rec_type = funcs_db.get_record('Types', conditions={'ID': type_id})
         return True
 
     @staticmethod
     def clear():
-        gvars.dictType.clear()
+        gvars.rec_type.clear()
 
     @staticmethod
     def display():
@@ -259,7 +259,7 @@ class Type:
     @staticmethod
     def check_exist():
         type_id: int = 0
-        text: str = funcsSpinner.get_current_value(gvars.wnd_main.cmbTypes)
+        text: str = funcsSpinner.get_current_value(gvars.wnd_main.cmbType)
         record = funcs_db.get_value('Types', 'ID', {'Name': text})
         if record is not None and len(record):
             type_id = record['ID']

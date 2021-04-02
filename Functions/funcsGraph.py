@@ -10,13 +10,13 @@ from Globals import gvars
 def draw_charts():
     if gvars.graph_info:
         gvars.graph_info.clearCharts()
-        if gvars.dictType:
+        if gvars.rec_type:
             charts = load_charts()
             for chart in charts.values():
                 gvars.graph_info.addChart(chart, chart.getName())
-            gvars.graph_info.setLimits(gvars.dictType['Min'],
-                                      gvars.dictType['Nom'],
-                                      gvars.dictType['Max'])
+            gvars.graph_info.setLimits(gvars.rec_type['Min'],
+                                      gvars.rec_type['Nom'],
+                                      gvars.rec_type['Max'])
         display_charts(gvars.wnd_main.frameGraphInfo)
 
 
@@ -28,7 +28,7 @@ def display_charts(frame: QFrame):
 def load_charts():
     points = get_points('ethalon')
     result = create_charts_ethalon(points)
-    if gvars.dictTest:
+    if gvars.rec_test:
         points = get_points('test')
         result.update(create_charts_test(points, result))
     return result
@@ -36,7 +36,7 @@ def load_charts():
 
 def get_points(of='ethalon'):
     is_ethalon: bool = (of == 'ethalon')
-    source = gvars.dictType if is_ethalon else gvars.dictTest
+    source = gvars.rec_type if is_ethalon else gvars.rec_test
     if source['Flows'] is not None and source['Lifts'] is not None and source['Powers'] is not None:
         try:
             coeff = 0.7457 if is_ethalon else 1
