@@ -16,7 +16,7 @@ sys.path.append('.')
 Journal = __import__('AesmaLib.journal', fromlist=['Journal']).Journal
 
 if __name__ == '__main__':
-    Journal.log(__name__, '\t', "*** Starting application ***")
+    Journal.log(__name__, '::\t', "*** Запуск приложения ***")
     faulthandler.enable() # вкл. обработчика ошибок
     app = QApplication(sys.argv)
 
@@ -26,4 +26,4 @@ if __name__ == '__main__':
 
     app.exec_()
     faulthandler.disable() # выкл. обработчика ошибок
-    Journal.log(__name__, '\t', "*** Exiting application ***")
+    Journal.log(__name__, '::\t', "*** Завершение приложения ***")

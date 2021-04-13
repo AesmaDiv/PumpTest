@@ -13,7 +13,16 @@ class Journal:
     LINE_NUMBER = 0         # текущий номер строки
 
     @staticmethod
-    def logged(begin_message = '', end_message = ''):
+    def logged(func):
+        """ Декоратор журналирования """
+        def wrapped(*args, **kwargs):
+            Journal.log(f"{func.__module__}::\t{func.__doc__}")
+            result = func(*args, **kwargs)
+            return result
+        return wrapped
+
+    @staticmethod
+    def logged_msg(begin_message = '', end_message = ''):
         """ Декоратор журналирования """
         def wrapped(func):
             def wrap(*args, **kwargs):
@@ -27,7 +36,7 @@ class Journal:
         return wrapped
 
     @staticmethod
-    def log(*messages):
+    def log(*messages, end='\n'):
         """ Запись сообщения в журнал """
         message = " ".join([str(item) for item in messages])
         if Journal.IS_NUMERATED:
@@ -42,4 +51,4 @@ class Journal:
                 file_.close()
             except IOError as error:
                 print("Log file error: %s" % error)
-        print(message)
+        print(message, end=end)

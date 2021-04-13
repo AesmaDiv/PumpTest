@@ -1,7 +1,7 @@
 from datetime import datetime
 from PyQt5.Qt import QModelIndex
-from GUI.Models import ListModel
-from Functions import funcsTable, funcsMessages, funcs_wnd, funcsSpinner
+from GUI.models import ListModel
+from Functions import funcsTable, funcsMessages, funcs_wnd
 from AesmaLib import aesma_funcs
 from AesmaLib.journal import Journal
 from Globals import gvars
@@ -18,9 +18,9 @@ def save_pump():
     if gvars.rec_pump.save():
         serial = gvars.rec_pump['Serial']
         funcsMessages.show("Успех", "Насос №", serial, "добавлен в БД.")
-        db_params = {'columns': ['ID', 'Serial', 'Type'], 'order': 'ID Asc'}
-        funcs_wnd.fill_spinner(wnd.cmbSerial, 'Pumps', db_params, 1)
-        funcsSpinner.select_item_containing(wnd.cmbSerial, serial)
+        db_params = {'columns': ['ID', 'Serial', 'Type'], 'order_by': 'ID Asc'}
+        funcs_wnd.fill_combo(wnd.cmbSerial, 'Pumps', db_params, 1)
+        wnd.cmbSerial.model().select_contains(serial)
         return True
     return False
 

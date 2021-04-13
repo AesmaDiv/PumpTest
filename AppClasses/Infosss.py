@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QGroupBox, QComboBox
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QWidget
 
 from AesmaLib import aesma_funcs
-from Functions import funcsTable, funcsSpinner, funcs_db, funcsMessages
+from Functions import funcsTable, funcsCombo, funcs_db, funcsMessages
 from Globals import gvars
 
 
@@ -68,8 +68,8 @@ class Test(Info):
         gvars.wnd_main.txtLease.setText(gvars.rec_test['Lease'])
         gvars.wnd_main.txtWell.setText(gvars.rec_test['Well'])
         gvars.wnd_main.txtDaysRun.setText(str(gvars.rec_test['DaysRun']))
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbCustomers, {'ID': gvars.rec_test['Customer']})
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbAssembly, gvars.rec_test['Assembly'])
+        funcsCombo.select_item_contains(gvars.wnd_main.cmbCustomers, {'ID': gvars.rec_test['Customer']})
+        funcsCombo.select_item_contains(gvars.wnd_main.cmbAssembly, gvars.rec_test['Assembly'])
         Test.fill_points_table()
         pass
 
@@ -98,8 +98,8 @@ class Test(Info):
         result: bool = True
         missing = []
         result &= check_value(gvars.wnd_main.txtOrderNum.text(), 'Наряд-заказ\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbCustomers), 'Заказчик\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbAssembly), 'Сборка\n', missing)
+        result &= check_value(funcsCombo.get_current_value(gvars.wnd_main.cmbCustomers), 'Заказчик\n', missing)
+        result &= check_value(funcsCombo.get_current_value(gvars.wnd_main.cmbAssembly), 'Сборка\n', missing)
         # result &= check_value(gvars.wnd_main.txtLocation.text(), 'Месторождение\n', missing)
         # result &= check_value(gvars.wnd_main.txtLease.text(), 'Куст\n', missing)
         # result &= check_value(gvars.wnd_main.txtWell.text(), 'Скважина\n', missing)
@@ -114,9 +114,9 @@ class Test(Info):
         gvars.rec_test['Pump'] = gvars.rec_pump['ID']
         gvars.rec_test['DateTime'] = gvars.wnd_main.txtDateTime.text()
         gvars.rec_test['Customer'] = aesma_funcs.safe_parse_to(int,
-                                                             funcsSpinner.get_current_value(gvars.wnd_main.cmbCustomers,
+                                                             funcsCombo.get_current_value(gvars.wnd_main.cmbCustomers,
                                                                                             'ID'))
-        gvars.rec_test['Assembly'] = funcsSpinner.get_current_value(gvars.wnd_main.cmbAssembly)
+        gvars.rec_test['Assembly'] = funcsCombo.get_current_value(gvars.wnd_main.cmbAssembly)
         gvars.rec_test['OrderNum'] = gvars.wnd_main.txtOrderNum.text()
         gvars.rec_test['Location'] = gvars.wnd_main.txtLocation.text()
         gvars.rec_test['Lease'] = gvars.wnd_main.txtLease.text()
@@ -172,9 +172,9 @@ class Pump(Info):
 
     @staticmethod
     def display():
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbProducer, {'ID': gvars.rec_type['Producer']})
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbType, {'ID':  gvars.rec_pump['Type']})
-        funcsSpinner.select_item_containing(gvars.wnd_main.cmbSerial, {'Serial': gvars.rec_pump['Serial']})
+        funcsCombo.select_item_contains(gvars.wnd_main.cmbProducer, {'ID': gvars.rec_type['Producer']})
+        funcsCombo.select_item_contains(gvars.wnd_main.cmbType, {'ID':  gvars.rec_pump['Type']})
+        funcsCombo.select_item_contains(gvars.wnd_main.cmbSerial, {'Serial': gvars.rec_pump['Serial']})
         gvars.wnd_main.txtLength.setText(gvars.rec_pump['Length'])
         gvars.wnd_main.txtStages.setText(str(gvars.rec_pump['Stages']))
         gvars.wnd_main.txtShaft.setText(gvars.rec_pump['Shaft'])
@@ -184,7 +184,7 @@ class Pump(Info):
     @staticmethod
     def check_exist():
         pump_id: int = 0
-        serial = funcsSpinner.get_current_value(gvars.wnd_main.cmbSerial)
+        serial = funcsCombo.get_current_value(gvars.wnd_main.cmbSerial)
         record = funcs_db.get_value('Pumps', 'ID', {'Serial': serial})
         if record is not None and len(record):
             pump_id = record['ID']
@@ -194,9 +194,9 @@ class Pump(Info):
     def check_all_filled():
         result: bool = True
         missing = []
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducer), 'Производитель\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbType), 'Типоразмер\n', missing)
-        result &= check_value(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerial), 'Заводской номер\n', missing)
+        result &= check_value(funcsCombo.get_current_value(gvars.wnd_main.cmbProducer), 'Производитель\n', missing)
+        result &= check_value(funcsCombo.get_current_value(gvars.wnd_main.cmbType), 'Типоразмер\n', missing)
+        result &= check_value(funcsCombo.get_current_value(gvars.wnd_main.cmbSerial), 'Заводской номер\n', missing)
         result &= check_value(gvars.wnd_main.txtLength.text(), 'Длина\n', missing)
         result &= check_value(gvars.wnd_main.txtStages.text(), 'Кол-во ступеней\n', missing)
         # result &= check_value(gvars.wnd_main.txtShaft.text(), 'Вылет вала\n', missing)
@@ -207,12 +207,12 @@ class Pump(Info):
 
     @staticmethod
     def save_to_gvars():
-        gvars.rec_pump['Type'] = aesma_funcs.safe_parse_to(int, funcsSpinner.get_current_value(gvars.wnd_main.cmbType, 'ID'))
-        gvars.rec_pump['Serial'] = str(funcsSpinner.get_current_value(gvars.wnd_main.cmbSerial))
+        gvars.rec_pump['Type'] = aesma_funcs.safe_parse_to(int, funcsCombo.get_current_value(gvars.wnd_main.cmbType, 'ID'))
+        gvars.rec_pump['Serial'] = str(funcsCombo.get_current_value(gvars.wnd_main.cmbSerial))
         gvars.rec_pump['Length'] = gvars.wnd_main.txtLength.text()
         gvars.rec_pump['Stages'] = aesma_funcs.safe_parse_to(int, gvars.wnd_main.txtStages.text())
         gvars.rec_pump['Shaft'] = gvars.wnd_main.txtShaft.text()
-        # gvars.pump_type['Producer'] = int(funcsSpinner.get_current_value(gvars.wnd_main.cmbProducer, 'ID'))
+        # gvars.pump_type['Producer'] = int(funcsCombo.get_current_value(gvars.wnd_main.cmbProducer, 'ID'))
         return True
 
     @staticmethod
@@ -259,7 +259,7 @@ class Type:
     @staticmethod
     def check_exist():
         type_id: int = 0
-        text: str = funcsSpinner.get_current_value(gvars.wnd_main.cmbType)
+        text: str = funcsCombo.get_current_value(gvars.wnd_main.cmbType)
         record = funcs_db.get_value('Types', 'ID', {'Name': text})
         if record is not None and len(record):
             type_id = record['ID']

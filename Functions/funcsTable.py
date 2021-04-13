@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QTableView, QHeaderView
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
 from AesmaLib import journal
-from GUI.Models import ListModel, QModelIndex
+from GUI.models import ListModel, QModelIndex
 
 
 def init(table_view: QTableView, display: list, headers: list,

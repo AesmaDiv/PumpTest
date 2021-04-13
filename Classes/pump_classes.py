@@ -63,8 +63,10 @@ class Record():
         """ очищает все данные в записи """
         self._props = dict.fromkeys(self._props)
 
-    def check_exist(self, conditions: dict):
+    def check_exist(self, conditions: dict=None):
         """ проверяет, существует ли запись с такими условиями """
+        if not conditions:
+            conditions = [{'ID': self._props['ID']}]
         items = self._db.select(self._table, 'ID', conditions)
         if items:
             return items[0]['ID']

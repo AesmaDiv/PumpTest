@@ -4,5 +4,6 @@
     "python.linting.enabled": true,
     "python.autoComplete.extraPaths": [
         "~/Develop/Projects/Python/PythonPump",
-    ]
+    ],
+    "python.pythonPath": "/home/aesma/Developer/Projects/Python/venv/bin/python3.9",
 }

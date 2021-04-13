@@ -1,6 +1,7 @@
 """
     Функции работы с базой данных
 """
+from AesmaLib.database import QueryParams
 from Globals import gvars
 
 
@@ -12,21 +13,20 @@ def execute_query(query: str):
 
 def get_value(table: str, column: str, conditions: dict):
     """ Получение значения из записи """
-    records = get_records(table, [column], conditions)
+    records = get_records(QueryParams(table, [column], conditions))
     result = records[0] if not records is None else None
     return result
 
 
-def get_record(table: str, columns: list=None, conditions: dict=None) -> dict:
+def get_record(query_params: QueryParams) -> dict:
     """ Получение записи (строки) из БД """
-    result = get_records(table, columns, conditions)
+    result = get_records(query_params)
     return result[0] if not result is None else None
 
 
-def get_records(table: str, columns: list=None,
-                conditions: dict=None, order_by='') -> list:
+def get_records(query_params: QueryParams) -> list:
     """ Получение нескольких записей (строк), удовлетворяющих условие """
-    result = gvars.db.select(table, columns, conditions, order_by)
+    result = gvars.db.select_qp(query_params)
     return result if result else None
 
 

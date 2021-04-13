@@ -5,59 +5,61 @@ from PyQt5.QtWidgets import QHeaderView, QGroupBox, QWidget
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
 from PyQt5 import QtCore
 
-from Functions import funcs_db, funcsTable, funcsSpinner, funcsAdam, funcsGraph
-from GUI import Events, Models, PumpGraph, filters
+from Functions import funcs_db, funcsTable, funcsAdam, funcsGraph
+from GUI import events, models, PumpGraph
 from GUI.Markers import Markers
 from AesmaLib.journal import Journal
+from AesmaLib.database import QueryParams
 from Globals import gvars
 
 
+@Journal.logged
 def register_events():
-    """ Регистрация событий элементов формы (привязка к обработчикам) """
-    Journal.log("MainWindow::", "\tregistering events")
+    """ привязывает события элементов формы к обработчикам """
     wnd = gvars.wnd_main
-    wnd.tableTests.selectionModel().currentChanged.connect(Events.on_changed_testlist)
+    wnd.tableTests.selectionModel().currentChanged.connect(events.on_changed_testlist)
 
-    wnd.cmbProducer.currentIndexChanged.connect(Events.on_changed_combo_producers)
-    wnd.cmbType.currentIndexChanged.connect(Events.on_changed_combo_types)
-    wnd.cmbSerial.currentIndexChanged.connect(Events.on_changed_combo_serials)
+    wnd.cmbProducer.currentIndexChanged.connect(events.on_changed_combo_producers)
+    wnd.cmbType.currentIndexChanged.connect(events.on_changed_combo_types)
+    wnd.cmbSerial.currentIndexChanged.connect(events.on_changed_combo_serials)
 
-    wnd.btnTest.clicked.connect(Events.on_clicked_test)
-    wnd.btnTest_New.clicked.connect(Events.on_clicked_test_new)
-    wnd.btnTest_Save.clicked.connect(Events.on_clicked_test_info_save)
-    wnd.btnTest_Cancel.clicked.connect(Events.on_clicked_test_info_cancel)
+    wnd.btnTest.clicked.connect(events.on_clicked_test)
+    wnd.btnTest_New.clicked.connect(events.on_clicked_test_new)
+    wnd.btnTest_Save.clicked.connect(events.on_clicked_test_info_save)
+    wnd.btnTest_Cancel.clicked.connect(events.on_clicked_test_info_cancel)
 
-    wnd.btnPump_New.clicked.connect(Events.on_clicked_pump_new)
-    wnd.btnPump_Save.clicked.connect(Events.on_clicked_pump_save)
-    wnd.btnPump_Cancel.clicked.connect(Events.on_clicked_pump_cancel)
+    wnd.btnPump_New.clicked.connect(events.on_clicked_pump_new)
+    wnd.btnPump_Save.clicked.connect(events.on_clicked_pump_save)
+    wnd.btnPump_Cancel.clicked.connect(events.on_clicked_pump_cancel)
 
-    wnd.btnFilterReset.clicked.connect(Events.on_clicked_filter_reset)
+    wnd.btnFilterReset.clicked.connect(events.on_clicked_filter_reset)
 
-    wnd.txtFilter_ID.textChanged.connect(Events.on_changed_filter_apply)
-    wnd.txtFilter_DateTime.textChanged.connect(Events.on_changed_filter_apply)
-    wnd.txtFilter_OrderNum.textChanged.connect(Events.on_changed_filter_apply)
-    wnd.txtFilter_Serial.textChanged.connect(Events.on_changed_filter_apply)
+    wnd.txtFilter_ID.textChanged.connect(events.on_changed_filter_apply)
+    wnd.txtFilter_DateTime.textChanged.connect(events.on_changed_filter_apply)
+    wnd.txtFilter_OrderNum.textChanged.connect(events.on_changed_filter_apply)
+    wnd.txtFilter_Serial.textChanged.connect(events.on_changed_filter_apply)
 
-    wnd.radioOrderNum.toggled.connect(Events.on_radio_changed)
+    wnd.radioOrderNum.toggled.connect(events.on_changed_testlist_column)
 
-    wnd.btnGoTest.clicked.connect(Events.on_clicked_go_test)
-    wnd.btnGoBack.clicked.connect(Events.on_clicked_go_back)
+    wnd.btnGoTest.clicked.connect(events.on_clicked_go_test)
+    wnd.btnGoBack.clicked.connect(events.on_clicked_go_back)
 
-    wnd.txtFlow.textChanged.connect(Events.on_changed_sensors)
-    wnd.txtLift.textChanged.connect(Events.on_changed_sensors)
-    wnd.txtPower.textChanged.connect(Events.on_changed_sensors)
+    wnd.txtFlow.textChanged.connect(events.on_changed_sensors)
+    wnd.txtLift.textChanged.connect(events.on_changed_sensors)
+    wnd.txtPower.textChanged.connect(events.on_changed_sensors)
 
-    wnd.btnAddPoint.clicked.connect(Events.on_clicked_add_point)
-    wnd.btnRemovePoint.clicked.connect(Events.on_clicked_remove_point)
-    wnd.btnClearCurve.clicked.connect(Events.on_clicked_clear_curve)
-    wnd.btnSaveCharts.clicked.connect(Events.on_clicked_test_data_save)
+    wnd.btnAddPoint.clicked.connect(events.on_clicked_add_point)
+    wnd.btnRemovePoint.clicked.connect(events.on_clicked_remove_point)
+    wnd.btnClearCurve.clicked.connect(events.on_clicked_clear_curve)
+    wnd.btnSaveCharts.clicked.connect(events.on_clicked_test_data_save)
 
-    wnd.checkConnection.clicked.connect(Events.on_clicked_adam_connection)
+    wnd.checkConnection.clicked.connect(events.on_clicked_adam_connection)
 
-    funcsAdam.broadcaster.event.connect(Events.on_adam_data_received)
-    # gvars.markers.eventMove.connect(Events.on_markers_move)
+    funcsAdam.broadcaster.event.connect(events.on_adam_data_received)
+    # gvars.markers.eventMove.connect(events.on_markers_move)
 
 
+@Journal.logged
 def set_color_scheme():
     """ устанавливает цветовую схему """
     # gvars.wnd_main.stackedWidget.setStyleSheet("QStackedWidget { background: #404040; }")
@@ -67,10 +69,9 @@ def set_color_scheme():
     # gvars.wnd_main.groupPumpInfo.setStyleSheet(style)
 
 
-# FILL CONTROLS
+@Journal.logged
 def init_test_list():
     """ инициализирует список тестов """
-    Journal.log("MainWindow::", "\tinitializing test list")
     wnd = gvars.wnd_main
     wnd.tableTests.setColumnWidth(0, 50)
     wnd.tableTests.setColumnWidth(1, 150)
@@ -81,7 +82,7 @@ def init_test_list():
     tests_resizes = [QHeaderView.Fixed, QHeaderView.Fixed,
                      QHeaderView.Stretch, QHeaderView.Stretch]
     tests_data = funcs_db.execute_query(gvars.TESTLIST_QUERY)
-    wnd.tests_filter = Models.FilterModel(wnd)
+    wnd.tests_filter = models.FilterModel(wnd)
     wnd.tests_filter.setDynamicSortFilter(True)
     funcsTable.init(wnd.tableTests, display=tests_display,
                     filter_proxy=wnd.tests_filter, data=tests_data,
@@ -89,18 +90,19 @@ def init_test_list():
                     headers_resizes=tests_resizes)
 
 
+@Journal.logged
 def fill_test_list():
     """ заполняет список тестов """
-    Journal.log("MainWindow::", "\tfilling test list")
+    wnd = gvars.wnd_main
     tests_data = funcs_db.execute_query(gvars.TESTLIST_QUERY)
-    funcsTable.set_data(gvars.wnd_main.tableTests, tests_data)
-    funcsTable.select_row(gvars.wnd_main.tableTests, 0)
+    funcsTable.set_data(wnd.tableTests, tests_data)
+    funcsTable.select_row(wnd.tableTests, 0)
     # funcs_db.set_permission('Tests', False)
 
 
+@Journal.logged
 def init_points_list():
     """ инициализирует список точек """
-    Journal.log("MainWindow::", "\tinitializing points list")
     wnd = gvars.wnd_main
     wnd.tablePoints.setColumnWidth(0, 90)
     wnd.tablePoints.setColumnWidth(1, 90)
@@ -113,38 +115,64 @@ def init_points_list():
                     headers_sizes=headers_sizes, headers_resizes=resizes)
 
 
-def fill_spinners():
-    """ заполняет комбобоксы формы """
-    Journal.log("MainWindow::", "\tfilling spinners ->")
-    db_params1 = {'columns': ['ID', 'Name']}
-    db_params2 = {'columns': ['ID', 'Name', 'Producer']}
-    db_params3 = {'columns': ['ID', 'Serial', 'Type'], 'order': 'ID Asc'}
-    db_params4 = {'columns': ['']}
-    fill_spinner(gvars.wnd_main.cmbProducer, 'Producers', db_params1, 1)
-    fill_spinner(gvars.wnd_main.cmbCustomer, 'Customers', db_params1, 1, True)
-    fill_spinner(gvars.wnd_main.cmbType, 'Types', db_params2, 1, True)
-    fill_spinner(gvars.wnd_main.cmbSerial, 'Pumps', db_params3, 1, True)
-    fill_spinner(gvars.wnd_main.cmbAssembly, 'Assembly', db_params4, 0)
+@Journal.logged
+def fill_combos():
+    """ инициализирует комбобоксы --> """
+    fill_combo_customers()
+    fill_combo_assembly()
+    fill_combo_producers()
+    fill_combo_types()
+    fill_combo_serials()
 
 
-def fill_spinner(spinner, table, db_params, index, with_completer=False):
-    """ заполняет комбобокс в соответствии с условиями """
-    Journal.log("MainWindow::", "\t--> filling", table)
-    clmns = db_params['columns']
-    conds = db_params['conditions'] if 'conditions' in db_params else {}
-    order = db_params['order'] if 'order' in db_params else 'Name Asc'
-    if table == 'Assembly':
-        items = ['', 'Новый', 'Ремонт']
-    else:
-        items = [''] + funcs_db.get_records(table, clmns, conds, order)
-    funcsSpinner.fill(spinner, items, clmns[index],
-                      with_completer=with_completer)
+@Journal.logged
+def fill_combo_customers():
+    """ --> заполняет заказчик (cmbCustomer) """
+    qp = QueryParams('Customers', ['ID', 'Name'])
+    fill_combo(gvars.wnd_main.cmbCustomer, qp)
 
 
-# GRAPH
+@Journal.logged
+def fill_combo_assembly():
+    """ --> заполняет сборка (cmbAssembly) """
+    qp = QueryParams('Assemblies', ['ID', 'Name'])
+    fill_combo(gvars.wnd_main.cmbAssembly, qp)
+
+
+@Journal.logged
+def fill_combo_producers():
+    """ --> заполняет производитель (cmbProducer) """
+    qp = QueryParams('Producers', ['ID', 'Name'])
+    fill_combo(gvars.wnd_main.cmbProducer, qp)
+
+
+@Journal.logged
+def fill_combo_types():
+    """ --> заполняет типоразмер (cmbType) """
+    qp = QueryParams('Types', ['ID', 'Name', 'Producer'])
+    fill_combo(gvars.wnd_main.cmbType, qp)
+
+
+@Journal.logged
+def fill_combo_serials():
+    """ --> заполняет зав.номер (cmbSerial) """
+    qp = QueryParams('Pumps', ['ID', 'Serial', 'Type'])
+    fill_combo(gvars.wnd_main.cmbSerial, qp)
+
+
+def fill_combo(combo: QComboBox, query_params):
+    """ инициализирует фильтр и заполняет комбобокс """
+    model = models.ComboItemModel(combo)
+    display = query_params.columns[1]
+    data = funcs_db.get_records(query_params)
+    data.insert(0, {key: None for key in query_params.columns})
+    model.fill(data, display)
+    combo.setModel(model)
+
+
+@Journal.logged
 def init_graph():
     """ инициализирует элемент графика """
-    Journal.log("MainWindow::", "\tinitializing graph widget")
     gvars.graph_info = PumpGraph.PumpGraph(100, 100, gvars.PATH_TO_PIC)
     gvars.graph_info.setMargins([10, 10, 10, 10])
     gvars.markers = Markers(['test_lift', 'test_power'], gvars.graph_info)
@@ -164,17 +192,31 @@ def display_sensors(sensors: dict):
     wnd.txtFlow1.setText(str(sensors['flow1']))
     wnd.txtFlow2.setText(str(sensors['flow2']))
 
-
+@Journal.logged
 def display_record():
     """ отображает полную информации о записи """
     wnd = gvars.wnd_main
     row = funcsTable.get_row(wnd.tableTests)
-    if gvars.rec_test.load(row['ID']):
-        group_display(wnd.groupTestInfo, gvars.rec_test)
-        if gvars.rec_pump.load(gvars.rec_test['Pump']):
-            group_display(wnd.groupPumpInfo, gvars.rec_pump)
-            if gvars.rec_type.load(gvars.rec_pump['Type']):
-                funcsGraph.draw_charts()
+    if row:
+        wnd.is_displaying = dict.fromkeys(['Producer','Type','Serial'], True)
+        display_test(row['ID'])
+
+def display_test(test_id: int):
+    """ отображает информацию о тесте """
+    Journal.log(f"{__name__}::\t загружает информацию о тесте --> {test_id}")
+    if gvars.rec_test.load(test_id):
+        group_display(gvars.wnd_main.groupTestInfo, gvars.rec_test)
+        display_pump(gvars.rec_test['Pump'])
+
+def display_pump(pump_id: int) -> bool:
+    """ отображает информацию о насосе """
+    Journal.log(f"{__name__}::\t загружает информацию о насосе --> {pump_id}")
+    if gvars.rec_pump.load(pump_id):
+        type_id = gvars.rec_pump['Type']
+        Journal.log(f"{__name__}::\t загружает информацию о типе --> {type_id}")
+        if gvars.rec_type.load(type_id):
+            group_display(gvars.wnd_main.groupPumpInfo, gvars.rec_pump)
+
 
 def clear_record(also_clear_classes: bool):
     """ очищает отображаемую информацию и сами записи """
@@ -187,16 +229,22 @@ def clear_record(also_clear_classes: bool):
         gvars.rec_type.clear()
 
 
-def group_display(group: QGroupBox, record):
+def group_display(group: QGroupBox, record, log=False):
     """ отображает информацию записи в полях группы """
     for name, value in record.items():
-        item = group.findChild(QLineEdit, f'txt{name}')
+        if name == 'Type' or name == 'Producer':
+            continue
+        item: QLineEdit = group.findChild(QLineEdit, f'txt{name}')
         if item:
+            if log:
+                Journal.log(f"--> {item.objectName()} => {str(value)}")
             item.setText(str(value))
             continue
-        item = group.findChild(QComboBox, f'cmb{name}')
+        item: QComboBox = group.findChild(QComboBox, f'cmb{name}')
         if item:
-            funcsSpinner.select_item_containing(item, value)
+            if log:
+                Journal.log(f"--> {item.objectName()} => {value}" )
+            item.model().select_contains(value)
             continue
 
 
@@ -207,12 +255,14 @@ def group_clear(group: QGroupBox):
         if isinstance(item, QLineEdit):
             item.clear()
         elif isinstance(item, QComboBox):
-            item.setCurrentIndex(0)
+            item.model().resetFilter()
+            item.model().select(0)#setCurrentIndex(0)
     group.repaint()
 
 
 def group_lock(group: QGroupBox, state: bool):
     """ блокирует поля группы от изменений """
+    return
     widgets = group.findChildren(QWidget)
     for item in widgets:
         if isinstance(item, QLineEdit):
@@ -228,14 +278,38 @@ def group_lock(group: QGroupBox, state: bool):
             item.clearFocus()
     group.repaint()
 
-def testlist_filter_apply():
+
+def testlist_filter_apply(conditions: dict=None):
     """ применяет фильтр к списку тестов """
-    filters.TestListFilters.apply()
+    wnd = gvars.wnd_main
+    if conditions is None:
+        filter_id = wnd.txtFilter_ID.text()
+        filter_datetime = wnd.txtFilter_DateTime.text()
+        filter_ordernum = wnd.txtFilter_OrderNum.text()
+        filter_serial = wnd.txtFilter_Serial.text()
+        conditions = [filter_id, filter_datetime, filter_ordernum, filter_serial]
+    wnd.tests_filter.applyFilter(conditions)
+
 
 def testlist_filter_reset():
     """ сбрасывает фильтр списка тестов """
-    filters.TestListFilters.reset()
+    wnd = gvars.wnd_main
+    group_clear(wnd.groupTestList)
+    clear_record(True)
+    wnd.tests_filter.applyFilter()
+    funcsTable.select_row(wnd.tableTests, -1)
+
 
 def testlist_filter_switch():
     """ переключает список тестов (зав.номер/наряд-заказ) """
-    filters.TestListFilters.switch_others()
+    wnd = gvars.wnd_main
+    if wnd.radioOrderNum.isChecked():
+        wnd.tableTests.horizontalHeader().hideSection(3)
+        wnd.tableTests.horizontalHeader().showSection(2)
+        wnd.txtFilter_OrderNum.show()
+        wnd.txtFilter_Serial.hide()
+    else:
+        wnd.tableTests.horizontalHeader().hideSection(2)
+        wnd.tableTests.horizontalHeader().showSection(3)
+        wnd.txtFilter_OrderNum.hide()
+        wnd.txtFilter_Serial.show()
