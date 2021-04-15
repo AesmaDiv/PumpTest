@@ -177,7 +177,7 @@ class FilterModel(QSortFilterProxyModel):
 
 class ComboItemModel(FilterModel):
     """ Класс модели для комбобоксов с фильтрацией """
-    _logged = True
+    _logged = False
 
     def __init__(self, parent=None):
         FilterModel.__init__(self, parent)

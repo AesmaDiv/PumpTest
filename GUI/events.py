@@ -4,7 +4,7 @@
 from PyQt5.QtCore import Qt
 
 from Functions import funcsCommon, funcsGraph, funcsMessages
-from Functions import funcsTest, funcs_wnd, funcsAdam, funcsTable
+from Functions import funcs_db, funcs_wnd, funcsTest, funcsAdam, funcsTable
 from AesmaLib.journal import Journal
 from Globals import gvars
 
@@ -14,18 +14,14 @@ def on_changed_testlist():
     wnd = gvars.wnd_main
     item = funcsTable.get_row(wnd.tableTests)
     if item:
-        Journal.log('*********************************************************')
+        # Journal.log('*********************************************************')
+        Journal.log('***' * 30)
         Journal.log(__name__, "::\t", on_changed_testlist.__doc__, "-->",
                     item['ID'] if item else "None")
-        funcs_wnd.group_lock(wnd.groupTestInfo, True)
-        funcs_wnd.group_lock(wnd.groupPumpInfo, True)
-        Journal.log('->---------------- clearing widgets ---------------------')
+        funcs_wnd.combos_filters_reset()
         funcs_wnd.clear_record(True)
-        wnd.cmbType.model().applyFilter()
-        wnd.cmbSerial.model().applyFilter()
-        Journal.log('=>=============== displaying new info ===================')
         funcs_wnd.display_record()
-        Journal.log('=========================================================')
+        Journal.log('===' * 30)
 
 
 def on_changed_combo_producers(index):
@@ -33,10 +29,9 @@ def on_changed_combo_producers(index):
     wnd = gvars.wnd_main
     item = wnd.cmbProducer.currentData(Qt.UserRole)
     if item:
-        Journal.log('_________________________________________________________')
         Journal.log(__name__, "::\t", on_changed_combo_producers.__doc__, "-->",
                     item['Name'] if item else "None")
-        # ↓ фильтруем типоразмеры для данного производителя
+        # ↓ фильтрует типоразмеры для данного производителя
         condition = {'Producer': item['ID']} if index else None
         if not wnd.cmbType.model().check_selected(condition):
             wnd.cmbType.model().applyFilter(condition)
@@ -46,15 +41,14 @@ def on_changed_combo_types(index):
     """ изменение выбора типоразмера """
     wnd = gvars.wnd_main
     item = wnd.cmbType.currentData(Qt.UserRole)
-    Journal.log('_________________________________________________________')
-    Journal.log(__name__, "::\t", on_changed_combo_types.__doc__, "-->",
-                item['Name'] if item else "None")
     if item:
-        # ↑ выбираем производителя для данного типоразмера
+        Journal.log(__name__, "::\t", on_changed_combo_types.__doc__, "-->",
+                    item['Name'] if item else "None")
+        # ↑ выбирает производителя для данного типоразмера
         condition = {'ID': item['Producer']} if index else None
         if not wnd.cmbProducer.model().check_selected(condition) and index:
             wnd.cmbProducer.model().select_contains(condition)
-        # ↓ фильтруем серийники для данного типоразмера
+        # ↓ фильтрует серийники для данного типоразмера
         condition = {'Type': item['ID']} if index else None
         if not wnd.cmbSerial.model().check_selected(condition):
             wnd.cmbSerial.model().applyFilter(condition)
@@ -65,10 +59,9 @@ def on_changed_combo_serials(index):
     wnd = gvars.wnd_main
     item = wnd.cmbSerial.currentData(Qt.UserRole)
     if item:
-        Journal.log('_________________________________________________________')
         Journal.log(__name__, "::\t", on_changed_combo_serials.__doc__, "-->",
                     item['Serial'] if item else "None")
-        # ↑ выбираем типоразмер для данного серийника
+        # ↑ выбирает типоразмер для данного серийника
         condition = {'ID': item['Type']} if index else None
         if not wnd.cmbType.model().check_selected(condition) and index:
             wnd.cmbType.model().select_contains(condition)
@@ -91,15 +84,16 @@ def on_changed_filter_apply(text: str):
 
 def on_clicked_filter_reset():
     """ нажата кнопка сброса фильтра """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_filter_reset.__doc__)
     funcs_wnd.testlist_filter_reset()
     funcs_wnd.group_lock(gvars.wnd_main.groupTestInfo, True)
     funcs_wnd.group_lock(gvars.wnd_main.groupPumpInfo, True)
 
 
-# PUMP INFO
 def on_clicked_pump_new():
     """ нажата кнопка добавления нового насоса """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_pump_new.__doc__)
     funcs_wnd.group_lock(gvars.wnd_main.groupPumpInfo, False)
     funcs_wnd.group_clear(gvars.wnd_main.groupPumpInfo)
@@ -107,24 +101,28 @@ def on_clicked_pump_new():
 
 def on_clicked_pump_save():
     """ нажата кнопка сохранения нового насоса """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_pump_save.__doc__)
-    if gvars.rec_type.check_exist({}):
-        if gvars.rec_pump.check_exist({}) or gvars.rec_pump.save():
-            funcs_wnd.group_lock(gvars.wnd_main.groupPumpInfo, True)
-    else:
-        funcsMessages.show("Ошибка", "Такого типоразмера нет в базе.")
+    pump_id = funcsCommon.check_exists_serial(with_select=True)
+    if not pump_id and funcs_wnd.save_pump_info():
+        funcs_wnd.fill_combos_pump()
+        gvars.wnd_main.cmbSerial.model().select_contains(gvars.rec_pump['ID'])
 
 
 def on_clicked_pump_cancel():
     """ нажата кнопка отмены добавления нового насоса """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_pump_cancel.__doc__)
     wnd = gvars.wnd_main
+    # funcs_wnd.display_record()
+    funcs_wnd.combos_filters_reset()
     funcs_wnd.group_display(wnd.groupPumpInfo, gvars.rec_pump)
     funcs_wnd.group_lock(wnd.groupPumpInfo, True)
 
 
 def on_clicked_test_new():
     """ нажата кнопка добавления нового теста """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test_new.__doc__)
     wnd = gvars.wnd_main
     funcs_wnd.group_lock(wnd.groupTestInfo, False)
@@ -134,27 +132,17 @@ def on_clicked_test_new():
 
 def on_clicked_test_info_save():
     """ нажата кнопка сохранения нового теста """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test_info_save.__doc__)
-    test_id = gvars.rec_test.check_exist()
-    if test_id:
-        if funcsMessages.ask("Внимание",
-                             """Тест с таким наряд-заказом
-                                уже присутствует в базе.
-                                Хотите его выбрать?"""):
-            funcsCommon.select_test(test_id)
-        else:
-            return
-    else:
-        if gvars.rec_test.save_info():
-            funcs_wnd.fill_test_list()
-        else:
-            return
-    gvars.rec_test.set_readonly(gvars.wnd_main.groupTestInfo, True)
-    gvars.rec_pump.Pump.set_readonly(gvars.wnd_main.groupTestInfo, True)
+    test_id = funcsCommon.check_exists_ordernum(with_select=True)
+    if not test_id:
+        funcs_wnd.save_test_info()
+        funcs_wnd.fill_test_list()
 
 
 def on_clicked_test_info_cancel():
     """ нажата кнопка отмены добавления нового теста """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test_info_cancel.__doc__)
     wnd = gvars.wnd_main
     funcs_wnd.group_display(wnd.groupTestInfo, gvars.rec_test)
@@ -163,6 +151,7 @@ def on_clicked_test_info_cancel():
 
 def on_clicked_test_data_save():
     """ нажата кнопка сохранения результатов теста """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test_data_save.__doc__)
     title = 'УСПЕХ'
     message = 'Результаты сохранены'
@@ -179,6 +168,7 @@ def on_clicked_save():
 
 def on_clicked_go_test():
     """ нажата кнопка перехода к тестированию """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_go_test.__doc__)
     gvars.wnd_main.stackedWidget.setCurrentIndex(1)
     funcsGraph.display_charts(gvars.markers)
@@ -187,6 +177,7 @@ def on_clicked_go_test():
 
 def on_clicked_go_back():
     """ нажата кнопка возврата на основное окно """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_go_back.__doc__)
     gvars.wnd_main.stackedWidget.setCurrentIndex(0)
     funcsGraph.display_charts(gvars.wnd_main.frameGraphInfo)
@@ -195,6 +186,7 @@ def on_clicked_go_back():
 # TEST
 def on_clicked_test():
     """ нажата кнопка начала/остановки испытания """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test.__doc__)
     funcsTest.is_test_running = not funcsTest.is_test_running
     funcsTest.switch_charts_visibility()
@@ -203,6 +195,7 @@ def on_clicked_test():
 
 def on_clicked_add_point():
     """ нажата кнопка добавления точки """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_add_point.__doc__)
     gvars.markers.addKnots()
     funcsTest.add_point_to_list()
@@ -212,6 +205,7 @@ def on_clicked_add_point():
 
 def on_clicked_remove_point():
     """ нажата кнопка удаления точки """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_remove_point.__doc__)
     gvars.markers.removeKnots()
     funcsTest.remove_last_point_from_list()
@@ -221,6 +215,7 @@ def on_clicked_remove_point():
 
 def on_clicked_clear_curve():
     """ нажата кнопка удаления всех точек """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_clear_curve.__doc__)
     gvars.markers.clearAllKnots()
     funcsTest.clear_points_from_list()
@@ -230,6 +225,7 @@ def on_clicked_clear_curve():
 
 def on_clicked_adam_connection():
     """ нажата кнопка подключения к ADAM5000TCP """
+    Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_adam_connection.__doc__)
     state = funcsAdam.changeConnectionState()
     gvars.wnd_main.checkConnection.setChecked(state)

@@ -118,8 +118,18 @@ def init_points_list():
 @Journal.logged
 def fill_combos():
     """ инициализирует комбобоксы --> """
+    fill_combos_test()
+    fill_combos_pump()
+
+
+def fill_combos_test():
+    """ инициализирует комбобоксы для теста --> """
     fill_combo_customers()
     fill_combo_assembly()
+
+
+def fill_combos_pump():
+    """ инициализирует комбобоксы для насоса --> """
     fill_combo_producers()
     fill_combo_types()
     fill_combo_serials()
@@ -192,23 +202,26 @@ def display_sensors(sensors: dict):
     wnd.txtFlow1.setText(str(sensors['flow1']))
     wnd.txtFlow2.setText(str(sensors['flow2']))
 
+
 @Journal.logged
 def display_record():
     """ отображает полную информации о записи """
     wnd = gvars.wnd_main
     row = funcsTable.get_row(wnd.tableTests)
     if row:
-        wnd.is_displaying = dict.fromkeys(['Producer','Type','Serial'], True)
         display_test(row['ID'])
+
 
 def display_test(test_id: int):
     """ отображает информацию о тесте """
     Journal.log(f"{__name__}::\t загружает информацию о тесте --> {test_id}")
     if gvars.rec_test.load(test_id):
         group_display(gvars.wnd_main.groupTestInfo, gvars.rec_test)
+        group_lock(gvars.wnd_main.groupTestInfo, True)
         display_pump(gvars.rec_test['Pump'])
 
-def display_pump(pump_id: int) -> bool:
+
+def display_pump(pump_id: int):
     """ отображает информацию о насосе """
     Journal.log(f"{__name__}::\t загружает информацию о насосе --> {pump_id}")
     if gvars.rec_pump.load(pump_id):
@@ -216,6 +229,27 @@ def display_pump(pump_id: int) -> bool:
         Journal.log(f"{__name__}::\t загружает информацию о типе --> {type_id}")
         if gvars.rec_type.load(type_id):
             group_display(gvars.wnd_main.groupPumpInfo, gvars.rec_pump)
+            group_lock(gvars.wnd_main.groupPumpInfo, True)
+
+
+@Journal.logged
+def save_test_info():
+    """ сохраняет информацию о насосе """
+    Journal.log(f"{__name__}::\t сохраняет информацию о новом тесте")
+    wnd = gvars.wnd_main
+    gvars.rec_test['Pump'] = gvars.rec_pump['ID']
+    group_save(wnd.groupTestInfo, gvars.rec_test)
+    group_lock(wnd.groupTestInfo, True)
+    gvars.rec_test.save()
+
+
+@Journal.logged
+def save_pump_info() -> bool:
+    """ сохраняет информацию о насосе """
+    wnd = gvars.wnd_main
+    group_save(wnd.groupPumpInfo, gvars.rec_pump)
+    group_lock(wnd.groupPumpInfo, True)
+    return gvars.rec_pump.save()
 
 
 def clear_record(also_clear_classes: bool):
@@ -231,38 +265,55 @@ def clear_record(also_clear_classes: bool):
 
 def group_display(group: QGroupBox, record, log=False):
     """ отображает информацию записи в полях группы """
+    Journal.log(f"{__name__}::\t заполняет поля группы {group.objectName()}")
     for name, value in record.items():
-        if name == 'Type' or name == 'Producer':
+        if name in ('ID', 'Type', 'Producer'):
             continue
-        item: QLineEdit = group.findChild(QLineEdit, f'txt{name}')
+        item = group.findChildren(QWidget, QtCore.QRegExp(name))
         if item:
+            if isinstance(item[0], QLineEdit):
+                item[0].setText(str(value))
+            elif isinstance(item[0], QComboBox):
+                item[0].model().select_contains(value)
             if log:
-                Journal.log(f"--> {item.objectName()} => {str(value)}")
-            item.setText(str(value))
-            continue
-        item: QComboBox = group.findChild(QComboBox, f'cmb{name}')
+                Journal.log(f"{item[0].objectName()} <== {value}")
+
+
+def group_save(group: QGroupBox, record, log=False):
+    """ сохраняет информацию записи в полях группы """
+    Journal.log(f"{__name__}::\t сохраняет значения",
+                f"из полей группы {group.objectName()}")
+    record['ID'] = None
+    for name in record.keys():
+        item = group.findChildren(QWidget, QtCore.QRegExp(name))
         if item:
+            if isinstance(item[0], QLineEdit):
+                record[name] = item[0].text()
+            elif isinstance(item[0], QComboBox):
+                record[name] = item[0].currentData()['ID'] \
+                    if name in ('Type', 'Producer', 'Customer', 'Assembly') \
+                    else item[0].currentText()
             if log:
-                Journal.log(f"--> {item.objectName()} => {value}" )
-            item.model().select_contains(value)
-            continue
+                Journal.log(f"{item[0].objectName()} ==> {record[name]}")
 
 
 def group_clear(group: QGroupBox):
     """ очищает отображаемую информацию записи в полях группы """
+    Journal.log(f"{__name__}::\t очищает поля группы {group.objectName()}")
     widgets = group.findChildren(QWidget)
     for item in widgets:
         if isinstance(item, QLineEdit):
             item.clear()
         elif isinstance(item, QComboBox):
             item.model().resetFilter()
-            item.model().select(0)#setCurrentIndex(0)
+            item.model().select(0)
     group.repaint()
 
 
 def group_lock(group: QGroupBox, state: bool):
     """ блокирует поля группы от изменений """
-    return
+    Journal.log(f"{__name__}::\t устанавливает блокировку полей группы",
+                f"{group.objectName()} => {state}")
     widgets = group.findChildren(QWidget)
     for item in widgets:
         if isinstance(item, QLineEdit):
@@ -313,3 +364,10 @@ def testlist_filter_switch():
         wnd.tableTests.horizontalHeader().showSection(3)
         wnd.txtFilter_OrderNum.hide()
         wnd.txtFilter_Serial.show()
+
+
+def combos_filters_reset():
+    """ сбрасывает фильт для комбобоксов насоса """
+    wnd = gvars.wnd_main
+    wnd.cmbType.model().resetFilter()
+    wnd.cmbSerial.model().resetFilter()

@@ -7,6 +7,7 @@
 import faulthandler
 import sys
 from PyQt5.QtWidgets import QApplication
+from Functions import funcsMessages
 from Globals import gvars
 
 

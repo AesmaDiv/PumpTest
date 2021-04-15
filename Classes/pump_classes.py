@@ -67,7 +67,7 @@ class Record():
         """ проверяет, существует ли запись с такими условиями """
         if not conditions:
             conditions = [{'ID': self._props['ID']}]
-        items = self._db.select(self._table, 'ID', conditions)
+        items = self._db.select(self._table, ['ID'], conditions)
         if items:
             return items[0]['ID']
         return 0
@@ -78,7 +78,8 @@ class Record():
         -> возвращает успех """
         if self._ready:
             if self._props['ID']:
-                return self._db.update(self._table, self._props, {'ID': self._props['ID']})
+                return self._db.update(self._table, self._props,
+                                       {'ID': self._props['ID']})
             self._props['ID'] = self._db.insert(self._table, self._props)
             return self.ID > 0
         return False

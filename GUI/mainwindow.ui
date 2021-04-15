@@ -820,7 +820,7 @@
          <number>2</number>
         </property>
         <item row="0" column="0">
-         <widget class="QLabel" name="lblProducer">
+         <widget class="QLabel" name="lbl1">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -873,7 +873,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLabel" name="lblStages">
+         <widget class="QLabel" name="lbl5">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -929,7 +929,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QLabel" name="lblAssembly">
+         <widget class="QLabel" name="lbl6">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -957,7 +957,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="lblSerial">
+         <widget class="QLabel" name="lbl3">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -985,7 +985,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QLabel" name="lblLenght">
+         <widget class="QLabel" name="lbl4">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1246,7 +1246,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="lblType">
+         <widget class="QLabel" name="lbl2">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1342,7 +1342,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="lblSerial_2">
+         <widget class="QLabel" name="lbl13">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1401,7 +1401,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QLabel" name="lblDate_3">
+         <widget class="QLabel" name="lbl11">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1541,7 +1541,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="lblCustomer">
+         <widget class="QLabel" name="lbl12">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1650,7 +1650,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="lblAssembly_2">
+         <widget class="QLabel" name="lbl14">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1678,7 +1678,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLabel" name="lblStages_2">
+         <widget class="QLabel" name="lbl16">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1706,7 +1706,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QLabel" name="lblLift_2">
+         <widget class="QLabel" name="lbl17">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1768,7 +1768,7 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QLabel" name="lblSerial_3">
+         <widget class="QLabel" name="lbl18">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1827,7 +1827,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QLabel" name="lblLenght_2">
+         <widget class="QLabel" name="lbl15">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
