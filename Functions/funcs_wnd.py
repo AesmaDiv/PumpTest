@@ -224,12 +224,15 @@ def display_test(test_id: int):
 def display_pump(pump_id: int):
     """ отображает информацию о насосе """
     Journal.log(f"{__name__}::\t загружает информацию о насосе --> {pump_id}")
+    wnd = gvars.wnd_main
     if gvars.rec_pump.load(pump_id):
         type_id = gvars.rec_pump['Type']
         Journal.log(f"{__name__}::\t загружает информацию о типе --> {type_id}")
         if gvars.rec_type.load(type_id):
-            group_display(gvars.wnd_main.groupPumpInfo, gvars.rec_pump)
-            group_lock(gvars.wnd_main.groupPumpInfo, True)
+            group_display(wnd.groupPumpInfo, gvars.rec_pump)
+            group_lock(wnd.groupPumpInfo, True)
+            wnd.groupTestFrame.setTitle(gvars.rec_type.Name)
+
 
 
 @Journal.logged

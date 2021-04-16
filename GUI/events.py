@@ -65,7 +65,10 @@ def on_changed_combo_serials(index):
         condition = {'ID': item['Type']} if index else None
         if not wnd.cmbType.model().check_selected(condition) and index:
             wnd.cmbType.model().select_contains(condition)
-        # funcsGraph.draw_charts()
+        funcsGraph.draw_charts()
+        # funcs_plot.draw_plot([gvars.rec_type['Flows'],
+        #                       gvars.rec_type['Lifts'],
+        #                       gvars.rec_type['Powers']])
 
 
 def on_changed_testlist_column():
