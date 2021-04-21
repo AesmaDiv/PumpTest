@@ -12,20 +12,21 @@ limits_pen = QPen(QColor(200, 200, 0, 20), 1, Qt.SolidLine)
 
 
 class PumpGraph(Graph):
-    def __init__(self, width: int, height: int, PATH_TO_PIC: str, parent=None):
+    def __init__(self, width: int, height: int, PATH_TO_PIC: str = None, parent=None):
         Graph.__init__(self, width, height, parent)
         self.setGeometry(0, 0, width, height)
         self._limits_value = [0, 0, 0]
         self._limits_pixel = [0, 0, 0]
         self._grid_divs: dict = {}
         self._charts_data = {}
-        self._PATH_TO_PIC = PATH_TO_PIC
 
-    def renderToImage(self, size: QSize):
+    def renderToImage(self, size: QSize, path_to_file=None):
         self.setGeometry(0, 0, size.width(), size.height())
         pixmap = QPixmap(self.size())
         self.render(pixmap)
-        pixmap.save(self._PATH_TO_PIC)
+        if path_to_file:
+            pixmap.save(path_to_file)
+        return pixmap
 
     def setLimits(self, minimum: float, nominal: float, maximum: float):
         self._limits_value = [minimum, nominal, maximum]
@@ -153,7 +154,7 @@ class PumpGraph(Graph):
                     offset_x = self._margins[0] - fm.width(text) - 10
                 elif axis_name == 'y1':
                     offset_x = self._margins[0] + self.getDrawArea().width() + 5
-                    painter.setPen(self._charts['power'].getPen())
+                    painter.setPen(self._charts['pwr'].getPen())
                 elif axis_name == 'y2':
                     offset_x = self._margins[0] + self.getDrawArea().width() + self._grid_divs['y1'].width + 20
                     painter.setPen(self._charts['eff'].getPen())
@@ -225,10 +226,10 @@ class PumpGraph(Graph):
 
     def _calculateMargins(self):
         keys = self._charts.keys()
-        if 'lift' in keys and 'power' in keys and 'eff' in keys:
-            self._prepareDivs('x0', self._charts['lift'].getAxis('x'))
-            self._prepareDivs('y0', self._charts['lift'].getAxis('y'))
-            self._prepareDivs('y1', self._charts['power'].getAxis('y'))
+        if 'lft' in keys and 'pwr' in keys and 'eff' in keys:
+            self._prepareDivs('x0', self._charts['lft'].getAxis('x'))
+            self._prepareDivs('y0', self._charts['lft'].getAxis('y'))
+            self._prepareDivs('y1', self._charts['pwr'].getAxis('y'))
             self._prepareDivs('y2', self._charts['eff'].getAxis('y'))
 
             self._margins[0] = self._grid_divs['y0'].width + 20

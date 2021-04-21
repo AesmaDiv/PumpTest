@@ -2,12 +2,10 @@
     AesmaDiv 2021
     Программа для стенда испытания ЭЦН
 """
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import faulthandler
 import sys
 from PyQt5.QtWidgets import QApplication
-from Functions import funcsMessages
+from Functions import funcs_messages
 from Globals import gvars
 
 

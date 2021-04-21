@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QGroupBox, QComboBox
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QWidget
 
 from AesmaLib import aesma_funcs
-from Functions import funcsTable, funcsCombo, funcs_db, funcsMessages
+from Functions import funcsTable, funcsCombo, funcs_db, funcs_messages
 from Globals import gvars
 
 
@@ -82,7 +82,7 @@ class Test(Info):
                       [val.strip() for val in gvars.rec_test['Powers'].split(',')]]
             for i in range(len(points[0])):
                 funcsTable.add_row(gvars.wnd_main.tablePoints,
-                                   {'flow': points[0][i], 'lift': points[1][i], 'power': points[2][i]})
+                                   {'flw': points[0][i], 'lft': points[1][i], 'pwr': points[2][i]})
 
     @staticmethod
     def check_exist():
@@ -106,7 +106,7 @@ class Test(Info):
         # result &= check_value(int(gvars.wnd_main.txtDaysRun.text()), 'Суткопробег\n', missing)
         if not result:
             message = ''.join(missing)
-            funcsMessages.show("Внимание", "Добавьте информацию о насосе:\n" + message)
+            funcs_messages.show("Внимание", "Добавьте информацию о насосе:\n" + message)
         return result
 
     @staticmethod
@@ -138,9 +138,9 @@ class Test(Info):
     def save_to_gvars_data():
         points = funcsTable.get_data(gvars.wnd_main.tablePoints)
         points_data = aesma_funcs.combine_dicts(points)
-        gvars.rec_test['Flows'] = ', '.join(map(str, points_data['flow']))
-        gvars.rec_test['Lifts'] = ', '.join(map(str, points_data['lift']))
-        gvars.rec_test['Powers'] = ', '.join(map(str, points_data['power']))
+        gvars.rec_test['Flows'] = ', '.join(map(str, points_data['flw']))
+        gvars.rec_test['Lifts'] = ', '.join(map(str, points_data['lft']))
+        gvars.rec_test['Powers'] = ', '.join(map(str, points_data['pwr']))
         return True
 
     @staticmethod
@@ -202,7 +202,7 @@ class Pump(Info):
         # result &= check_value(gvars.wnd_main.txtShaft.text(), 'Вылет вала\n', missing)
         if not result:
             message = ''.join(missing)
-            funcsMessages.show("Внимание", "Добавьте информацию о насосе:\n" + message)
+            funcs_messages.show("Внимание", "Добавьте информацию о насосе:\n" + message)
         return result
 
     @staticmethod

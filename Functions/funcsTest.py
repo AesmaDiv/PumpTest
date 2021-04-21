@@ -4,7 +4,7 @@ from PyQt5.QtGui import QPen
 from AesmaLib import aesma_funcs
 from AesmaLib.journal import Journal
 from AesmaLib.GraphWidget.Chart import Chart
-from Functions import funcsTable, funcsGraph
+from Functions import funcsTable, funcs_graph
 from Globals import gvars
 
 
@@ -20,19 +20,20 @@ def switch_test_running_state():
 
 
 def switch_charts_visibility():
-    gvars.graph_info.setVisibileCharts(['lift', 'power', 'test_lift', 'test_power'] if is_test_running else 'all')
-    funcsGraph.display_charts(gvars.markers)
+    # gvars.graph_info.setVisibileCharts(['lft', 'pwr', 'test_lft', 'test_pwr'] if is_test_running else 'all')
+    # funcs_graph.display_charts(gvars.markers)
+    pass
 
 
 def move_markers():
-    flow, lift, power = get_flow_lift_power()
-    gvars.markers.moveMarker(QPointF(flow, lift), 'test_lift')
-    gvars.markers.moveMarker(QPointF(flow, power), 'test_power')
+    flw, lft, pwr = get_flw_lft_pwr()
+    gvars.markers.moveMarker(QPointF(flw, lft), 'test_lft')
+    gvars.markers.moveMarker(QPointF(flw, pwr), 'test_pwr')
 
 
 def add_point_to_list():
-    flow, lift, power = get_flow_lift_power()
-    data = {'flow': flow, 'lift': lift, 'power': power}
+    flw, lft, pwr = get_flw_lft_pwr()
+    data = {'flw': flw, 'lft': lft, 'pwr': pwr}
     if is_logged: Journal.log(__name__, "\tadding point to list", data)
     funcsTable.add_row(gvars.wnd_main.tablePoints, data)
     pass
@@ -49,48 +50,48 @@ def clear_points_from_list():
 
 
 def add_points_to_charts():
-    flow, lift, power = get_flow_lift_power()
-    add_point_to_chart('test_lift', flow, lift)
-    add_point_to_chart('test_power', flow, power)
+    flw, lft, pwr = get_flw_lft_pwr()
+    add_point_to_chart('test_lft', flw, lft)
+    add_point_to_chart('test_pwr', flw, pwr)
 
 
 def add_point_to_chart(chart_name: str, value_x: float, value_y: float):
-    chart: Chart = gvars.graph_info.getChart(chart_name)
+    chart: Chart = gvars.pump_graph.getChart(chart_name)
     if chart is not None:
         print(__name__, '\t adding point to chart', value_x, value_y)
         point = QPointF(value_x, value_y)
         chart.addPoint(point)
     else:
         print(__name__, '\tError: no such chart', chart_name)
-        ethalon: Chart = gvars.graph_info.getChart(chart_name.replace('test_', ''))
-        if ethalon is not None:
+        etalon: Chart = gvars.pump_graph.getChart(chart_name.replace('test_', ''))
+        if etalon is not None:
             chart: Chart = Chart(name=chart_name)
-            chart.setAxes(ethalon.getAxes())
-            chart.setPen(QPen(ethalon.getPen().color(), 2, Qt.SolidLine))
-            gvars.graph_info.addChart(chart, chart_name)
+            chart.setAxes(etalon.getAxes())
+            chart.setPen(QPen(etalon.getPen().color(), 2, Qt.SolidLine))
+            gvars.pump_graph.addChart(chart, chart_name)
             add_point_to_chart(chart_name, value_x, value_y)
         else:
-            print(__name__, '\tError: cant find ethalon for', chart_name)
+            print(__name__, '\tError: cant find etalon for', chart_name)
 
 
 def remove_last_points_from_charts():
-    remove_last_point_from_chart('test_lift')
-    remove_last_point_from_chart('test_power')
+    remove_last_point_from_chart('test_lft')
+    remove_last_point_from_chart('test_pwr')
 
 
 def remove_last_point_from_chart(chart_name: str):
-    chart: Chart = gvars.graph_info.getChart(chart_name)
+    chart: Chart = gvars.pump_graph.getChart(chart_name)
     if chart is not None:
         chart.removePoint()
 
 
 def clear_points_from_charts():
-    clear_points_from_chart('test_lift')
-    clear_points_from_chart('test_power')
+    clear_points_from_chart('test_lft')
+    clear_points_from_chart('test_pwr')
 
 
 def clear_points_from_chart(chart_name: str):
-    chart: Chart = gvars.graph_info.getChart(chart_name)
+    chart: Chart = gvars.pump_graph.getChart(chart_name)
     if chart is not None:
         chart.clearPoints()
 
@@ -98,30 +99,30 @@ def clear_points_from_chart(chart_name: str):
 def display_current_marker_point(data: dict):
     name = list(data.keys())[0]
     point: QPointF = list(data.values())[0]
-    if 'test_lift' == name:
+    if 'test_lft' == name:
         gvars.wnd_main.txtFlow.setText('%.4f' % point.x())
         gvars.wnd_main.txtLift.setText('%.4f' % point.y())
-    elif 'test_power' == name:
+    elif 'test_pwr' == name:
         gvars.wnd_main.txtPower.setText('%.4f' % point.y())
     pass
 
 
 def get_chart(chart_name: str):
-    chart: Chart = gvars.graph_info.getChart(chart_name)
+    chart: Chart = gvars.pump_graph.getChart(chart_name)
     if chart is None:
-        ethalon: Chart = gvars.graph_info.getChart(chart_name.replace('test_', ''))
-        if ethalon is not None:
+        etalon: Chart = gvars.pump_graph.getChart(chart_name.replace('test_', ''))
+        if etalon is not None:
             chart: Chart = Chart(name=chart_name)
-            chart.setAxes(ethalon.getAxes())
-            chart.setPen(QPen(ethalon.getPen().color(), 2, Qt.SolidLine))
-            gvars.graph_info.addChart(chart, chart_name)
+            chart.setAxes(etalon.getAxes())
+            chart.setPen(QPen(etalon.getPen().color(), 2, Qt.SolidLine))
+            gvars.pump_graph.addChart(chart, chart_name)
         else:
-            print(__name__, 'Error: cant find ethalon for', chart_name)
+            print(__name__, 'Error: cant find etalon for', chart_name)
     return chart
 
 
-def get_flow_lift_power():
-    flow = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtFlow.text())
-    lift = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtLift.text())
-    power = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtPower.text())
-    return flow, lift, power
+def get_flw_lft_pwr():
+    flw = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtFlow.text())
+    lft = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtLift.text())
+    pwr = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtPower.text())
+    return flw, lft, pwr

@@ -138,22 +138,22 @@ class Markers(QFrame):
 
     def translatePositionToPoint(self, position: QPointF, name: str):
         result: QPoint = QPointF(0.0, 0.0)
-        ethalon: Chart = self._graph.getChart(name.replace('test_', ''))
-        if ethalon is not None:
+        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
+        if etalon is not None:
             size = self._area.size()
-            max_x = ethalon.getAxis('x').getMaximum()
-            max_y = ethalon.getAxis('y').getMaximum()
+            max_x = etalon.getAxis('x').getMaximum()
+            max_y = etalon.getAxis('y').getMaximum()
             result.setX(max_x * position.x() / size.width())
             result.setY(max_y * (size.height() - position.y()) / size.height())
         return result
 
     def translatePointToPosition(self, point: QPointF, name: str):
         result: QPoint = QPointF(0.0, 0.0)
-        ethalon: Chart = self._graph.getChart(name.replace('test_', ''))
-        if ethalon is not None:
+        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
+        if etalon is not None:
             size = self._area.size()
-            max_x = ethalon.getAxis('x').getMaximum()
-            max_y = ethalon.getAxis('y').getMaximum()
+            max_x = etalon.getAxis('x').getMaximum()
+            max_y = etalon.getAxis('y').getMaximum()
             result.setX(size.width() * point.x() / max_x)
             result.setY(size.height() * (1 - point.y() / max_y))
         return result

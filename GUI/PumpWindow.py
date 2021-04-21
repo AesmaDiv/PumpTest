@@ -52,17 +52,17 @@ class Window(QtWidgets.QWidget):
                       'Nominal_Low': float(lines[4][:-1]),
                       'Nominal_Opt': float(lines[5][:-1]),
                       'Nominal_High': float(lines[6][:-1])}
-            flows = {}
-            lifts = {}
-            powers = {}
-            max_flow = float(lines[7][:-1])
+            flws = {}
+            lfts = {}
+            pwrs = {}
+            max_flw = float(lines[7][:-1])
             for i in range(7):
-                flows[i] = round(float(i) * max_flow / 6.0, 4)
-                lifts[i] = round(float(lines[i + 8][:-1]), 4)
-                powers[i] = round(float(lines[i + 15][:-1]), 4)
-            result['Flows_String'] = ','.join(map(str, flows.values()))
-            result['Lifts_String'] = ','.join(map(str,  lifts.values()))
-            result['Powers_String'] = ','.join(map(str, powers.values()))
+                flws[i] = round(float(i) * max_flw / 6.0, 4)
+                lfts[i] = round(float(lines[i + 8][:-1]), 4)
+                pwrs[i] = round(float(lines[i + 15][:-1]), 4)
+            result['Flows_String'] = ','.join(map(str, flws.values()))
+            result['Lifts_String'] = ','.join(map(str,  lfts.values()))
+            result['Powers_String'] = ','.join(map(str, pwrs.values()))
             return result
         except:
             return {}

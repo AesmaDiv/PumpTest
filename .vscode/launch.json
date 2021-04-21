@@ -9,18 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
-            "console": "integratedTerminal",
-            // "internalConsoleOptions": "openOnSessionStart",
-            // "redirectOutput": true            
-        },
-        {
-            "name": "Python: Current",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "openOnSessionStart",
-            "redirectOutput": true
+            "console": "integratedTerminal"
         }
     ]
 }

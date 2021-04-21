@@ -1,8 +1,12 @@
+"""
+    Модуль содержит функции диалоговых окон
+"""
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import Qt
 
 
 def ask(title: str, text: str, accept: str = "Да", reject: str = "Нет"):
+    """ вывод окна с запросом типа да/нет """
     msg: QMessageBox = QMessageBox()
     msg.setWindowTitle(title)
     msg.setText(text)
@@ -13,6 +17,7 @@ def ask(title: str, text: str, accept: str = "Да", reject: str = "Нет"):
 
 
 def get(title: str, text: str, accept: str = "Добавить", reject: str = "Отмена"):
+    """ вывод окна с запросом типа добавить/отмена """
     msg: QMessageBox = QMessageBox()
     msg.setWindowTitle(title)
     msg.setText(text)
@@ -24,6 +29,7 @@ def get(title: str, text: str, accept: str = "Добавить", reject: str = "
 
 
 def choice(title: str, text: str, choices: list):
+    """ вывод окна с выбором из нескольких вариантов """
     msg: QMessageBox = QMessageBox()
     msg.setWindowTitle(title)
     msg.setText(text)
@@ -34,6 +40,7 @@ def choice(title: str, text: str, choices: list):
 
 
 def show(title: str, *messages):
+    """ вывод окна с сообщением """
     msg: QMessageBox = QMessageBox()
     msg.setWindowTitle(title)
     message = " ".join([str(item) for item in messages])

@@ -1,7 +1,7 @@
 from datetime import datetime
 from PyQt5.Qt import QModelIndex
 from GUI.models import ListModel
-from Functions import funcsTable, funcsMessages, funcs_wnd, funcs_db
+from Functions import funcsTable, funcs_messages, funcs_wnd, funcs_db
 from AesmaLib import aesma_funcs
 from AesmaLib.journal import Journal
 from Globals import gvars
@@ -14,7 +14,7 @@ def check_exists_serial(with_select=False):
     pump_id = funcs_db.get_value('Pumps', 'ID', {'Serial': serial})
     if pump_id:
         if with_select:
-            choice =  funcsMessages.ask(
+            choice =  funcs_messages.ask(
                 "Внимание",
                 "Насос с таким заводским номером "
                 "уже присутствует в базе данных.\n"
@@ -34,7 +34,7 @@ def check_exists_ordernum(with_select=False):
     test_id = funcs_db.get_value('Tests', 'ID', {'OrderNum': order_num})
     if test_id:
         if with_select:
-            choice =  funcsMessages.choice(
+            choice =  funcs_messages.choice(
                 "Внимание",
                 "Запись с таким наряд-заказом "
                 "уже присутствует в базе данных.\n"
@@ -60,7 +60,7 @@ def save_pump():
     wnd = gvars.wnd_main
     if gvars.rec_pump.save():
         serial = gvars.rec_pump['Serial']
-        funcsMessages.show("Успех", "Насос №", serial, "добавлен в БД.")
+        funcs_messages.show("Успех", "Насос №", serial, "добавлен в БД.")
         db_params = {'columns': ['ID', 'Serial', 'Type'], 'order_by': 'ID Asc'}
         funcs_wnd.fill_combo(wnd.cmbSerial, 'Pumps', db_params, 1)
         wnd.cmbSerial.model().select_contains(serial)

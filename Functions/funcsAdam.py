@@ -26,9 +26,9 @@ sensors = {
     'torque': 0.0,
     'pressure_in': 0.0,
     'pressure_out': 0.0,
-    'flow05': 0.0,
-    'flow1': 0.0,
-    'flow2': 0.0
+    'flw05': 0.0,
+    'flw1': 0.0,
+    'flw2': 0.0
 }
 
 
@@ -84,9 +84,9 @@ def __getValuesFromRegisters():
     sensors['torque'] = __getValueFromRegister(*adam_config.torque)
     sensors['pressure_in'] = __getValueFromRegister(*adam_config.pressure_in)
     sensors['pressure_out'] = __getValueFromRegister(*adam_config.pressure_out)
-    sensors['flow05'] = __getValueFromRegister(*adam_config.flow05)
-    sensors['flow1'] = __getValueFromRegister(*adam_config.flow1)
-    sensors['flow2'] = __getValueFromRegister(*adam_config.flow2)
+    sensors['flw05'] = __getValueFromRegister(*adam_config.flw05)
+    sensors['flw1'] = __getValueFromRegister(*adam_config.flw1)
+    sensors['flw2'] = __getValueFromRegister(*adam_config.flw2)
 
 
 def __getValueFromRegister(name):
@@ -98,6 +98,6 @@ def __calculateRealValues():
     sensors['torque'] = (sensors['torque'] - 32767) * 20000 / 65535
     sensors['pressure_in'] *= (600 * 0.145 / 65535)
     sensors['pressure_out'] *= (6000 / 65535)
-    sensors['flow05'] *= (1282 * 0.158 / 65535)
-    sensors['flow1'] *= (1700 * 0.158 / 65535)
-    sensors['flow2'] *= (13000 * 0.158 / 65535)
+    sensors['flw05'] *= (1282 * 0.158 / 65535)
+    sensors['flw1'] *= (1700 * 0.158 / 65535)
+    sensors['flw2'] *= (13000 * 0.158 / 65535)

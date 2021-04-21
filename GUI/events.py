@@ -3,7 +3,7 @@
 """
 from PyQt5.QtCore import Qt
 
-from Functions import funcsCommon, funcsGraph, funcsMessages
+from Functions import funcsCommon, funcs_messages, funcs_graph
 from Functions import funcs_db, funcs_wnd, funcsTest, funcsAdam, funcsTable
 from AesmaLib.journal import Journal
 from Globals import gvars
@@ -65,10 +65,7 @@ def on_changed_combo_serials(index):
         condition = {'ID': item['Type']} if index else None
         if not wnd.cmbType.model().check_selected(condition) and index:
             wnd.cmbType.model().select_contains(condition)
-        funcsGraph.draw_charts()
-        # funcs_plot.draw_plot([gvars.rec_type['Flows'],
-        #                       gvars.rec_type['Lifts'],
-        #                       gvars.rec_type['Powers']])
+        funcs_graph.draw_charts()
 
 
 def on_changed_testlist_column():
@@ -161,7 +158,7 @@ def on_clicked_test_data_save():
     if not gvars.rec_test.save_data():
         title = 'ОШИБКА'
         message = 'Запись заблокирована'
-    funcsMessages.show(title, message)
+    funcs_messages.show(title, message)
 
 
 def on_clicked_save():
@@ -173,17 +170,21 @@ def on_clicked_go_test():
     """ нажата кнопка перехода к тестированию """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_go_test.__doc__)
+    # gvars.wnd_main.gridGraphInfo.removeWidget(gvars.graph_info)
+    # gvars.wnd_main.gridGraphTest.addWidget(gvars.graph_info)
     gvars.wnd_main.stackedWidget.setCurrentIndex(1)
-    funcsGraph.display_charts(gvars.markers)
-    gvars.markers.repositionFor(gvars.graph_info)
+    funcs_graph.display_charts(gvars.markers)
+    gvars.markers.repositionFor(gvars.pump_graph)
 
 
 def on_clicked_go_back():
     """ нажата кнопка возврата на основное окно """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_go_back.__doc__)
+    # gvars.wnd_main.gridGraphTest.removeWidget(gvars.graph_info)
+    # gvars.wnd_main.gridGraphInfo.addWidget(gvars.graph_info)
     gvars.wnd_main.stackedWidget.setCurrentIndex(0)
-    funcsGraph.display_charts(gvars.wnd_main.frameGraphInfo)
+    funcs_graph.display_charts(gvars.wnd_main.frameGraphInfo)
 
 
 # TEST
@@ -203,7 +204,8 @@ def on_clicked_add_point():
     gvars.markers.addKnots()
     funcsTest.add_point_to_list()
     funcsTest.add_points_to_charts()
-    funcsGraph.display_charts(gvars.markers)
+    funcs_graph.display_charts(gvars.markers)
+    # funcs_graph.display_charts(gvars.markers)
 
 
 def on_clicked_remove_point():
@@ -213,7 +215,8 @@ def on_clicked_remove_point():
     gvars.markers.removeKnots()
     funcsTest.remove_last_point_from_list()
     funcsTest.remove_last_points_from_charts()
-    funcsGraph.display_charts(gvars.markers)
+    funcs_graph.display_charts(gvars.markers)
+    # funcs_graph.display_charts(gvars.markers)
 
 
 def on_clicked_clear_curve():
@@ -223,7 +226,8 @@ def on_clicked_clear_curve():
     gvars.markers.clearAllKnots()
     funcsTest.clear_points_from_list()
     funcsTest.clear_points_from_charts()
-    funcsGraph.display_charts(gvars.markers)
+    funcs_graph.display_charts(gvars.markers)
+    # funcs_graph.display_charts(gvars.markers)
 
 
 def on_clicked_adam_connection():
@@ -239,7 +243,7 @@ def on_adam_data_received(sensors: dict):
     """ приход данных от ADAM5000TCP """
     Journal.log(__name__, "::\t", on_adam_data_received.__doc__)
     point_data = {key: sensors[key] for key in ['rpm', 'torque', 'pressure_in', 'pressure_out']}
-    point_data['flow'] = sensors[gvars.active_flowmeter]
+    point_data['flw'] = sensors[gvars.active_flwmeter]
     funcs_wnd.display_sensors(sensors)
 
 

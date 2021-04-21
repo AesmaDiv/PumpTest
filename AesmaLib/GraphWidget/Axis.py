@@ -76,6 +76,10 @@ class Axis:
         # print('finish short value ', params)
         self._assignParams(params)
 
+    def calculate_mpl(self, axis_min: float, axis_max: float):
+        from matplotlib import pyplot as plt
+        fig, hst = plt.subplots()
+
     @staticmethod
     # приведение значений минимума и максимума к нужному виду
     def _fixMinMax(minimal, maximal):
@@ -107,18 +111,18 @@ class Axis:
         # (0.023 - 23 или 3145.2 - 31), поэтому приводим значение к этому
         # виду и запоминаем степень 10-ти, для возврата
         value: float = params['len_long']
-        power_of_ten, min_value, max_value = 0, 10, 100
+        pwr_of_ten, min_value, max_value = 0, 10, 100
         if value < min_value:
             while value < min_value:
-                power_of_ten -= 1
+                pwr_of_ten -= 1
                 value *= 10
         elif value > max_value:
             while value > max_value:
-                power_of_ten += 1
+                pwr_of_ten += 1
                 value *= 0.1
         value = int(value + 1) if value % int(value) else int(value)
         params['len_long'] = value
-        params['power_of_ten'] = power_of_ten
+        params['pwr_of_ten'] = pwr_of_ten
 
     @staticmethod
     # поиск подходящего кол-ва делений для длинного участка
@@ -171,8 +175,8 @@ class Axis:
         # возвращаем значение к прежнему виду, округляем
         # и получаем цену деления
         value: float = params['len_long']
-        value *= 10 ** params['power_of_ten']
-        params['len_long'] = round(value, abs(params['power_of_ten']))
+        value *= 10 ** params['pwr_of_ten']
+        params['len_long'] = round(value, abs(params['pwr_of_ten']))
         params['price'] = value / params['divs']
 
     @staticmethod
@@ -192,7 +196,7 @@ class Axis:
             divs = value // price if not value % price else value // price + 1
             value = price if value <= price else price * divs
         params['divs'] += int(divs)
-        params['len_short'] = round(value, abs(params['power_of_ten']))
+        params['len_short'] = round(value, abs(params['pwr_of_ten']))
 
     # сохранение расчитанный параметров
     def _assignParams(self, params):

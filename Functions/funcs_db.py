@@ -1,5 +1,5 @@
 """
-    Функции работы с базой данных
+    Модуль содержит функции работы с базой данных
 """
 from AesmaLib.database import QueryParams
 from Globals import gvars

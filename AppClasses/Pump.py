@@ -2,7 +2,7 @@ class Point:
     rpm: float
     torque: float
     pressure: float
-    flow: float
+    flw: float
 
 
 class Pump:
@@ -20,8 +20,8 @@ class Pump:
 
     def __processPointData(point_data: dict):
         point = Point()
-        point.rpm = point_data['flow']
+        point.rpm = point_data['flw']
         point.torque = point_data['torque']
         point.pressure = abs(point_data['psi_out'] - point_data['psi_in'])
-        point.flow = point_data['flow']
+        point.flw = point_data['flw']
         return point

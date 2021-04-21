@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QHeaderView, QGroupBox, QWidget
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
 from PyQt5 import QtCore
 
-from Functions import funcs_db, funcsTable, funcsAdam, funcsGraph
+from Functions import funcs_db, funcsTable, funcsAdam, funcs_graph
 from GUI import events, models, PumpGraph
 from GUI.Markers import Markers
 from AesmaLib.journal import Journal
@@ -107,7 +107,7 @@ def init_points_list():
     wnd.tablePoints.setColumnWidth(0, 90)
     wnd.tablePoints.setColumnWidth(1, 90)
     wnd.tablePoints.setColumnWidth(2, 90)
-    display = ['flow', 'lift', 'power']
+    display = ['flw', 'lft', 'pwr']
     headers = ['расход', 'напор', 'мощность']
     headers_sizes = [90, 90, 90]
     resizes = [QHeaderView.Stretch, QHeaderView.Stretch, QHeaderView.Stretch]
@@ -183,11 +183,11 @@ def fill_combo(combo: QComboBox, query_params):
 @Journal.logged
 def init_graph():
     """ инициализирует элемент графика """
-    gvars.graph_info = PumpGraph.PumpGraph(100, 100, gvars.PATH_TO_PIC)
-    gvars.graph_info.setMargins([10, 10, 10, 10])
-    gvars.markers = Markers(['test_lift', 'test_power'], gvars.graph_info)
-    gvars.markers.setMarkerColor('test_lift', QtCore.Qt.blue)
-    gvars.markers.setMarkerColor('test_power', QtCore.Qt.red)
+    gvars.pump_graph = PumpGraph.PumpGraph(100, 100)
+    gvars.pump_graph.setMargins([10, 10, 10, 10])
+    gvars.markers = Markers(['test_lft', 'test_pwr'], gvars.pump_graph)
+    gvars.markers.setMarkerColor('test_lft', QtCore.Qt.blue)
+    gvars.markers.setMarkerColor('test_pwr', QtCore.Qt.red)
     gvars.wnd_main.gridGraphTest.addWidget(gvars.markers, 0, 0)
 
 
@@ -198,9 +198,9 @@ def display_sensors(sensors: dict):
     wnd.txtTorque.setText(str(sensors['torque']))
     wnd.txtPsiIn.setText(str(sensors['pressure_in']))
     wnd.txtPsiOut.setText(str(sensors['pressure_out']))
-    wnd.txtFlow05.setText(str(sensors['flow05']))
-    wnd.txtFlow1.setText(str(sensors['flow1']))
-    wnd.txtFlow2.setText(str(sensors['flow2']))
+    wnd.txtFlow05.setText(str(sensors['flw05']))
+    wnd.txtFlow1.setText(str(sensors['flw1']))
+    wnd.txtFlow2.setText(str(sensors['flw2']))
 
 
 @Journal.logged
