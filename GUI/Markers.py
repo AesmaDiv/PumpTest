@@ -7,16 +7,15 @@ from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPen, QPixmap, QPalette, QBrush
 from PyQt5.QtWidgets import QFrame
 from AesmaLib.GraphWidget import Graph, Chart, Axis
-from GUI.PumpGraph import PumpGraph
-from Functions import funcsTemporary
+from GUI.pump_graph import pump_graph
 
 
 class Markers(QFrame):
     eventMove = pyqtSignal(dict)
 
-    def __init__(self, names: list, graph: PumpGraph, parent=None):
+    def __init__(self, names: list, graph: pump_graph, parent=None):
         super().__init__(parent)
-        self._graph: PumpGraph = graph
+        self._graph: pump_graph = graph
         self._names: list = names
         self._markers: dict = {}
         self._colors: dict = {}
@@ -74,9 +73,9 @@ class Markers(QFrame):
         else:
             print(__name__, 'Error = no such marker')
 
-    def repositionFor(self, graph: PumpGraph):
-        left, top, _, _ = graph.getMargins()
-        size = graph.getDrawArea()
+    def repositionFor(self, graph: pump_graph):
+        left, top, _, _ = graph.get_margins()
+        size = graph.get_draw_area()
         self._area.setGeometry(left, top, size.width(), size.height())
 
     def addKnots(self):
@@ -138,7 +137,7 @@ class Markers(QFrame):
 
     def translatePositionToPoint(self, position: QPointF, name: str):
         result: QPoint = QPointF(0.0, 0.0)
-        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
+        etalon: Chart = self._graph.get_chart(name.replace('test_', ''))
         if etalon is not None:
             size = self._area.size()
             max_x = etalon.getAxis('x').getMaximum()
@@ -149,7 +148,7 @@ class Markers(QFrame):
 
     def translatePointToPosition(self, point: QPointF, name: str):
         result: QPoint = QPointF(0.0, 0.0)
-        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
+        etalon: Chart = self._graph.get_chart(name.replace('test_', ''))
         if etalon is not None:
             size = self._area.size()
             max_x = etalon.getAxis('x').getMaximum()

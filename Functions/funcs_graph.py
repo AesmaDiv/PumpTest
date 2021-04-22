@@ -12,20 +12,20 @@ from Globals import gvars
 def draw_charts():
     """ отрисовка графиков испытания """
     if gvars.pump_graph:
-        gvars.pump_graph.clearCharts()
+        gvars.pump_graph.clear_charts()
         if gvars.rec_type:
             charts = load_charts()
             for chart in charts.values():
-                gvars.pump_graph.addChart(chart, chart.getName())
-            gvars.pump_graph.setLimits(gvars.rec_type['Min'],
-                                       gvars.rec_type['Nom'],
-                                       gvars.rec_type['Max'])
+                gvars.pump_graph.add_chart(chart, chart.getName())
+            gvars.pump_graph.set_limits(gvars.rec_type['Min'],
+                                        gvars.rec_type['Nom'],
+                                        gvars.rec_type['Max'])
         display_charts(gvars.wnd_main.frameGraphInfo)
 
 
 def display_charts(frame: QFrame):
     """ вывод графика в рисунок и в frame """
-    pic = gvars.pump_graph.renderToImage(frame.size())
+    pic = gvars.pump_graph.render_to_image(frame.size())
     palette = frame.palette()
     palette.setBrush(QPalette.Background, QBrush(pic))
     frame.setPalette(palette)

@@ -17,7 +17,7 @@ class Graph(QWidget):
         QWidget.__init__(self, parent)
         self.setGeometry(0, 0, width, height)
         self._margins = [20, 20, 40, 50]
-        self.setMargins(self._margins)
+        self.set_margins(self._margins)
 
         self._background = QBrush(QColor(30, 30, 30))  # temp 0,0,0
         self._grid_background = QBrush(QColor(50, 50, 50))  # 50,50,50
@@ -25,90 +25,101 @@ class Graph(QWidget):
         self._grid_border_pen = QPen(QColor(255, 255, 255), 2)  # 255,255,255
         self._grid_font = QFont("times", 10)
 
-        self._def_axises: dict = {}
-        self._charts: dict = {}
-        self._base_chart = 'none'
-        self._divs_x = 1
-        self._divs_y = 1
+        # self._def_axises: dict = {}
+        self._charts: dict = {}     # кривые
+        self._base_chart = 'none'   # кривая определяющая размерность осей
+        self._divs_x = 1            # кол-во делений оси X
+        self._divs_y = 1            # кол-во делений оси Y
 
-    def setMargins(self, margins: list):
+    def set_margins(self, margins: list):
+        """ установка списка отступов """
         if len(margins) == 4:
             self._margins = margins
         else:
-            if is_logged: Journal.log(__name__, '\tError:: margins len incorrect')
+            if is_logged:
+                Journal.log(__name__, '\tError:: margins len incorrect')
 
-    def getMargins(self):
+    def get_margins(self):
+        """ получение ссылки на список отступов """
         return self._margins
 
-    def getDrawArea(self):
+    def get_draw_area(self):
+        """ получение размеров области отрисовки графиков """
         return QRectF(self._margins[0], self._margins[1],
                       self.width() - self._margins[0] - self._margins[2],
                       self.height() - self._margins[1] - self._margins[3])
 
-    def addChart(self, chart: Chart, name: str):
+    def add_chart(self, chart: Chart, name: str):
+        """ добавление кривой по имени """
         if is_logged: Journal.log(__name__, "\tadding chart", name)
         self._charts.update({name: chart})
-        self._updateBaseChart(chart, name)
+        self._update_base_chart(chart, name)
 
-    def removeChart(self, name: str):
+    def remove_chart(self, name: str):
+        """ удаление кривой по имени """
         if name in self._charts.keys():
             if is_logged: Journal.log(__name__, "\tremoving chart", name)
             del self._charts[name]
             if self._base_chart == name:
-                self._updateBaseChart(None, 'none')
+                self._update_base_chart(None, 'none')
 
-    def replaceChart(self, chart: Chart, name: str):
+    def replace_chart(self, chart: Chart, name: str):
+        """ замена кривой по имени """
         if name in self._charts.keys():
             if is_logged: Journal.log(__name__, "\treplacing chart", name)
             self._charts.update({name: chart})
             if self._base_chart == name:
-                self._updateBaseChart(chart, name)
+                self._update_base_chart(chart, name)
 
-    def clearCharts(self):
+    def clear_charts(self):
+        """ удаление всех кривых """
         if is_logged: Journal.log(__name__, "\tclearing charts")
         self._charts.clear()
-        self._updateBaseChart(None, 'none')
+        self._update_base_chart(None, 'none')
 
     def paintEvent(self, event):
+        """ событие перерисовки компонента """
         if is_logged: Journal.log(__name__, "\tpaintEvent -> begin *************")
         painter = QPainter()
         painter.begin(self)
         painter.setRenderHints(QPainter.Antialiasing, True)
-        self._drawGrid(painter)
-        self._drawCharts(painter)
-        self._drawBorder(painter)
+        self._draw_grid(painter)
+        self._draw_charts(painter)
+        self._draw_border(painter)
         painter.end()
         if is_logged: Journal.log(__name__, "\tpaintEvent -> end *************")
 
-    def _drawGrid(self, painter: QPainter):
+    def _draw_grid(self, painter: QPainter):
+        """ отрисовка сетки графика """
         if len(self._charts):
             if is_logged: Journal.log(__name__, "\tdrawGrid ->")
-            step_x = self.getDrawArea().width() / self._divs_x
-            step_y = self.getDrawArea().height() / self._divs_y
+            step_x = self.get_draw_area().width() / self._divs_x
+            step_y = self.get_draw_area().height() / self._divs_y
 
             pen = painter.pen()
             painter.setPen(self._grid_pen)
-            self._drawGridBackground(painter)
-            self._drawGridLinesX(painter, step_x)
-            self._drawGridLinesY(painter, step_y)
-            self._drawGridDivsY(painter, step_y)
-            self._drawGridDivsX(painter, step_x)
+            self._draw_grid_background(painter)
+            self._draw_grid_lines_x(painter, step_x)
+            self._draw_grid_lines_y(painter, step_y)
+            self._draw_grid_divs_y(painter, step_y)
+            self._draw_grid_divs_x(painter, step_x)
             painter.setPen(pen)
 
-    def _drawGridBackground(self, painter: QPainter):
-        if is_logged:
-            Journal.log(__name__, "\tdrawing grid background")
+    def _draw_grid_background(self, painter: QPainter):
+        """ отрисовка подложки сетки графика """
+        if is_logged: Journal.log(__name__, "\tdrawing grid background")
         x, y = self._margins[0], self._margins[1]
         painter.fillRect(QRectF(QPointF(0, 0),
                                 QSizeF(self.width(),
                                        self.height())),
                          self._background)
         painter.fillRect(QRectF(QPointF(x, y),
-                                QSizeF(self.getDrawArea().width(),
-                                       self.getDrawArea().height())),
+                                QSizeF(self.get_draw_area().width(),
+                                       self.get_draw_area().height())),
                          self._grid_background)
 
-    def _drawGridLinesX(self, painter: QPainter, step):
+    def _draw_grid_lines_x(self, painter: QPainter, step):
+        """ отрисовка линий сетки для оси X """
         if is_logged: Journal.log(__name__, "\tdrawing grid lines X")
         axis: Axis = self._charts[self._base_chart].getAxis('x')
         for i, div in axis.generateDivSteps():
@@ -123,7 +134,8 @@ class Graph(QWidget):
                              QPointF(coord,
                                      self.height() - self._margins[3]))
 
-    def _drawGridLinesY(self, painter: QPainter, step: float):
+    def _draw_grid_lines_y(self, painter: QPainter, step: float):
+        """ отрисовка линий сетки для оси Y """
         if is_logged: Journal.log(__name__, "\tdrawing grid lines Y")
         axis: Axis = self._charts[self._base_chart].getAxis('y')
         for i, div in axis.generateDivSteps():
@@ -138,7 +150,8 @@ class Graph(QWidget):
                              QPointF(self.width() - self._margins[2],
                                      coord))
 
-    def _drawGridDivsX(self, painter: QPainter, step: float):
+    def _draw_grid_divs_x(self, painter: QPainter, step: float):
+        """ отрисовка значений делений на оси X """
         if len(self._charts) > 0:
             if is_logged: Journal.log(__name__, "\tdrawing grid divisions X")
             axis: Axis = self._charts[self._base_chart].getAxis('x')
@@ -151,7 +164,8 @@ class Graph(QWidget):
                                          offset_y),
                                  text)
 
-    def _drawGridDivsY(self, painter: QPainter, step: float):
+    def _draw_grid_divs_y(self, painter: QPainter, step: float):
+        """ отрисовка значений делений на оси Y """
         if len(self._charts) > 0:
             if is_logged: Journal.log(__name__, "\tdrawing grid divisions Y")
             axis: Axis = self._charts[self._base_chart].getAxis('y')
@@ -164,16 +178,18 @@ class Graph(QWidget):
                                          offset_y - i * step),
                                  text)
 
-    def _drawBorder(self, painter: QPainter):
+    def _draw_border(self, painter: QPainter):
+        """ отрисовка границы области графика """
         if is_logged: Journal.log(__name__, "\tdrawing border")
         pen = painter.pen()
         painter.setPen(self._grid_border_pen)
         painter.drawRect(0, 0,
-                         self.getDrawArea().width(),
-                         self.getDrawArea().height())
+                         self.get_draw_area().width(),
+                         self.get_draw_area().height())
         painter.setPen(pen)
 
-    def _drawCharts(self, painter: QPainter):
+    def _draw_charts(self, painter: QPainter):
+        """ отрисовка всех кривых """
         if is_logged: Journal.log(__name__, "\tdrawCharts ->")
         transform: QTransform = QTransform()
         transform.setMatrix(1, 0, 0,
@@ -182,35 +198,30 @@ class Graph(QWidget):
         transform.scale(1, -1)
         transform.translate(
             self._margins[0],
-            -self.getDrawArea().height() - self._margins[1]
+            -self.get_draw_area().height() - self._margins[1]
         )
         painter.setTransform(transform)
         for chart in self._charts.values():
-            self._drawChart(painter, chart, flag='a')
+            self._draw_chart(painter, chart, flag='a')
         transform.setMatrix(1, 0, 0,
                             0, 1, 0,
                             0, 0, 1)
 
-    def _drawChart(self, painter: QPainter, chart: Chart, flag=''):
+    def _draw_chart(self, painter: QPainter, chart: Chart, flag=''):
+        """ отрисовка кривой """
         if is_logged: Journal.log(__name__, "\tdrawing chart", chart.getName())
         if len(chart.getPoints('x')) > 1:
             points = chart.getTranslatedPoints(
-                self.getDrawArea().width(),
-                self.getDrawArea().height()
+                self.get_draw_area().width(),
+                self.get_draw_area().height()
             )
-            if flag == 'a':
-                points = Graph.getBSpline(points)
-            elif flag == 's':
-                points = Graph.getSpline(points)
-            elif flag == 'b':
-                points = Graph.getSpline(points)
-                Graph.drawBezier(painter, points)
-                return
-            Graph.drawCurve(painter, Graph.getBSpline(points), chart.getPen())
+            points = chart.apply_spline(points)
+            Graph.draw_curve(painter, points, chart.getPen())
         else:
             Journal.log(__name__, "\tchart", chart.getName(), "is empty")
 
-    def _updateBaseChart(self, chart: Chart, name: str):
+    def _update_base_chart(self, chart: Chart, name: str):
+        """ обновление информации об основной кривой """
         if self._base_chart == 'none' or name == 'none':
             if is_logged: Journal.log(__name__, "\tupdating base chart to", name)
             self._base_chart = name
@@ -218,7 +229,8 @@ class Graph(QWidget):
             self._divs_y = chart.getAxis('y').getDivs() if chart else 1
 
     @staticmethod
-    def drawLines(painter: QPainter, points: list):
+    def draw_lines(painter: QPainter, points: list):
+        """ отрисовка линий по точкам """
         count = len(points)
         if count:
             path: QPainterPath = QPainterPath()
@@ -228,12 +240,14 @@ class Graph(QWidget):
             painter.drawPath(path)
 
     @staticmethod
-    def drawCurve(painter: QPainter, points: list, pen: QPen):
+    def draw_curve(painter: QPainter, points: list, pen: QPen):
+        """ отрисовка кривой по точкам """
         painter.setPen(pen)
-        Graph.drawLines(painter, points)
+        Graph.draw_lines(painter, points)
 
     @staticmethod
-    def drawBezier(painter: QPainter, points: list):
+    def draw_bezier(painter: QPainter, points: list):
+        """ отрисовка кривой Безье по точкам """
         steps = 500
         control_points = [[p.x(), p.y()] for p in points]
         old_point = control_points[0]
@@ -242,28 +256,32 @@ class Graph(QWidget):
             old_point = point
 
     @staticmethod
-    def getSpline(points: list):
-        coords_x, coords_y = Graph.unpackPointsToCoords(points)
+    def get_spline(points: list):
+        """ создание кривой по точкам """
+        coords_x, coords_y = Graph.unpack_to_coords(points)
         coords_x, coords_y = SplineFuncs.getCurvePoints(coords_x, coords_y)
-        result = Graph.packCoordsToPoints(coords_x, coords_y)
+        result = Graph.pack_to_points(coords_x, coords_y)
         return result
 
     @staticmethod
-    def getBSpline(points: list):
-        coords_x, coords_y = Graph.unpackPointsToCoords(points)
+    def get_bspline(points: list):
+        """ создание кубической кривой по точкам """
+        coords_x, coords_y = Graph.unpack_to_coords(points)
         coords_x, coords_y = SplineFuncs.getBSplinePoints(coords_x, coords_y)
-        result = Graph.packCoordsToPoints(coords_x, coords_y)
+        result = Graph.pack_to_points(coords_x, coords_y)
         return result
-
+    
     @staticmethod
-    def unpackPointsToCoords(points: list):
+    def unpack_to_coords(points: list):
+        """ распаковка списка точек в списки координат """
         coords = [[point.x(), point.y()] for point in points]
         coords_x, coords_y = zip(*coords)
         coords_x, coords_y = list(coords_x), list(coords_y)
         return coords_x, coords_y
     
     @staticmethod
-    def packCoordsToPoints(coords_x: list, coords_y: list):
+    def pack_to_points(coords_x: list, coords_y: list):
+        """ запаковка списков координат в список точек """
         coords = zip(coords_x, coords_y)
-        points = [QPointF(x, y) for x, y in coords]
-        return points
+        result = [QPointF(x, y) for x, y in coords]
+        return result

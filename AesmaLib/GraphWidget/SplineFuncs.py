@@ -67,3 +67,6 @@ def getBSplinePoints(points_x, points_y):
     spline = make_interp_spline(np_x, np_y, k=2)
     new_y = spline(new_x)
     return new_x.tolist(), new_y.tolist()
+
+def getCubicSpline(points_x, points_y):
+    pass

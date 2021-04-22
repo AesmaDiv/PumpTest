@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
 from PyQt5 import QtCore
 
 from Functions import funcs_db, funcsTable, funcsAdam, funcs_graph
-from GUI import events, models, PumpGraph
+from GUI import events, models, pump_graph
 from GUI.Markers import Markers
 from AesmaLib.journal import Journal
 from AesmaLib.database import QueryParams
@@ -54,9 +54,13 @@ def register_events():
     wnd.btnSaveCharts.clicked.connect(events.on_clicked_test_data_save)
 
     wnd.checkConnection.clicked.connect(events.on_clicked_adam_connection)
-
     funcsAdam.broadcaster.event.connect(events.on_adam_data_received)
+    
     # gvars.markers.eventMove.connect(events.on_markers_move)
+    
+    wnd.txtFlow.wheelEvent = events.on_mouse_wheel_flow
+    wnd.txtLift.wheelEvent = events.on_mouse_wheel_lift
+    wnd.txtPower.wheelEvent = events.on_mouse_wheel_power
 
 
 @Journal.logged
@@ -183,8 +187,8 @@ def fill_combo(combo: QComboBox, query_params):
 @Journal.logged
 def init_graph():
     """ инициализирует элемент графика """
-    gvars.pump_graph = PumpGraph.PumpGraph(100, 100)
-    gvars.pump_graph.setMargins([10, 10, 10, 10])
+    gvars.pump_graph = pump_graph.pump_graph(100, 100)
+    gvars.pump_graph.set_margins([10, 10, 10, 10])
     gvars.markers = Markers(['test_lft', 'test_pwr'], gvars.pump_graph)
     gvars.markers.setMarkerColor('test_lft', QtCore.Qt.blue)
     gvars.markers.setMarkerColor('test_pwr', QtCore.Qt.red)

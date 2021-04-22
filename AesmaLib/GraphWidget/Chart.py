@@ -2,7 +2,8 @@
 # Класс для графиков: Данные графика.
 # Точки и оси, функция трансляции значений по осям
 # в координаты холста
-import math
+import math, numpy as np
+from scipy.interpolate import make_interp_spline
 from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtCore import Qt, QPointF
 from AesmaLib.GraphWidget.Axis import Axis
@@ -18,9 +19,9 @@ class Chart:
         # self.__pen.setStyle(Qt.SolidLine)
         self.__axes = {}
         self.__coefs = [1, 1]
-        if points is None:
-            self.__points = []
-        else:
+        self.__points = []
+        self.__spline = None
+        if points:
             self.__points = points
             self.regenerate_axies()
 
@@ -105,6 +106,9 @@ class Chart:
 
     def clearPoints(self):
         self.__points.clear()
+    
+    def get_spline(self):
+        return self.__spline
 
     def getTranslatedPoints(self, width: float, height: float):
         result = []

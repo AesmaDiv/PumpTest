@@ -3,7 +3,7 @@
 """
 from PyQt5.QtCore import Qt
 
-from Functions import funcsCommon, funcs_messages, funcs_graph
+from Functions import funcsCommon, funcs_messages, funcs_graph, funcs_temp
 from Functions import funcs_db, funcs_wnd, funcsTest, funcsAdam, funcsTable
 from AesmaLib.journal import Journal
 from Globals import gvars
@@ -155,7 +155,8 @@ def on_clicked_test_data_save():
     Journal.log(__name__, "::\t", on_clicked_test_data_save.__doc__)
     title = 'УСПЕХ'
     message = 'Результаты сохранены'
-    if not gvars.rec_test.save_data():
+    funcsTest.save_test_data()
+    if not gvars.rec_test.save():
         title = 'ОШИБКА'
         message = 'Запись заблокирована'
     funcs_messages.show(title, message)
@@ -255,3 +256,18 @@ def on_changed_sensors():
 def on_markers_move(point_data: dict):
     """ изменения позиции маркеров """
     funcsTest.display_current_marker_point(point_data)
+
+
+def on_mouse_wheel_flow(event):
+    funcs_temp.process_mouse_wheel(
+        gvars.wnd_main.txtFlow, event, 1)
+
+
+def on_mouse_wheel_lift(event):
+    funcs_temp.process_mouse_wheel(
+        gvars.wnd_main.txtLift, event, 0.1)
+
+
+def on_mouse_wheel_power(event):
+    funcs_temp.process_mouse_wheel(
+        gvars.wnd_main.txtPower, event, 0.001)
