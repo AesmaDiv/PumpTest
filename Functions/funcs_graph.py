@@ -46,18 +46,15 @@ def get_points(chart_type='etalon'):
     """ парсинг значений точек из строк """
     is_etalon = (chart_type == 'etalon')
     source = gvars.rec_type if is_etalon else gvars.rec_test
-    if source['Flows'] and source['Lifts'] and source['Powers']:
-        try:
-            flws = list(map(safe_parse_float, source['Flows'].split(',')))
-            lfts = list(map(safe_parse_float, source['Lifts'].split(',')))
-            pwrs = list(map(safe_parse_float ,source['Powers'].split(',')))
-            if is_etalon:
-                flws = flws[::-1]
-                pwrs = list(map(lambda x: x * 0.7457, pwrs))
-            effs = calculate_effs(flws, lfts, pwrs)
-            return [flws, lfts, pwrs, effs]
-        except AttributeError as ex:
-            print('funcs_graph::get_points::Error:', str(ex))
+    if source.num_points:
+        flws = source.values_flw
+        lfts = source.values_lft
+        pwrs = source.values_pwr
+        if is_etalon:
+            flws = flws[::-1]
+            pwrs = list(map(lambda x: x * 0.7457, pwrs))
+        effs = calculate_effs(flws, lfts, pwrs)
+        return [flws, lfts, pwrs, effs]
     return None
 
 
@@ -74,7 +71,7 @@ def calculate_effs(flws: list, lfts: list, pwrs: list):
     result = []
     count = len(flws)
     if count == len(lfts) and count == len(pwrs):
-        func = lambda f, l, p: 9.81 * l * f / (24 * 3600 * p)
+        func = lambda f, l, p: 9.81 * l * f / (24 * 3600 * p) * 100
         result = [func(flws[i], lfts[i], pwrs[i]) for i in range(count)]
     return result
 

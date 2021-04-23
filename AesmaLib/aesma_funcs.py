@@ -2,7 +2,7 @@
     Модуль вспомогательных функций для всякий операций
 """
 
-def safe_parse_to(to_type: type, string: str, default=None):
+def parse_to(to_type: type, string: str, default=None):
     """ Безопасная конвертация типов """
     try:
         return to_type(string)
@@ -10,23 +10,18 @@ def safe_parse_to(to_type: type, string: str, default=None):
         return default
 
 
-def safe_parse_to_float(string: str):
+def parse_to_float(string: str):
     """ Безопасная конвертация строки в число с пл.запятой """
-    return safe_parse_to(float, string, default=0.0)
+    return parse_to(float, string, default=0.0)
 
 
 def combine_dicts(list_of_dicts: list):
     """ Объединение списка словарей """
+    result = {}
     if list_of_dicts:
-        if len(list_of_dicts) == 1:
-            return list_of_dicts[0]
-        if isinstance(list_of_dicts[0], dict):
-            list_of_keys = list(list_of_dicts[0].keys())
-            list_of_vals = [list(d.values()) for d in list_of_dicts]
-            result = dict(zip(list_of_keys, list_of_vals))
-            return dict(result)
-    return dict()
-
+        for d in list_of_dicts:
+            result |= d
+    return result
 
 def remove_lesser(sorted_array: list, value, is_included=False):
     """ Удаляет из упорядоченого списка значения МЕНЬШЕ чем 'value'

@@ -4,7 +4,7 @@
 from PyQt5.QtCore import Qt
 
 from Functions import funcsCommon, funcs_messages, funcs_graph, funcs_temp
-from Functions import funcs_db, funcs_wnd, funcsTest, funcsAdam, funcsTable
+from Functions import funcs_db, funcs_wnd, funcs_test, funcsAdam, funcsTable
 from AesmaLib.journal import Journal
 from Globals import gvars
 
@@ -104,9 +104,10 @@ def on_clicked_pump_save():
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_pump_save.__doc__)
     pump_id = funcsCommon.check_exists_serial(with_select=True)
-    if not pump_id and funcs_wnd.save_pump_info():
-        funcs_wnd.fill_combos_pump()
-        gvars.wnd_main.cmbSerial.model().select_contains(gvars.rec_pump['ID'])
+    if not pump_id and funcs_wnd.group_check(gvars.wnd_main.groupPumpInfo):
+        if funcs_wnd.save_pump_info():
+            funcs_wnd.fill_combos_pump()
+            gvars.wnd_main.cmbSerial.model().select_contains(gvars.rec_pump.ID)
 
 
 def on_clicked_pump_cancel():
@@ -135,7 +136,7 @@ def on_clicked_test_info_save():
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test_info_save.__doc__)
     test_id = funcsCommon.check_exists_ordernum(with_select=True)
-    if not test_id:
+    if not test_id and funcs_wnd.group_check(gvars.wnd_main.groupTestInfo):
         funcs_wnd.save_test_info()
         funcs_wnd.fill_test_list()
 
@@ -155,7 +156,7 @@ def on_clicked_test_data_save():
     Journal.log(__name__, "::\t", on_clicked_test_data_save.__doc__)
     title = 'УСПЕХ'
     message = 'Результаты сохранены'
-    funcsTest.save_test_data()
+    funcs_test.save_test_data()
     if not gvars.rec_test.save():
         title = 'ОШИБКА'
         message = 'Запись заблокирована'
@@ -171,8 +172,6 @@ def on_clicked_go_test():
     """ нажата кнопка перехода к тестированию """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_go_test.__doc__)
-    # gvars.wnd_main.gridGraphInfo.removeWidget(gvars.graph_info)
-    # gvars.wnd_main.gridGraphTest.addWidget(gvars.graph_info)
     gvars.wnd_main.stackedWidget.setCurrentIndex(1)
     funcs_graph.display_charts(gvars.markers)
     gvars.markers.repositionFor(gvars.pump_graph)
@@ -182,20 +181,17 @@ def on_clicked_go_back():
     """ нажата кнопка возврата на основное окно """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_go_back.__doc__)
-    # gvars.wnd_main.gridGraphTest.removeWidget(gvars.graph_info)
-    # gvars.wnd_main.gridGraphInfo.addWidget(gvars.graph_info)
     gvars.wnd_main.stackedWidget.setCurrentIndex(0)
-    funcs_graph.display_charts(gvars.wnd_main.frameGraphInfo)
+    funcsCommon.select_test(gvars.rec_test['ID'])
 
 
-# TEST
 def on_clicked_test():
     """ нажата кнопка начала/остановки испытания """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test.__doc__)
-    funcsTest.is_test_running = not funcsTest.is_test_running
-    funcsTest.switch_charts_visibility()
-    funcsTest.switch_test_running_state()
+    funcs_test.is_test_running = not funcs_test.is_test_running
+    funcs_test.switch_charts_visibility()
+    funcs_test.switch_test_running_state()
 
 
 def on_clicked_add_point():
@@ -203,10 +199,10 @@ def on_clicked_add_point():
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_add_point.__doc__)
     gvars.markers.addKnots()
-    funcsTest.add_point_to_list()
-    funcsTest.add_points_to_charts()
+    current_vals = funcs_test.get_current_vals()
+    funcs_test.add_point_to_table(current_vals)
+    funcs_test.add_points_to_charts(current_vals)
     funcs_graph.display_charts(gvars.markers)
-    # funcs_graph.display_charts(gvars.markers)
 
 
 def on_clicked_remove_point():
@@ -214,10 +210,9 @@ def on_clicked_remove_point():
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_remove_point.__doc__)
     gvars.markers.removeKnots()
-    funcsTest.remove_last_point_from_list()
-    funcsTest.remove_last_points_from_charts()
+    funcs_test.remove_last_point_from_table()
+    funcs_test.remove_last_points_from_charts()
     funcs_graph.display_charts(gvars.markers)
-    # funcs_graph.display_charts(gvars.markers)
 
 
 def on_clicked_clear_curve():
@@ -225,10 +220,9 @@ def on_clicked_clear_curve():
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_clear_curve.__doc__)
     gvars.markers.clearAllKnots()
-    funcsTest.clear_points_from_list()
-    funcsTest.clear_points_from_charts()
+    funcs_test.clear_points_from_table()
+    funcs_test.clear_points_from_charts()
     funcs_graph.display_charts(gvars.markers)
-    # funcs_graph.display_charts(gvars.markers)
 
 
 def on_clicked_adam_connection():
@@ -243,19 +237,20 @@ def on_clicked_adam_connection():
 def on_adam_data_received(sensors: dict):
     """ приход данных от ADAM5000TCP """
     Journal.log(__name__, "::\t", on_adam_data_received.__doc__)
-    point_data = {key: sensors[key] for key in ['rpm', 'torque', 'pressure_in', 'pressure_out']}
+    point_data = {key: sensors[key] for key 
+                  in ['rpm', 'torque', 'pressure_in', 'pressure_out']}
     point_data['flw'] = sensors[gvars.active_flwmeter]
     funcs_wnd.display_sensors(sensors)
 
 
 def on_changed_sensors():
     """ изменения значений датчиков """
-    funcsTest.move_markers()
+    funcs_test.move_markers()
 
 
 def on_markers_move(point_data: dict):
     """ изменения позиции маркеров """
-    funcsTest.display_current_marker_point(point_data)
+    funcs_test.display_current_marker_point(point_data)
 
 
 def on_mouse_wheel_flow(event):

@@ -56,37 +56,6 @@ def select_test(test_id: int):
     gvars.wnd_main.tableTests.selectRow(index.row())
 
 
-def save_pump():
-    wnd = gvars.wnd_main
-    if gvars.rec_pump.save():
-        serial = gvars.rec_pump['Serial']
-        funcs_messages.show("Успех", "Насос №", serial, "добавлен в БД.")
-        db_params = {'columns': ['ID', 'Serial', 'Type'], 'order_by': 'ID Asc'}
-        funcs_wnd.fill_combo(wnd.cmbSerial, 'Pumps', db_params, 1)
-        wnd.cmbSerial.model().select_contains(serial)
-        return True
-    return False
-
-
 def set_current_date():
     today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     gvars.wnd_main.txtDateTime.setText(today)
-
-
-def parse_points():
-    try:
-        gvars.rec_type['Flows'] = parse_string_to_floats('Flows_String')
-        gvars.rec_type['Lifts'] = parse_string_to_floats('Lifts_String')
-        gvars.rec_type['Powers'] = parse_string_to_floats('Powers_String')
-        return True
-    except BaseException as error:
-        Journal.log(__name__ + " error: " + str(error))
-        return False
-
-
-def parse_string_to_floats(name: str):
-    string = gvars.rec_type[name]
-    result = [aesma_funcs.safe_parse_to_float(value) for value in string.split(',')]
-    return result
-
-

@@ -561,9 +561,9 @@
           <widget class="QWidget" name="verticalLayoutWidget_2">
            <property name="geometry">
             <rect>
-             <x>10</x>
+             <x>210</x>
              <y>0</y>
-             <width>341</width>
+             <width>141</width>
              <height>52</height>
             </rect>
            </property>
@@ -761,10 +761,10 @@
       <widget class="QFrame" name="frameGraphInfo">
        <property name="geometry">
         <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>751</width>
-         <height>311</height>
+         <x>10</x>
+         <y>30</y>
+         <width>731</width>
+         <height>301</height>
         </rect>
        </property>
        <property name="frameShape">
@@ -1918,10 +1918,10 @@
       <widget class="QFrame" name="frameGraphTest">
        <property name="geometry">
         <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>841</width>
-         <height>611</height>
+         <x>10</x>
+         <y>30</y>
+         <width>821</width>
+         <height>601</height>
         </rect>
        </property>
        <property name="frameShape">
@@ -1935,17 +1935,36 @@
          <rect>
           <x>-1</x>
           <y>-1</y>
-          <width>841</width>
-          <height>611</height>
+          <width>821</width>
+          <height>601</height>
          </rect>
         </property>
-        <layout class="QGridLayout" name="gridGraphTest"/>
+        <layout class="QGridLayout" name="gridGraphTest">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMaximumSize</enum>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>3</number>
+         </property>
+         <property name="bottomMargin">
+          <number>3</number>
+         </property>
+         <property name="spacing">
+          <number>0</number>
+         </property>
+        </layout>
        </widget>
       </widget>
       <widget class="QPushButton" name="btnAddPoint">
        <property name="geometry">
         <rect>
-         <x>730</x>
+         <x>550</x>
          <y>650</y>
          <width>24</width>
          <height>24</height>
@@ -1965,7 +1984,7 @@
       <widget class="QPushButton" name="btnRemovePoint">
        <property name="geometry">
         <rect>
-         <x>755</x>
+         <x>575</x>
          <y>650</y>
          <width>24</width>
          <height>24</height>
@@ -1991,9 +2010,9 @@
       <widget class="QPushButton" name="btnClearCurve">
        <property name="geometry">
         <rect>
-         <x>780</x>
+         <x>600</x>
          <y>650</y>
-         <width>24</width>
+         <width>100</width>
          <height>24</height>
         </rect>
        </property>
@@ -2005,13 +2024,13 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
+         <pointsize>10</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
         </font>
        </property>
        <property name="text">
-        <string>#</string>
+        <string>Очистить</string>
        </property>
       </widget>
       <widget class="QPushButton" name="btnTest">
@@ -2138,9 +2157,9 @@
       <widget class="QPushButton" name="btnSaveCharts">
        <property name="geometry">
         <rect>
-         <x>805</x>
+         <x>731</x>
          <y>650</y>
-         <width>24</width>
+         <width>100</width>
          <height>24</height>
         </rect>
        </property>
@@ -2152,13 +2171,13 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
+         <pointsize>10</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
         </font>
        </property>
        <property name="text">
-        <string>S</string>
+        <string>Сохранить</string>
        </property>
       </widget>
      </widget>

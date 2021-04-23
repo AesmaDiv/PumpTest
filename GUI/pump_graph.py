@@ -15,7 +15,7 @@ with_limits = True
 limits_pen = QPen(QColor(200, 200, 0, 20), 1, Qt.SolidLine)
 
 
-class pump_graph(Graph):
+class PumpGraph(Graph):
     """ класс компонента графика характеристик ЭЦН """
     def __init__(self, width: int, height: int, PATH_TO_PIC: str = None, parent=None):
         Graph.__init__(self, width, height, parent)
@@ -49,7 +49,7 @@ class pump_graph(Graph):
         return None
 
     def paintEvent(self, event):
-        super(pump_graph, self).paintEvent(event)
+        super(PumpGraph, self).paintEvent(event)
 
     def set_visibile_charts(self, names_of_charts_to_show: list = 'all'):
         for chart in self._charts.values():
@@ -61,7 +61,7 @@ class pump_graph(Graph):
         """ удаление всех кривых """
         Graph.clear_charts(self)
         self.clear_charts_data()
-        self.set_margins([10, 10, 10, 10])
+        # self.set_margins([10, 10, 10, 10])
 
     def clear_charts_data(self):
         if is_logged: Journal.log(__name__, "\tclearing charts data")
@@ -86,6 +86,7 @@ class pump_graph(Graph):
             self._draw_grid_divs_y(painter, step_y, 'y0')
             self._draw_grid_divs_y(painter, step_y, 'y1')
             self._draw_grid_divs_y(painter, step_y, 'y2')
+            self._draw_labels(painter)
             painter.setPen(pen)
 
     def _draw_grid_ranges(self, painter: QPainter):
@@ -179,15 +180,52 @@ class pump_graph(Graph):
             if axis_name == 'y0':
                 offset_x = self._margins[0] - fm.width(text) - 10
             elif axis_name == 'y1':
-                offset_x = self._margins[0] + self.get_draw_area().width() + 5
+                offset_x = self._margins[0] + self.get_draw_area().width() + 10
                 painter.setPen(self._charts['pwr'].getPen())
             elif axis_name == 'y2':
                 offset_x = self._margins[0] + self.get_draw_area().width() + \
-                           self._grid_divs['y1'].width + 20
+                           self._grid_divs['y1'].width + 40
                 painter.setPen(self._charts['eff'].getPen())
             offset_y = self.height() - self._margins[3] + fm.height() / 4.0
             painter.drawText(QPointF(offset_x, offset_y - i * step), text)
         painter.setPen(pen)
+    
+    def _draw_labels(self, painter: QPainter):
+        """ отображение подписей на осях """
+        fm = QFontMetricsF(self._grid_font)
+        pen = painter.pen()
+
+        text = 'Расход, м³/сутки'
+        offset_x = self._margins[0] + self.get_draw_area().width() / 2
+        offset_x -= fm.width(text) / 2
+        offset_y = self.height() - self._margins[3] + fm.height()
+        offset_y += 20
+        painter.setPen(self._grid_border_pen)
+        painter.drawText(QPointF(offset_x, offset_y), text)
+
+        text = 'Напор, м'
+        offset_x = 0 - fm.height() - 5
+        self._draw_label(painter, fm, offset_x, text)
+
+        text = 'Мощность, кВт'
+        offset_x = self._margins[0] + self.get_draw_area().width() + 10
+        painter.setPen(self._charts['pwr'].getPen())
+        self._draw_label(painter, fm, offset_x, text)
+        
+        text = 'КПД, %'
+        offset_x = self._margins[0] + self.get_draw_area().width() + \
+                   self._grid_divs['y1'].width + 40
+        painter.setPen(self._charts['eff'].getPen())
+        self._draw_label(painter, fm, offset_x, text)
+        painter.setPen(pen)
+            
+    def _draw_label(self, painter: QPainter, fm, offset_x, text):
+        """ отображение подписи оси """
+        painter.rotate(-90)
+        offset_y = -self._margins[1] - self.get_draw_area().height() / 2
+        offset_y -= fm.width(text) / 2
+        painter.drawText(QPointF(offset_y, offset_x + 45), text)
+        painter.rotate(90)
 
     def _draw_charts(self, painter: QPainter):
         """ отрисовка всех кривых """
@@ -273,11 +311,11 @@ class pump_graph(Graph):
             self._prepare_divs('y1', self._charts['pwr'].getAxis('y'))
             self._prepare_divs('y2', self._charts['eff'].getAxis('y'))
 
-            self._margins[0] = self._grid_divs['y0'].width + 20
+            self._margins[0] = self._grid_divs['y0'].width + 50
             self._margins[1] = 20
-            self._margins[2] = self._grid_divs['y1'].width + 20 + \
-                               self._grid_divs['y2'].width + 10
-            self._margins[3] = self._grid_divs['x0'].height + 20
+            self._margins[2] = self._grid_divs['y1'].width + 40 + \
+                               self._grid_divs['y2'].width + 40
+            self._margins[3] = self._grid_divs['x0'].height + 30
         pass
 
     def _calculate_limits(self):

@@ -7,15 +7,15 @@ from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPen, QPixmap, QPalette, QBrush
 from PyQt5.QtWidgets import QFrame
 from AesmaLib.GraphWidget import Graph, Chart, Axis
-from GUI.pump_graph import pump_graph
+from GUI.pump_graph import PumpGraph
 
 
 class Markers(QFrame):
     eventMove = pyqtSignal(dict)
 
-    def __init__(self, names: list, graph: pump_graph, parent=None):
+    def __init__(self, names: list, graph: PumpGraph, parent=None):
         super().__init__(parent)
-        self._graph: pump_graph = graph
+        self._graph: PumpGraph = graph
         self._names: list = names
         self._markers: dict = {}
         self._colors: dict = {}
@@ -73,7 +73,7 @@ class Markers(QFrame):
         else:
             print(__name__, 'Error = no such marker')
 
-    def repositionFor(self, graph: pump_graph):
+    def repositionFor(self, graph: PumpGraph):
         left, top, _, _ = graph.get_margins()
         size = graph.get_draw_area()
         self._area.setGeometry(left, top, size.width(), size.height())

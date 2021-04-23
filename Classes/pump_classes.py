@@ -85,12 +85,6 @@ class Record():
         return False
 
 
-class RecordTest(Record):
-    """ Класс информации об испытании """
-    def __init__(self, db: SqliteDB, rec_id=0):
-        super().__init__(db, 'Tests', rec_id)
-
-
 class RecordPump(Record):
     """ Класс информации о насосе """
     def __init__(self, db: SqliteDB, rec_id=0):
@@ -101,3 +95,36 @@ class RecordType(Record):
     """ Класс информации о типоразмере """
     def __init__(self, db: SqliteDB, rec_id=0):
         super().__init__(db, 'Types', rec_id)
+        self.values_flw = []
+        self.values_lft = []
+        self.values_pwr = []
+
+    def load(self, rec_id) -> bool:
+        """ загружает запись из таблицы БД по ID
+        -> возвращает успех """
+        result = super().load(rec_id)
+        if result:
+            if self.Flows and self.Lifts and self.Powers:
+                self.values_flw = list(map(float, self.Flows.split(',')))
+                self.values_lft = list(map(float, self.Lifts.split(',')))
+                self.values_pwr = list(map(float, self.Powers.split(',')))
+            else:
+                self.values_flw = []
+                self.values_lft = []
+                self.values_pwr = []
+        return result
+        
+    def num_points(self) -> int:
+        """ проверяет есть ли точки и возвращает их количество (наименьшее) """
+        if self.values_flw and self.values_lft and self.values_pwr:
+            num_flw = len(self.values_flw)
+            num_lft = len(self.values_lft)
+            num_pwr = len(self.values_pwr)
+            return min(num_flw, num_lft, num_pwr)
+        return 0
+
+
+class RecordTest(RecordType):
+    """ Класс информации об испытании """
+    def __init__(self, db: SqliteDB, rec_id=0):
+        Record.__init__(self, db, 'Tests', rec_id)

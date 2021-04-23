@@ -1,3 +1,6 @@
+"""
+    Модуль содержит функции связаные с процессом испытания
+"""
 from PyQt5.QtCore import QPoint, QPointF, Qt
 from PyQt5.QtGui import QPen
 
@@ -14,48 +17,59 @@ __ENGIGE_MSG = {False: 'ЗАПУСК ДВИГАТЕЛЯ', True: 'ОСТАНОВ�
 
 
 def switch_test_running_state():
-    if is_logged: Journal.log(__name__, "\tswitching test running state to", str(is_test_running))
+    """ переключение состояния испытания (запущен/остановлен) """
+    if is_logged: Journal.log(__name__, "\tswitching test running state to",
+        str(is_test_running))
     gvars.wnd_main.btnTest.setText(__ENGIGE_MSG[is_test_running])
     gvars.wnd_main.btnGoBack.setEnabled(not is_test_running)
 
 
 def switch_charts_visibility():
-    # gvars.graph_info.setVisibileCharts(['lft', 'pwr', 'test_lft', 'test_pwr'] if is_test_running else 'all')
-    # funcs_graph.display_charts(gvars.markers)
+    gvars.pump_graph.set_visibile_charts(['lft', 'pwr', 'test_lft', 'test_pwr']
+                                         if is_test_running else 'all')
+    funcs_graph.display_charts(gvars.markers)
     pass
 
 
 def move_markers():
-    flw, lft, pwr = get_flw_lft_pwr()
+    """ перемещение маркеров отображающих текущие значения """
+    flw, lft, pwr, _ = get_current_vals()
     gvars.markers.moveMarker(QPointF(flw, lft), 'test_lft')
     gvars.markers.moveMarker(QPointF(flw, pwr), 'test_pwr')
 
 
-def add_point_to_list():
-    flw, lft, pwr = get_flw_lft_pwr()
-    data = {'flw': flw, 'lft': lft, 'pwr': pwr}
+def add_point_to_table(flw, lft, pwr, eff):
+    """ добавление точки в таблицу """
+    data = {'flw': round(flw, 1),
+            'lft': round(lft, 2),
+            'pwr': round(pwr, 4),
+            'eff': round(eff, 1)}
     if is_logged: Journal.log(__name__, "\tadding point to list", data)
     funcsTable.add_row(gvars.wnd_main.tablePoints, data)
     pass
 
 
-def remove_last_point_from_list():
+def remove_last_point_from_table():
+    """ удаление последней точки из таблицы """
     if is_logged: Journal.log(__name__, "\tremoving last point from list")
     funcsTable.remove_last_row(gvars.wnd_main.tablePoints)
 
 
-def clear_points_from_list():
+def clear_points_from_table():
+    """ удаление всех точек из таблицы """
     if is_logged: Journal.log(__name__, "\tclearing points from list")
     funcsTable.clear_table(gvars.wnd_main.tablePoints)
 
 
-def add_points_to_charts():
-    flw, lft, pwr = get_flw_lft_pwr()
+def add_points_to_charts(flw, lft, pwr, eff):
+    """ добавление точек напора и мощности на график """
     add_point_to_chart('test_lft', flw, lft)
     add_point_to_chart('test_pwr', flw, pwr)
+    add_point_to_chart('test_eff', flw, eff)
 
 
 def add_point_to_chart(chart_name: str, value_x: float, value_y: float):
+    """ добавление точки на график """
     chart: Chart = gvars.pump_graph.get_chart(chart_name)
     if chart is not None:
         print(__name__, '\t adding point to chart', value_x, value_y)
@@ -75,28 +89,34 @@ def add_point_to_chart(chart_name: str, value_x: float, value_y: float):
 
 
 def remove_last_points_from_charts():
+    """ удаление последних точек из графиков напора и мощности """
     remove_last_point_from_chart('test_lft')
     remove_last_point_from_chart('test_pwr')
 
 
 def remove_last_point_from_chart(chart_name: str):
+    """ удаление последней точки из графика """
     chart: Chart = gvars.pump_graph.get_chart(chart_name)
     if chart is not None:
         chart.removePoint()
 
 
 def clear_points_from_charts():
+    """ удаление всех точек из графиков напора и мощности """
     clear_points_from_chart('test_lft')
     clear_points_from_chart('test_pwr')
+    clear_points_from_chart('test_eff')
 
 
 def clear_points_from_chart(chart_name: str):
+    """ удаление всех точек из графика """
     chart: Chart = gvars.pump_graph.get_chart(chart_name)
     if chart is not None:
         chart.clearPoints()
 
 
 def display_current_marker_point(data: dict):
+    """ отображение текущих значений маркера в соотв.полях """
     name = list(data.keys())[0]
     point: QPointF = list(data.values())[0]
     if 'test_lft' == name:
@@ -108,6 +128,7 @@ def display_current_marker_point(data: dict):
 
 
 def get_chart(chart_name: str):
+    """ получение ссылки на кривую по имени """
     chart: Chart = gvars.pump_graph.get_chart(chart_name)
     if chart is None:
         etalon: Chart = gvars.pump_graph.get_chart(chart_name.replace('test_', ''))
@@ -121,13 +142,16 @@ def get_chart(chart_name: str):
     return chart
 
 
-def get_flw_lft_pwr():
-    flw = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtFlow.text())
-    lft = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtLift.text())
-    pwr = aesma_funcs.safe_parse_to_float(gvars.wnd_main.txtPower.text())
-    return flw, lft, pwr
+def get_current_vals():
+    """ получение значений расхода, напора и мощности из соотв.полей """
+    flw = aesma_funcs.parse_to_float(gvars.wnd_main.txtFlow.text())
+    lft = aesma_funcs.parse_to_float(gvars.wnd_main.txtLift.text())
+    pwr = aesma_funcs.parse_to_float(gvars.wnd_main.txtPower.text())
+    eff = funcs_graph.calculate_effs([flw], [lft], [pwr])[0]
+    return (flw, lft, pwr, eff)
 
 def save_test_data():
+    """ сохранение данных из таблицы в запись испытания """
     points_lft_x = gvars.pump_graph.get_chart('test_lft').getPoints('x')
     points_lft_y = gvars.pump_graph.get_chart('test_lft').getPoints('y')
     points_pwr_x = gvars.pump_graph.get_chart('test_pwr').getPoints('x')
@@ -135,4 +159,3 @@ def save_test_data():
     gvars.rec_test['Flows'] = ','.join(list(map(str, points_lft_x)))
     gvars.rec_test['Lifts'] = ','.join(list(map(str, points_lft_y)))
     gvars.rec_test['Powers'] = ','.join(list(map(str, points_pwr_y)))
-    pass

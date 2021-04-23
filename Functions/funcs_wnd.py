@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QHeaderView, QGroupBox, QWidget
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
 from PyQt5 import QtCore
 
-from Functions import funcs_db, funcsTable, funcsAdam, funcs_graph
+from Functions import funcs_db, funcsTable, funcsAdam, funcs_graph, funcs_test
 from GUI import events, models, pump_graph
 from GUI.Markers import Markers
 from AesmaLib.journal import Journal
@@ -77,9 +77,8 @@ def set_color_scheme():
 def init_test_list():
     """ инициализирует список тестов """
     wnd = gvars.wnd_main
-    wnd.tableTests.setColumnWidth(0, 50)
-    wnd.tableTests.setColumnWidth(1, 150)
-    wnd.tableTests.setColumnWidth(2, 80)
+    for i, v in enumerate((50, 150, 80)):
+        wnd.tableTests.setColumnWidth(i, v)
     tests_display = ['ID', 'DateTime', 'OrderNum', 'Serial']
     tests_headers = ['№', 'Дата-Время', 'Наряд-Заказ', 'Заводской номер']
     tests_headers_sizes = [50, 150, 200, 200]
@@ -105,16 +104,15 @@ def fill_test_list():
 
 
 @Journal.logged
-def init_points_list():
+def init_points_table():
     """ инициализирует список точек """
     wnd = gvars.wnd_main
-    wnd.tablePoints.setColumnWidth(0, 90)
-    wnd.tablePoints.setColumnWidth(1, 90)
-    wnd.tablePoints.setColumnWidth(2, 90)
-    display = ['flw', 'lft', 'pwr']
-    headers = ['расход', 'напор', 'мощность']
-    headers_sizes = [90, 90, 90]
-    resizes = [QHeaderView.Stretch, QHeaderView.Stretch, QHeaderView.Stretch]
+    display = ['flw', 'lft', 'pwr', 'eff']
+    headers = ['расход', 'напор', 'мощность', 'кпд']
+    headers_sizes = [60] * 4; headers_sizes[2] = 80
+    resizes = [QHeaderView.Stretch] * 4; resizes[2] = QHeaderView.Fixed
+    for i, v in enumerate(headers_sizes):
+        wnd.tablePoints.setColumnWidth(i, v)
     funcsTable.init(wnd.tablePoints, display=display, headers=headers,
                     headers_sizes=headers_sizes, headers_resizes=resizes)
 
@@ -187,7 +185,7 @@ def fill_combo(combo: QComboBox, query_params):
 @Journal.logged
 def init_graph():
     """ инициализирует элемент графика """
-    gvars.pump_graph = pump_graph.pump_graph(100, 100)
+    gvars.pump_graph = pump_graph.PumpGraph(100, 100)
     gvars.pump_graph.set_margins([10, 10, 10, 10])
     gvars.markers = Markers(['test_lft', 'test_pwr'], gvars.pump_graph)
     gvars.markers.setMarkerColor('test_lft', QtCore.Qt.blue)
@@ -220,6 +218,7 @@ def display_test(test_id: int):
     """ отображает информацию о тесте """
     Journal.log(f"{__name__}::\t загружает информацию о тесте --> {test_id}")
     if gvars.rec_test.load(test_id):
+        display_test_data()
         group_display(gvars.wnd_main.groupTestInfo, gvars.rec_test)
         group_lock(gvars.wnd_main.groupTestInfo, True)
         display_pump(gvars.rec_test['Pump'])
@@ -238,12 +237,22 @@ def display_pump(pump_id: int):
             wnd.groupTestFrame.setTitle(gvars.rec_type.Name)
 
 
+def display_test_data():
+    funcs_test.clear_points_from_table()
+    for i in range(gvars.rec_test.num_points()):
+        flw = gvars.rec_test.values_flw[i]
+        lft = gvars.rec_test.values_lft[i]
+        pwr = gvars.rec_test.values_pwr[i]
+        eff = funcs_graph.calculate_effs([flw], [lft], [pwr])[0]
+        funcs_test.add_point_to_table(flw, lft, pwr, eff)
+
 
 @Journal.logged
 def save_test_info():
     """ сохраняет информацию о насосе """
     Journal.log(f"{__name__}::\t сохраняет информацию о новом тесте")
     wnd = gvars.wnd_main
+    gvars.rec_test.clear()
     gvars.rec_test['Pump'] = gvars.rec_pump['ID']
     group_save(wnd.groupTestInfo, gvars.rec_test)
     group_lock(wnd.groupTestInfo, True)
@@ -302,6 +311,21 @@ def group_save(group: QGroupBox, record, log=False):
                     else item[0].currentText()
             if log:
                 Journal.log(f"{item[0].objectName()} ==> {record[name]}")
+
+
+def group_check(group: QGroupBox, log=True):
+    """ проверяет заполнение всех полей группы """
+    Journal.log(f"{__name__}::\t проверяет заполнение",
+                f"всех полей группы {group.objectName()}")
+    items = group.findChildren(QLineEdit) + group.findChildren(QComboBox)
+    for item in items:
+        if (item.objectName().startswith('txt') and not item.text()) or \
+           (item.objectName().startswith('cmb') and not item.currentText()):
+            if log:
+                Journal.log(f"{__name__}::\t ошибка:: {item.objectName()} "
+                            f"не содержит значения")
+            return False
+    return True
 
 
 def group_clear(group: QGroupBox):
