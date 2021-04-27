@@ -1,3 +1,4 @@
+import numpy as np
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor, QBrush
 from PyQt5.QtGui import QFont, QFontMetricsF, QTransform, QResizeEvent
@@ -210,7 +211,7 @@ class Graph(QWidget):
     def _draw_chart(self, painter: QPainter, chart: Chart, flag=''):
         """ отрисовка кривой """
         if is_logged: Journal.log(__name__, "\tdrawing chart", chart.getName())
-        if len(chart.getPoints('x')) > 1:
+        if len(chart.getPoints()) > 1:
             points = chart.getTranslatedPoints(
                 self.get_draw_area().width(),
                 self.get_draw_area().height()
@@ -231,12 +232,11 @@ class Graph(QWidget):
     @staticmethod
     def draw_lines(painter: QPainter, points: list):
         """ отрисовка линий по точкам """
-        count = len(points)
-        if count:
+        if points.any():
             path: QPainterPath = QPainterPath()
-            path.moveTo(points[0].x(), points[0].y())
-            for i in range(1, count):
-                path.lineTo(points[i].x(), points[i].y())
+            path.moveTo(points[0][0], points[1][0])
+            for i in range(1, len(points[0])):
+                path.lineTo(points[0][i], points[1][i])
             painter.drawPath(path)
 
     @staticmethod
@@ -274,14 +274,9 @@ class Graph(QWidget):
     @staticmethod
     def unpack_to_coords(points: list):
         """ распаковка списка точек в списки координат """
-        coords = [[point.x(), point.y()] for point in points]
-        coords_x, coords_y = zip(*coords)
-        coords_x, coords_y = list(coords_x), list(coords_y)
-        return coords_x, coords_y
+        return points[0], points[1]
     
     @staticmethod
     def pack_to_points(coords_x: list, coords_y: list):
         """ запаковка списков координат в список точек """
-        coords = zip(coords_x, coords_y)
-        result = [QPointF(x, y) for x, y in coords]
-        return result
+        return [coords_x, coords_y]

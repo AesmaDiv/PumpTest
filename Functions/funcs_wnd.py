@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import QHeaderView, QGroupBox, QWidget
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
 from PyQt5 import QtCore
 
-from Functions import funcs_db, funcsTable, funcsAdam, funcs_graph, funcs_test
+from Functions import funcs_db, funcs_graph, funcs_test
+from Functions import funcsCommon, funcsTable, funcsAdam
 from GUI import events, models, pump_graph
 from GUI.Markers import Markers
 from AesmaLib.journal import Journal
@@ -108,7 +109,7 @@ def init_points_table():
     """ инициализирует список точек """
     wnd = gvars.wnd_main
     display = ['flw', 'lft', 'pwr', 'eff']
-    headers = ['расход', 'напор', 'мощность', 'кпд']
+    headers = ['расход\nм³/сут', 'напор\nм', 'мощность\nкВт', 'кпд\n%']
     headers_sizes = [60] * 4; headers_sizes[2] = 80
     resizes = [QHeaderView.Stretch] * 4; resizes[2] = QHeaderView.Fixed
     for i, v in enumerate(headers_sizes):
@@ -238,6 +239,7 @@ def display_pump(pump_id: int):
 
 
 def display_test_data():
+    """ отображение точек испытания в таблице """
     funcs_test.clear_points_from_table()
     for i in range(gvars.rec_test.num_points()):
         flw = gvars.rec_test.values_flw[i]
@@ -245,6 +247,12 @@ def display_test_data():
         pwr = gvars.rec_test.values_pwr[i]
         eff = funcs_graph.calculate_effs([flw], [lft], [pwr])[0]
         funcs_test.add_point_to_table(flw, lft, pwr, eff)
+
+
+def display_test_result():
+    """ отображение результата испытания """
+    test_result = funcsCommon.generate_result_text()
+    gvars.wnd_main.lblTestResult.setText(test_result)
 
 
 @Journal.logged

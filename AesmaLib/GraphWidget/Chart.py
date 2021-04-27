@@ -10,20 +10,20 @@ from AesmaLib.GraphWidget.Axis import Axis
 
 
 class Chart:
+    """ Класс кривой графика """
     def __init__(self, points: list = None, name: str = '', 
                  color: QColor = Qt.white, options: str = ''):
         self.__name = name
         self.__visibility = True
         self.__options = options
         self.__pen = self.setPen(QPen(color, 1), Qt.SolidLine)
-        # self.__pen.setStyle(Qt.SolidLine)
         self.__axes = {}
         self.__coefs = [1, 1]
-        self.__points = []
+        self.__points = np.empty([2, 0], dtype=float)
         self.__spline = None
         if points:
-            self.__points = points
-            self.regenerate_axies()
+            self.__points = np.array(points, dtype=float)
+            self.regenerateAxies()
 
     def setName(self, name: str):
         self.__name = name
@@ -69,56 +69,54 @@ class Chart:
     def setCoefs(self, coef_min, coef_max):
         self.__coefs = [coef_min, coef_max]
 
-    def setPoints(self, points: list, regenerate_axises: bool = True):
+    def setPoints(self, points: list, do_regenerate_axises: bool = True):
         if len(points):
-            self.__points = points
+            self.__points = np.array(points, dtype=float)
             self._sortPoints()
-            if regenerate_axises:
-                self.regenerate_axies()
+            if do_regenerate_axises:
+                self.regenerateAxies()
         else:
             print(__name__, 'Error = points array is empty')
 
     def getPoints(self, name=''):
-        if 'x' == name:
-            return [p.x() for p in self.__points]
-        elif 'y' == name:
-            return [p.y() for p in self.__points]
-        else:
-            return self.__points
+        result = self.__points.tolist()
+        if name == 'x':
+            return result[0]
+        elif name == 'y':
+            return result[1]
+        return result
 
-    def addPoint(self, point: QPointF, regenerate_axes: bool = False):
-        self.__points.append(point)
+    def addPoint(self, x: float, y: float, do_regenerate_axes: bool = False):
+        self.__points = np.append(self.__points, [[x], [y]], axis=1)
         # self._sortPoints()
-        if regenerate_axes:
-            self.regenerate_axies()
+        if do_regenerate_axes:
+            self.regenerateAxies()
 
-    def removePoint(self, index: int = -1, regenerate_axies: bool = False):
-        if index == -1:
-            self.__points = self.__points[:-1]
-            if regenerate_axies:
-                self.regenerate_axies()
-        elif 0 < index < len(self.__points):
-            self.__points.pop(index)
-            if regenerate_axies:
-                self.regenerate_axies()
+    def removePoint(self, index: int = -1, do_regenerate_axies: bool = False):
+        if (index == -1) or (0 < index < len(self.__points[0])):
+            self.__points = np.delete(self.__points, index, 1)
+            if do_regenerate_axies:
+                self.regenerateAxies()
         else:
             print(__name__, 'Error = incorrect point index')
 
     def clearPoints(self):
-        self.__points.clear()
+        self.__points = np.empty([2, 0], dtype=float)
     
-    def get_spline(self):
+    def getSpline(self):
         return self.__spline
 
+    def getTranslatedCurve(self, width: float, height: float):
+        result = self.regenerateCurve()
+        return self.getTranslatedPoints(width, height)
+
     def getTranslatedPoints(self, width: float, height: float):
-        result = []
-        points = self.__points.copy()
-        points.sort(key=lambda p: p.x())
-        for point in points:
-            result.append(QPointF(
-                self.translateCoordinate('x', point.x(), width),
-                self.translateCoordinate('y', point.y(), height),
-            ))
+        result = self.__points.copy()
+        # result.sort(key=lambda p: p[0])
+        coeff_x = width / self.__axes['x'].getLength()
+        coeff_y = height / self.__axes['y'].getLength()
+        result[0] = list(map(lambda x: x * coeff_x, result[0]))
+        result[1] = list(map(lambda y: y * coeff_y, result[1]))
         return result
 
     def translateCoordinate(self, name: str, value: float, length: float):
@@ -138,30 +136,45 @@ class Chart:
             print("Error untranslating point:", "wrong axis name")
             return 0
 
-    def regenerate_axies(self):
-        if len(self.__points) > 1:
-            self._regenerate_axis('x')
-            self._regenerate_axis('y')
+    def regenerateAxies(self):
+        if np.shape(self.__points)[1] > 1:
+            mins = np.amin(self.__points, axis=1)
+            maxs = np.amax(self.__points, axis=1)
+            xmin, xmax, _ = Chart._calculateAxies(mins[0], maxs[0])
+            ymin, ymax, _ = Chart._calculateAxies(mins[1], maxs[1])
+            xaxis = Axis(xmin * 1.0, xmax * 1.0)
+            yaxis = Axis(ymin * 1.0, ymax * 1.0)
+            self.__axes.update({'x': xaxis, 'y': yaxis})
+        self.regenerateSpline()
 
-    def _regenerate_axis(self, name: str):
-        func = lambda p: p.x() if name == 'x' else p.y()
-        point_min: QPointF = min(self.__points, key=func)
-        point_max: QPointF = max(self.__points, key=func)
-        axis_min = point_min.x() if name == 'x' else point_min.y()
-        axis_max = point_max.x() if name == 'x' else point_max.y()
-        axis_min, axis_max, _ = Chart._calculate_axies(axis_min, axis_max)
-        axis = Axis(axis_min * 1.0, axis_max * 1.0)
-        self.__axes.update({name: axis})
+    def regenerateSpline(self):
+        if np.shape(self.__points)[1] > 1:
+            points = self.__points.copy()
+            if points[0][0] > points[0][-1]:
+                points = np.flip(points, axis=1)
+            self.__spline = make_interp_spline(points[0], points[1], k=2)
 
+    def regenerateCurve(self, points=None, samples=100):
+        if points is None:
+            if self.__points.any():
+                return self.regenerateCurve(self.__points)
+            else:
+                None
+        else:
+            result_x = np.linspace(0, max(points[0]), samples)
+            result_y = self.__spline(result_x)
+            result = np.array([result_x, result_y], dtype=float)
+            return result
+        
     def _sortPoints(self):
         if len(self.__points) > 1:
-            self.__points = sorted(self.__points, key=lambda p: p.x())
+            self.__points = sorted(self.__points, key=lambda p: p[0])
 
     @staticmethod
-    def _calculate_axies(axis_start, axis_end, ticks=10):
+    def _calculateAxies(axis_start, axis_end, ticks=10):
         if (axis_end - axis_start):
-            nice_range = Chart._nice_number(axis_end - axis_start, 0)
-            nice_tick = Chart._nice_number(nice_range / (ticks - 1), 1)
+            nice_range = Chart._niceNumber(axis_end - axis_start, 0)
+            nice_tick = Chart._niceNumber(nice_range / (ticks - 1), 1)
             new_axis_start = math.floor(axis_start / nice_tick) * nice_tick
             new_axis_end = math.ceil(axis_end / nice_tick) * nice_tick
             axis_start = new_axis_start
@@ -170,7 +183,7 @@ class Chart:
         else:
             return (axis_start, axis_end, ticks)
     @staticmethod
-    def _nice_number(value, round_=False):
+    def _niceNumber(value, round_=False):
         '''nice_number(value, round_=False) -> float'''
         exponent = math.floor(math.log(value, 10))
         fraction = value / 10 ** exponent
@@ -197,7 +210,7 @@ class Chart:
         return nice_fraction * 10 ** exponent
 
     @staticmethod
-    def _nice_bounds(axis_start, axis_end, num_ticks=10):
+    def _niceBounds(axis_start, axis_end, num_ticks=10):
         '''
         nice_bounds(axis_start, axis_end, num_ticks=10) -> tuple
         @return: tuple as (nice_axis_start, nice_axis_end, nice_tick_width)
@@ -205,8 +218,8 @@ class Chart:
         axis_width = axis_end - axis_start
         nice_tick = 0
         if axis_width:
-            nice_range = Chart._nice_number(axis_width)
-            nice_tick = Chart._nice_number(nice_range / (num_ticks - 1), True)
+            nice_range = Chart._niceNumber(axis_width)
+            nice_tick = Chart._niceNumber(nice_range / (num_ticks - 1), True)
             axis_start = math.floor(axis_start / nice_tick) * nice_tick
             axis_end = math.ceil(axis_end / nice_tick) * nice_tick
 

@@ -2,6 +2,8 @@
     Модуль содержит классы компонента графика
     характеристик ЭЦН
 """
+import math, numpy as np
+from scipy.interpolate import make_interp_spline
 from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPolygonF, QPen, QTransform, QPixmap
 from PyQt5.QtGui import QFontMetricsF, QShowEvent
 from PyQt5.QtCore import QPointF, Qt, QSize
@@ -11,7 +13,6 @@ from AesmaLib.journal import Journal
 
 
 is_logged = True
-with_limits = True
 limits_pen = QPen(QColor(200, 200, 0, 20), 1, Qt.SolidLine)
 
 
@@ -60,17 +61,13 @@ class PumpGraph(Graph):
     def clear_charts(self):
         """ удаление всех кривых """
         Graph.clear_charts(self)
-        self.clear_charts_data()
-        # self.set_margins([10, 10, 10, 10])
-
-    def clear_charts_data(self):
-        if is_logged: Journal.log(__name__, "\tclearing charts data")
         self._charts_data.clear()
+        # self.set_margins([10, 10, 10, 10])
 
     def _draw_grid(self, painter: QPainter):
         """ отрисовка сетки графика """
         if len(self._charts):
-            if is_logged: Journal.log(__name__, "\tdrawGrid ->")
+            if is_logged: Journal.log(__name__, "\tотрисовка сетки ->")
             self._calculate_margins()
 
             step_x = self.get_draw_area().width() / self._divs_x
@@ -80,8 +77,8 @@ class PumpGraph(Graph):
             painter.setPen(self._grid_pen)
             self._draw_grid_background(painter)
             self._draw_grid_ranges(painter)
-            self._draw_grid_lines_x(painter, step_x)
-            self._draw_grid_lines_y(painter, step_y)
+            self._draw_grid_lines(painter, 'x0', step_x)
+            self._draw_grid_lines(painter, 'y0', step_y)
             self._draw_grid_divs_x(painter, step_x)
             self._draw_grid_divs_y(painter, step_y, 'y0')
             self._draw_grid_divs_y(painter, step_y, 'y1')
@@ -91,7 +88,7 @@ class PumpGraph(Graph):
 
     def _draw_grid_ranges(self, painter: QPainter):
         """ отрисовка области рабочего диапазона """
-        if is_logged: Journal.log(__name__, "\tdrawing grid ranges")
+        if is_logged: Journal.log(__name__, "\tотрисовка области раб.диапазона")
         self._calculate_limits()
         """ расчёт рабочего диапазона """
         x0 = self._margins[0] + self._limits_pixel[0]
@@ -110,49 +107,34 @@ class PumpGraph(Graph):
         painter.drawLine(x2, y0, x2, y1)
         painter.setPen(pen)
 
-    def _draw_grid_lines_x(self, painter: QPainter, step):
-        """ отрисовка линий сетки для оси X """
-        if self._grid_divs['x0'].is_ready:
+    def _draw_grid_lines(self, painter: QPainter, name, step):
+        """ отрисовка линий сетки для оси """
+        if self._grid_divs[name].is_ready:
             if is_logged:
-                Journal.log(__name__, "\tdrawing grid lines X")
-            divs = self._grid_divs['x0'].divs
-            for i in range(len(divs)):
-                self._grid_pen.setStyle(Qt.SolidLine if divs[i] == 0
-                    else Qt.DotLine)
-                coord = i * step + self._margins[0]
-                painter.setPen(self._grid_pen)
-                painter.drawLine(QPointF(coord,
-                                         self._margins[1]),
-                                 QPointF(coord,
-                                         self.height() - self._margins[3]))
-        else:
-            if is_logged:
-                Journal.log(__name__, "\tError -> grid divs X not ready")
-
-    def _draw_grid_lines_y(self, painter: QPainter, step: float):
-        """ отрисовка линий сетки для оси Y """
-        if self._grid_divs['y0'].is_ready:
-            if is_logged:
-                Journal.log(__name__, "\tdrawing grid lines Y")
-            divs = self._grid_divs['y0'].divs
+                Journal.log(__name__, f"\tотрисовка линий сетки оси {name}")
+            divs = self._grid_divs[name].divs
             for i in range(1, len(divs)):
                 self._grid_pen.setStyle(Qt.SolidLine if divs[i] == 0
                     else Qt.DotLine)
-                coord = (len(divs) - i) * step + self._margins[1]
+                if name == 'x0':
+                    coord = i * step + self._margins[0]
+                    p0 = QPointF(coord, self._margins[1])
+                    p1 = QPointF(coord, self.height() - self._margins[3]) 
+                else:
+                    coord = (len(divs) - i) * step + self._margins[1]
+                    p0 = QPointF(self._margins[0], coord)
+                    p1 = QPointF(self.width() - self._margins[2], coord)
                 painter.setPen(self._grid_pen)
-                painter.drawLine(QPointF(self._margins[0],
-                                         coord),
-                                 QPointF(self.width() - self._margins[2],
-                                         coord))
+                painter.drawLine(p0, p1)
         else:
             if is_logged:
-                Journal.log(__name__, "\tError -> grid divs Y not ready")
+                Journal.log(__name__, f"\tError -> деления оси {name} не готовы")
 
     def _draw_grid_divs_x(self, painter: QPainter, step: float):
         """ отрисовка значений делений на оси X """
         if self._grid_divs['x0'].is_ready:
             if is_logged:
-                Journal.log(__name__, "\tdrawing grid divisions X")
+                Journal.log(__name__, "\tотрисовка делений оси X")
             fm = QFontMetricsF(self._grid_font)
             divs = self._grid_divs['x0'].divs
             pen = painter.pen()
@@ -166,10 +148,10 @@ class PumpGraph(Graph):
                                  text)
             painter.setPen(pen)
 
-    def _draw_grid_divs_y(self, painter: QPainter, step: float, axis_name='x'):
+    def _draw_grid_divs_y(self, painter: QPainter, step: float, axis_name='y0'):
         """ отрисовка значений делений на оси Y """
         if is_logged:
-            Journal.log(__name__, "\tdrawing grid divisions Y", axis_name)
+            Journal.log(__name__, "\tотрисовка делений оси", axis_name)
         fm = QFontMetricsF(self._grid_font)
         divs = self._grid_divs[axis_name].divs
         pen = painter.pen()
@@ -228,8 +210,8 @@ class PumpGraph(Graph):
         painter.rotate(90)
 
     def _draw_charts(self, painter: QPainter):
-        """ отрисовка всех кривых """
-        if is_logged: Journal.log(__name__, "\tdrawCharts ->")
+        """ отрисовка всех графиков """
+        if is_logged: Journal.log(__name__, "\tотрисовка графиков ->")
         transform: QTransform = QTransform()
         self._preparing_charts_data()
         self._set_canvas_transform(painter, transform)
@@ -246,7 +228,7 @@ class PumpGraph(Graph):
     def _draw_charts_knots_n_curves(self, painter: QPainter):
         """ отрисовка узлов и кривых """
         if is_logged:
-            Journal.log(__name__, "\tdrawing charts curves and knots")
+            Journal.log(__name__, "\tотрисовка узлов и кривых")
         for chart, data in self._charts_data.items():
             if len(data['knots']) > 1:
                 if chart.getVisibility():
@@ -256,12 +238,12 @@ class PumpGraph(Graph):
                     painter.setBrush(chart.getPen().color())
                     if "knots" in chart.getOptions():
                         if is_logged:
-                            Journal.log(__name__, "\tdrawing knots for",
+                            Journal.log(__name__, "\tотрисовка узлов для",
                                         chart.getName())
                         self._draw_knots(painter, data['knots'])
                     painter.setBrush(brush)
                     if is_logged:
-                        Journal.log(__name__, "\tdrawing curve for",
+                        Journal.log(__name__, "\tотрисовка кривой для",
                                     chart.getName())
                     Graph.draw_curve(painter, data['curve'], chart.getPen())
                     painter.setPen(pen)
@@ -269,17 +251,15 @@ class PumpGraph(Graph):
     def _draw_limits(self, painter: QPainter, limits: list, chart: Chart):
         """ отрисовка пределов допуска """
         if is_logged:
-            Journal.log(__name__, "\tdrawing limits for", chart.getName())
-        points_hi, points_lo = limits
-        if with_limits:
-            self._draw_limit_polygon(painter, points_hi + points_lo)
-        else:
-            self._draw_limit_lines(painter, points_hi, points_lo)
+            Journal.log(__name__, "\tотрисовка пределов допуска для",
+                        chart.getName())
+        self._draw_limit_polygon(painter, limits)
 
     def _draw_knots(self, painter: QPainter, points: list):
         """ отрисовка узлов """
-        for point in points:
-            painter.drawEllipse(point, 2, 2)
+        if len(points) == 2:
+            for i in range(len(points[0])):
+                painter.drawEllipse(QPointF(points[0][i], points[1][i]), 2, 2)
 
     def _draw_limit_polygon(self, painter: QPainter, points: list):
         """ отрисовка полигона для области допуска """
@@ -292,14 +272,6 @@ class PumpGraph(Graph):
         painter.setBrush(limits_pen.color())
         painter.drawPolygon(polygon, Qt.OddEvenFill)
         painter.setBrush(old_brush)
-        painter.setPen(old_pen)
-
-    def _draw_limit_lines(self, painter: QPainter, points_hi: list, points_lo: list):
-        """ отрисовка линий для области допуска """
-        old_pen = painter.pen()
-        painter.setPen(limits_pen)
-        Graph.draw_lines(painter, points_hi)
-        Graph.draw_lines(painter, points_lo)
         painter.setPen(old_pen)
 
     def _calculate_margins(self):
@@ -343,25 +315,25 @@ class PumpGraph(Graph):
 
     def _preparing_charts_data(self):
         """ подготовка данных для формирования графика """
-        if is_logged: Journal.log(__name__, "\tpreparing charts datas ->")
+        if is_logged: Journal.log(__name__, "\tподготовка данных для кривых ->")
         for chart in self._charts.values():
             self._prepare_chart_data(chart)
 
     def _prepare_chart_data(self, chart: Chart):
         """ подготовка данных для построения кривой """
         if is_logged:
-            Journal.log(__name__, "\t-> preparing chart data for",
+            Journal.log(__name__, "\t-> подготовка данных для кривой",
                         chart.getName())
         knots = self._get_chart_knots(chart)
         curve = self._get_chart_curve(chart, knots)
-        limits = self._get_chart_limits(chart, curve)
+        limits = []#self._get_chart_limits(chart, curve)
         self._charts_data.update(
             {chart: {'knots': knots, 'curve': curve, 'limits': limits}})
 
     def _get_chart_knots(self, chart: Chart):
         """ получение координат узлов кривой """
         if is_logged:
-            Journal.log(__name__, "\t-> getting knots for",
+            Journal.log(__name__, "\t-> получение узлов для",
                         chart.getName())
         result = []
         if len(chart.getPoints()) > 1:
@@ -374,28 +346,37 @@ class PumpGraph(Graph):
     def _get_chart_curve(self, chart: Chart, knots: list):
         """ построение кривой по точкам """
         if is_logged:
-            Journal.log(__name__, "\t-> getting curve for", chart.getName())
-        # result = Graph.get_cspline(chart, knots) if len(knots) > 2 else knots
-        result = Graph.get_bspline(knots) if len(knots) > 2 else knots
+            Journal.log(__name__, "\t-> получение кривой для", chart.getName())
+        result = []
+        # if np.shape(knots)[1] > 1:
+        #     points = knots.copy()
+        #     if points[0][0] > points[0][-1]:
+        #         points = np.flip(points, axis=1)
+        #     result = chart.generateCurve(points)
+        # return result
+        if len(chart.getPoints()) > 1:
+            result = chart.getTranslatedCurve(
+                self.get_draw_area().width(),
+                self.get_draw_area().height()
+            )
         return result
     
 
-
     def _get_chart_limits(self, chart: Chart, curve: list):
         """ построение кривой описывающей пределы допуска """
+        result = []
         if 'limit' in chart.getOptions():
             if is_logged:
-                Journal.log(__name__, "\t-> getting limits for", chart.getName())
+                Journal.log(__name__, "\t-> получение пределов допуска для",
+                            chart.getName())
             coords_x, coords_y = self._calculate_limit_points(curve)
             coords_y_hi = list(map(lambda x: x * chart.getCoefs()[0], coords_y))
             coords_y_lo = list(map(lambda x: x * chart.getCoefs()[1], coords_y))
             result_hi = Graph.pack_to_points(coords_x, coords_y_hi)
             result_lo = Graph.pack_to_points(coords_x, coords_y_lo)
-            if with_limits:
-                result_lo.reverse()
-            return [result_hi, result_lo]
-        else:
-            return []
+            result_lo.reverse()
+            result = result_hi + result_lo
+        return result
 
     def _calculate_limit_points(self, points: list):
         """ расчёт точек кривой оприсывающей пределы допуска """
@@ -426,7 +407,7 @@ class Divisions:
 
     def prepare(self, axis: Axis):
         if is_logged:
-            Journal.log(__name__, "\tpreparing grid divisions", self.name)
+            Journal.log(__name__, "\tподготовка делений для", self.name)
         fm = QFontMetricsF(self.font)
         self.divs.clear()
         for i, div in axis.generateDivSteps():

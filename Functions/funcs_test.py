@@ -18,7 +18,7 @@ __ENGIGE_MSG = {False: 'ЗАПУСК ДВИГАТЕЛЯ', True: 'ОСТАНОВ�
 
 def switch_test_running_state():
     """ переключение состояния испытания (запущен/остановлен) """
-    if is_logged: Journal.log(__name__, "\tswitching test running state to",
+    if is_logged: Journal.log(__name__, "::\tпереключение состояния теста в",
         str(is_test_running))
     gvars.wnd_main.btnTest.setText(__ENGIGE_MSG[is_test_running])
     gvars.wnd_main.btnGoBack.setEnabled(not is_test_running)
@@ -44,20 +44,20 @@ def add_point_to_table(flw, lft, pwr, eff):
             'lft': round(lft, 2),
             'pwr': round(pwr, 4),
             'eff': round(eff, 1)}
-    if is_logged: Journal.log(__name__, "\tadding point to list", data)
+    if is_logged: Journal.log(__name__, "\tдобавление точки в таблицу", data)
     funcsTable.add_row(gvars.wnd_main.tablePoints, data)
     pass
 
 
 def remove_last_point_from_table():
     """ удаление последней точки из таблицы """
-    if is_logged: Journal.log(__name__, "\tremoving last point from list")
+    if is_logged: Journal.log(__name__, "\tудаление последней точки из таблицы")
     funcsTable.remove_last_row(gvars.wnd_main.tablePoints)
 
 
 def clear_points_from_table():
     """ удаление всех точек из таблицы """
-    if is_logged: Journal.log(__name__, "\tclearing points from list")
+    if is_logged: Journal.log(__name__, "\tудаление всех точек из таблицы")
     funcsTable.clear_table(gvars.wnd_main.tablePoints)
 
 
@@ -72,11 +72,10 @@ def add_point_to_chart(chart_name: str, value_x: float, value_y: float):
     """ добавление точки на график """
     chart: Chart = gvars.pump_graph.get_chart(chart_name)
     if chart is not None:
-        print(__name__, '\t adding point to chart', value_x, value_y)
-        point = QPointF(value_x, value_y)
-        chart.addPoint(point)
+        print(__name__, '\tдобавление точки к графику', value_x, value_y)
+        chart.addPoint(value_x, value_y)
     else:
-        print(__name__, '\tError: no such chart', chart_name)
+        print(__name__, '\tError: нет такой кривой', chart_name)
         etalon: Chart = gvars.pump_graph.get_chart(chart_name.replace('test_', ''))
         if etalon is not None:
             chart: Chart = Chart(name=chart_name)
@@ -85,7 +84,7 @@ def add_point_to_chart(chart_name: str, value_x: float, value_y: float):
             gvars.pump_graph.add_chart(chart, chart_name)
             add_point_to_chart(chart_name, value_x, value_y)
         else:
-            print(__name__, '\tError: cant find etalon for', chart_name)
+            print(__name__, '\tError: не найден эталон для', chart_name)
 
 
 def remove_last_points_from_charts():
@@ -138,7 +137,7 @@ def get_chart(chart_name: str):
             chart.setPen(QPen(etalon.getPen().color(), 2, Qt.SolidLine))
             gvars.pump_graph.add_chart(chart, chart_name)
         else:
-            print(__name__, 'Error: cant find etalon for', chart_name)
+            print(__name__, 'Error: не найден эталон для', chart_name)
     return chart
 
 

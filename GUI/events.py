@@ -21,6 +21,7 @@ def on_changed_testlist():
         funcs_wnd.combos_filters_reset()
         funcs_wnd.clear_record(True)
         funcs_wnd.display_record()
+        funcs_wnd.display_test_result()
         Journal.log('===' * 30)
 
 
@@ -103,7 +104,9 @@ def on_clicked_pump_save():
     """ нажата кнопка сохранения нового насоса """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_pump_save.__doc__)
-    pump_id = funcsCommon.check_exists_serial(with_select=True)
+    pump_id, do_select = funcsCommon.check_exists_serial()
+    if do_select:
+        funcs_wnd.display_pump(pump_id['ID'])
     if not pump_id and funcs_wnd.group_check(gvars.wnd_main.groupPumpInfo):
         if funcs_wnd.save_pump_info():
             funcs_wnd.fill_combos_pump()
@@ -200,8 +203,8 @@ def on_clicked_add_point():
     Journal.log(__name__, "::\t", on_clicked_add_point.__doc__)
     gvars.markers.addKnots()
     current_vals = funcs_test.get_current_vals()
-    funcs_test.add_point_to_table(current_vals)
-    funcs_test.add_points_to_charts(current_vals)
+    funcs_test.add_point_to_table(*current_vals)
+    funcs_test.add_points_to_charts(*current_vals)
     funcs_graph.display_charts(gvars.markers)
 
 
