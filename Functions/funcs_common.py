@@ -3,15 +3,11 @@
     всякое-разное
 """
 from datetime import datetime
-from PyQt5.Qt import QModelIndex
-from GUI.models import ListModel
-from Functions import funcsTable, funcs_messages, funcs_db
-from AesmaLib import aesma_funcs
-from AesmaLib.journal import Journal
+from Functions import funcs_messages, funcs_db
 from Globals import gvars
 
 
-def check_exists_serial(with_select=False):
+def check_exists_serial():
     """ возвращает ID записи с введенным номером наряд-заказа"""
     wnd = gvars.wnd_main
     serial = wnd.cmbSerial.currentText()

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
 from PyQt5 import QtCore
 
 from Functions import funcs_db, funcs_graph, funcs_test
-from Functions import funcsCommon, funcsTable, funcsAdam
+from Functions import funcs_common, funcsTable, funcsAdam
 from GUI import events, models, pump_graph
 from GUI.Markers import Markers
 from AesmaLib.journal import Journal
@@ -251,7 +251,7 @@ def display_test_data():
 
 def display_test_result():
     """ отображение результата испытания """
-    test_result = funcsCommon.generate_result_text()
+    test_result = funcs_common.generate_result_text()
     gvars.wnd_main.lblTestResult.setText(test_result)
 
 

@@ -91,6 +91,7 @@ def remove_last_points_from_charts():
     """ удаление последних точек из графиков напора и мощности """
     remove_last_point_from_chart('test_lft')
     remove_last_point_from_chart('test_pwr')
+    remove_last_point_from_chart('test_eff')
 
 
 def remove_last_point_from_chart(chart_name: str):

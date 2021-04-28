@@ -232,7 +232,7 @@ class Graph(QWidget):
     @staticmethod
     def draw_lines(painter: QPainter, points: list):
         """ отрисовка линий по точкам """
-        if points.any():
+        if points is not None and points.any():
             path: QPainterPath = QPainterPath()
             path.moveTo(points[0][0], points[1][0])
             for i in range(1, len(points[0])):

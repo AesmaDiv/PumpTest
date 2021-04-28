@@ -3,7 +3,7 @@
 """
 from PyQt5.QtCore import Qt
 
-from Functions import funcsCommon, funcs_messages, funcs_graph, funcs_temp
+from Functions import funcs_common, funcs_messages, funcs_graph, funcs_temp
 from Functions import funcs_db, funcs_wnd, funcs_test, funcsAdam, funcsTable
 from AesmaLib.journal import Journal
 from Globals import gvars
@@ -104,7 +104,7 @@ def on_clicked_pump_save():
     """ нажата кнопка сохранения нового насоса """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_pump_save.__doc__)
-    pump_id, do_select = funcsCommon.check_exists_serial()
+    pump_id, do_select = funcs_common.check_exists_serial()
     if do_select:
         funcs_wnd.display_pump(pump_id['ID'])
     if not pump_id and funcs_wnd.group_check(gvars.wnd_main.groupPumpInfo):
@@ -131,14 +131,14 @@ def on_clicked_test_new():
     wnd = gvars.wnd_main
     funcs_wnd.group_lock(wnd.groupTestInfo, False)
     funcs_wnd.group_clear(wnd.groupTestInfo)
-    funcsCommon.set_current_date()
+    funcs_common.set_current_date()
 
 
 def on_clicked_test_info_save():
     """ нажата кнопка сохранения нового теста """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_test_info_save.__doc__)
-    test_id = funcsCommon.check_exists_ordernum(with_select=True)
+    test_id = funcs_common.check_exists_ordernum(with_select=True)
     if not test_id and funcs_wnd.group_check(gvars.wnd_main.groupTestInfo):
         funcs_wnd.save_test_info()
         funcs_wnd.fill_test_list()
@@ -185,7 +185,7 @@ def on_clicked_go_back():
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_go_back.__doc__)
     gvars.wnd_main.stackedWidget.setCurrentIndex(0)
-    funcsCommon.select_test(gvars.rec_test['ID'])
+    funcs_common.select_test(gvars.rec_test['ID'])
 
 
 def on_clicked_test():
