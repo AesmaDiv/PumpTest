@@ -96,7 +96,7 @@ def remove_last_points_from_charts():
 
 def remove_last_point_from_chart(chart_name: str):
     """ удаление последней точки из графика """
-    chart: Chart = gvars.pump_graph.get_chart(chart_name)
+    chart = gvars.pump_graph.get_chart(chart_name)
     if chart is not None:
         chart.removePoint()
 
@@ -110,7 +110,7 @@ def clear_points_from_charts():
 
 def clear_points_from_chart(chart_name: str):
     """ удаление всех точек из графика """
-    chart: Chart = gvars.pump_graph.get_chart(chart_name)
+    chart = gvars.pump_graph.get_chart(chart_name)
     if chart is not None:
         chart.clearPoints()
 

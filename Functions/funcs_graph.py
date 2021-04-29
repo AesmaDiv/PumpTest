@@ -16,7 +16,7 @@ def draw_charts():
         if gvars.rec_type:
             charts = load_charts()
             for chart in charts.values():
-                gvars.pump_graph.add_chart(chart, chart.getName())
+                gvars.pump_graph.add_chart(chart, chart.name)
             gvars.pump_graph.set_limits(gvars.rec_type['Min'],
                                         gvars.rec_type['Nom'],
                                         gvars.rec_type['Max'])
@@ -45,13 +45,12 @@ def load_charts():
 def get_points(chart_type='etalon'):
     """ парсинг значений точек из строк """
     is_etalon = (chart_type == 'etalon')
-    source = gvars.rec_type if is_etalon else gvars.rec_test
-    if source.num_points:
-        flws = source.values_flw
-        lfts = source.values_lft
-        pwrs = source.values_pwr
+    src = gvars.rec_type if is_etalon else gvars.rec_test
+    if src.num_points:
+        flws = sorted(src.values_flw, reverse=True)
+        lfts = src.values_lft
+        pwrs = src.values_pwr
         if is_etalon:
-            flws = flws[::-1]
             pwrs = list(map(lambda x: x * 0.7457, pwrs))
         effs = calculate_effs(flws, lfts, pwrs)
         return [flws, lfts, pwrs, effs]

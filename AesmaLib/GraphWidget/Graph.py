@@ -210,16 +210,16 @@ class Graph(QWidget):
 
     def _draw_chart(self, painter: QPainter, chart: Chart, flag=''):
         """ отрисовка кривой """
-        if is_logged: Journal.log(__name__, "\tdrawing chart", chart.getName())
-        if len(chart.getPoints()) > 1:
-            points = chart.getTranslatedPoints(
+        if is_logged: Journal.log(__name__, "\tdrawing chart", chart.name)
+        if len(chart.getPoints('x')) > 1:
+            points = chart.getTranslatedPoints([
                 self.get_draw_area().width(),
                 self.get_draw_area().height()
-            )
+            ])
             points = chart.apply_spline(points)
             Graph.draw_curve(painter, points, chart.getPen())
         else:
-            Journal.log(__name__, "\tchart", chart.getName(), "is empty")
+            Journal.log(__name__, "\tchart", chart.name, "is empty")
 
     def _update_base_chart(self, chart: Chart, name: str):
         """ обновление информации об основной кривой """
@@ -230,17 +230,17 @@ class Graph(QWidget):
             self._divs_y = chart.getAxis('y').getDivs() if chart else 1
 
     @staticmethod
-    def draw_lines(painter: QPainter, points: list):
+    def draw_lines(painter: QPainter, points):
         """ отрисовка линий по точкам """
-        if points is not None and points.any():
+        if points.size:
             path: QPainterPath = QPainterPath()
-            path.moveTo(points[0][0], points[1][0])
-            for i in range(1, len(points[0])):
-                path.lineTo(points[0][i], points[1][i])
+            path.moveTo(points['x'][0], points['y'][0])
+            for i in range(1, len(points['x'])):
+                path.lineTo(points['x'][i], points['x'][i])
             painter.drawPath(path)
 
     @staticmethod
-    def draw_curve(painter: QPainter, points: list, pen: QPen):
+    def draw_curve(painter: QPainter, points, pen: QPen):
         """ отрисовка кривой по точкам """
         painter.setPen(pen)
         Graph.draw_lines(painter, points)

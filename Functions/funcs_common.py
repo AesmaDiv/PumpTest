@@ -67,7 +67,7 @@ def generate_result_text():
         curve = chart.regenerateCurve()
         nom = gvars.rec_type['Nom']
         eff_nom = float(spline(nom))
-        eff_max = float(max(curve[1]))
+        eff_max = float(max(curve['y']))
         eff_del = abs(eff_max - eff_nom)
         result = \
         f"КПД.ном = {round(eff_nom, 2)}%\n" + \

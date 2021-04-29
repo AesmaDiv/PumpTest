@@ -4,8 +4,8 @@
 """
 import math, numpy as np
 from scipy.interpolate import make_interp_spline
-from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPolygonF, QPen, QTransform, QPixmap
-from PyQt5.QtGui import QFontMetricsF, QShowEvent
+from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QFontMetricsF
+from PyQt5.QtGui import QShowEvent, QTransform, QPixmap, QPolygonF, QPainterPath
 from PyQt5.QtCore import QPointF, Qt, QSize
 from AesmaLib.GraphWidget.Graph import Graph, Chart, Axis
 from AesmaLib import aesma_funcs
@@ -55,7 +55,7 @@ class PumpGraph(Graph):
     def set_visibile_charts(self, names_of_charts_to_show: list = 'all'):
         for chart in self._charts.values():
             chart.setVisibility(names_of_charts_to_show == 'all'
-                                or chart.getName()
+                                or chart.name
                                 in names_of_charts_to_show)
 
     def clear_charts(self):
@@ -222,53 +222,65 @@ class PumpGraph(Graph):
     def _draw_charts_limits(self, painter: QPainter):
         """ отрисовка пределов допуска для всех кривых """
         for chart, data in self._charts_data.items():
-            if data['limits'].any():
+            if data['limits'].size:
                 self._draw_limit_polygon(painter, chart, data['limits'])
 
     def _draw_charts_knots_n_curves(self, painter: QPainter):
         """ отрисовка узлов и кривых """
         if is_logged:
-            Journal.log(__name__, "\tотрисовка узлов и кривых")
+            Journal.log(__name__, "\tотрисовка узлов и кривых ->")
         for chart, data in self._charts_data.items():
-            if len(data['knots']) > 1:
-                if chart.getVisibility():
-                    pen = painter.pen()
-                    brush = painter.brush()
-                    painter.setPen(chart.getPen())
-                    painter.setBrush(chart.getPen().color())
-                    if "knots" in chart.getOptions():
-                        if is_logged:
-                            Journal.log(__name__, "\tотрисовка узлов для",
-                                        chart.getName())
-                        self._draw_knots(painter, data['knots'])
-                    painter.setBrush(brush)
+            if data['knots'].size and chart.visibility:
+                pen = painter.pen()
+                brush = painter.brush()
+                painter.setPen(chart.getPen())
+                painter.setBrush(chart.getPen().color())
+                if "knots" in chart.getOptions():
                     if is_logged:
-                        Journal.log(__name__, "\tотрисовка кривой для",
-                                    chart.getName())
-                    Graph.draw_curve(painter, data['curve'], chart.getPen())
-                    painter.setPen(pen)
+                        Journal.log(__name__, "\t-> отрисовка узлов для",
+                                    chart.name)
+                    PumpGraph._draw_knots(painter, data['knots'])
+                painter.setBrush(brush)
+                if is_logged:
+                    Journal.log(__name__, "\t-> отрисовка кривой для",
+                                chart.name)
+                PumpGraph._draw_curve(painter, data['curve'])
+                painter.setPen(pen)
 
-    def _draw_knots(self, painter: QPainter, points: list):
+    @staticmethod
+    def _draw_curve(painter: QPainter, points):
+        """ отрисовка линий по точкам """
+        if points.size:
+            path = QPainterPath()
+            path.moveTo(QPointF(points[0][0], points[0][1]))
+            for i in range(1, len(points['x'])):
+                path.lineTo(QPointF(points[i][0], points[i][1]))
+            painter.drawPath(path)
+
+    @staticmethod
+    def _draw_knots(painter: QPainter, points):
         """ отрисовка узлов """
-        if len(points) == 2:
-            for i in range(points.shape[1]):
-                painter.drawEllipse(QPointF(points[0][i], points[1][i]), 2, 2)
+        if len(points['x']):
+            for p in points:
+                painter.drawEllipse(QPointF(p[0], p[1]), 2, 2)
 
-    def _draw_limit_polygon(self, painter: QPainter, chart, points):
+    @staticmethod
+    def _draw_limit_polygon(painter: QPainter, chart, points):
         """ отрисовка полигона для области допуска """
         if is_logged:
             Journal.log(__name__, "\tотрисовка пределов допуска для",
-                        chart.getName())
-        old_pen = painter.pen()
-        old_brush = painter.brush()
-        polygon = QPolygonF()
-        for i in range(points.shape[1]):
-            polygon.append(QPointF(points[0][i], points[1][i]))
-        painter.setPen(limits_pen)
-        painter.setBrush(limits_pen.color())
-        painter.drawPolygon(polygon, Qt.OddEvenFill)
-        painter.setBrush(old_brush)
-        painter.setPen(old_pen)
+                        chart.name)
+        if points.size:
+            old_pen = painter.pen()
+            old_brush = painter.brush()
+            polygon = QPolygonF()
+            for p in points:
+                polygon.append(QPointF(p[0], p[1]))
+            painter.setPen(limits_pen)
+            painter.setBrush(limits_pen.color())
+            painter.drawPolygon(polygon, Qt.OddEvenFill)
+            painter.setBrush(old_brush)
+            painter.setPen(old_pen)
 
     def _calculate_margins(self):
         """ расчёт отступов """
@@ -319,7 +331,7 @@ class PumpGraph(Graph):
         """ подготовка данных для построения кривой """
         if is_logged:
             Journal.log(__name__, "\t-> подготовка данных для кривой",
-                        chart.getName())
+                        chart.name)
         draw_area = self.get_draw_area()
         knots = self._get_chart_knots(chart, draw_area)
         curve = self._get_chart_curve(chart, draw_area)
@@ -331,76 +343,56 @@ class PumpGraph(Graph):
         """ получение координат узлов кривой """
         if is_logged:
             Journal.log(__name__, "\t-> получение узлов для",
-                        chart.getName())
-        result = Chart.getEmpty()
-        if len(chart.getPoints()) > 1:
-            width, height = draw_area.width(), draw_area.height()
-            result = chart.getTranslatedPoints(width, height)
+                        chart.name)
+        result = chart.createEmptyPoints()
+        if len(chart.getPoints('x')) > 1:
+            sz_cnv = [draw_area.width(), draw_area.height()]
+            result = chart.getTranslatedPoints(sz_cnv)
         return result
 
     def _get_chart_curve(self, chart: Chart, draw_area):
         """ получение координат точек кривой """
         if is_logged:
-            Journal.log(__name__, "\t-> получение кривой для", chart.getName())
-        result = Chart.getEmpty()
-        if len(chart.getPoints()) > 1:
-            width, height = draw_area.width(), draw_area.height()
-            result = chart.getTranslatedPoints(width, height, for_curve=True)
+            Journal.log(__name__, "\t-> получение кривой для", chart.name)
+        result = chart.createEmptyPoints()
+        if len(chart.getPoints('x')) > 1:
+            sz_cnv = [draw_area.width(), draw_area.height()]
+            result = chart.getTranslatedPoints(sz_cnv, for_curve=True)
         return result
     
 
     def _get_chart_limit(self, chart: Chart, curve):
         """ получение координат точек описывающих пределы допуска """
-        result = Chart.getEmpty()
-        if 'limit' in chart.getOptions() and curve.any():
+        result = chart.createEmptyPoints()
+        if 'limit' in chart.getOptions() and curve['x'].any():
             if is_logged:
                 Journal.log(__name__, "\t-> получение пределов допуска для",
-                            chart.getName())
+                            chart.name)
             ranges = self._range_pixels
             coeffs = chart.getCoefs()
             result = self._slice_curve_to_range(curve, ranges)
-            coords = self._calculate_hi_lo_coords(result, coeffs)
-            result = self._get_limit_polygon(coords)
-            # coords_x, coords_y = self._calculate_limit_points(curve)
-            # coords_y_hi = list(map(lambda x: x * chart.getCoefs()[0], coords_y))
-            # coords_y_lo = list(map(lambda x: x * chart.getCoefs()[1], coords_y))
-            # result_hi = Graph.pack_to_points(coords_x, coords_y_hi)
-            # result_lo = Graph.pack_to_points(coords_x, coords_y_lo)
-            # result_lo.reverse()
-            # result = result_hi + result_lo
+            result = self._calculate_limit_coords(chart, result, coeffs)
         return result
     
     @staticmethod
     def _slice_curve_to_range(curve, ranges):
         first, last = ranges[0], ranges[2]
-        mask = curve[0] >= first
-        mask &= curve[0] <= last
-        result = curve[:, mask]
+        mask = curve['x'] >= first
+        mask &= curve['x'] <= last
+        result = curve[mask]
         return result
     
     @staticmethod
-    def _calculate_hi_lo_coords(curve, coeffs):
-        xs_hi = curve.tolist()[0]
-        xs_lo = xs_hi[::-1]
-        ys_hi = list(map(lambda x: x * coeffs[0], curve[1]))
-        ys_lo = list(map(lambda x: x * coeffs[1], curve[1][::-1]))
-        return (xs_hi, ys_hi, xs_lo, ys_lo)
-
-    @staticmethod
-    def _get_limit_polygon(coords):
-        result = np.array([coords[0], coords[1]])
-        result = np.append(result, [coords[2], coords[3]], axis=1)
-        return result
-
-    def _calculate_limit_points(self, points: list):
+    def _calculate_limit_coords(chart, curve, coeffs):
         """ расчёт точек кривой оприсывающей пределы допуска """
-        result_x, result_y = Graph.unpack_to_coords(points)
-        first, last = self._range_pixels[0], self._range_pixels[2]
-        indices = [i for i, x in enumerate(result_x) if first < x < last]
-        first, last = indices[0] - 1, indices[-1] + 1
-        result_x = result_x[first:last]
-        result_y = result_y[first:last]
-        return result_x, result_y
+        xs_hi = curve['x'].tolist()
+        xs_lo = xs_hi[::-1]
+        ys_hi = list(map(lambda x: x * coeffs[0], curve['y']))
+        ys_lo = list(map(lambda x: x * coeffs[1], curve['y'][::-1]))
+        result_x = xs_hi + xs_lo
+        result_y = ys_hi + ys_lo
+        result = chart.transposePoints([result_x, result_y])
+        return result
 
     def _prepare_divs(self, name: str, axis: Axis):
         """ подготовка значений делений на оси """
