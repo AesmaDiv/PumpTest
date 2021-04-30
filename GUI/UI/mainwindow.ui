@@ -54,8 +54,8 @@
      <rect>
       <x>10</x>
       <y>9</y>
-      <width>1161</width>
-      <height>701</height>
+      <width>1341</width>
+      <height>761</height>
      </rect>
     </property>
     <property name="palette">
@@ -516,7 +516,7 @@
         <x>10</x>
         <y>10</y>
         <width>381</width>
-        <height>681</height>
+        <height>741</height>
        </rect>
       </property>
       <property name="title">
@@ -528,7 +528,7 @@
          <x>10</x>
          <y>30</y>
          <width>361</width>
-         <height>611</height>
+         <height>701</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -748,8 +748,8 @@
        <rect>
         <x>400</x>
         <y>310</y>
-        <width>751</width>
-        <height>381</height>
+        <width>931</width>
+        <height>440</height>
        </rect>
       </property>
       <property name="title">
@@ -763,8 +763,8 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>731</width>
-         <height>301</height>
+         <width>911</width>
+         <height>371</height>
         </rect>
        </property>
        <property name="frameShape">
@@ -777,8 +777,8 @@
       <widget class="QPushButton" name="btnGoTest">
        <property name="geometry">
         <rect>
-         <x>470</x>
-         <y>340</y>
+         <x>650</x>
+         <y>407</y>
          <width>271</width>
          <height>24</height>
         </rect>
@@ -791,7 +791,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>334</y>
+         <y>400</y>
          <width>451</width>
          <height>41</height>
         </rect>
@@ -1240,7 +1240,9 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>8</pointsize>
+         <pointsize>7</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="inputMethodHints">
@@ -1259,7 +1261,7 @@
        <rect>
         <x>400</x>
         <y>10</y>
-        <width>750</width>
+        <width>931</width>
         <height>142</height>
        </rect>
       </property>
@@ -1274,7 +1276,7 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>731</width>
+         <width>911</width>
          <height>111</height>
         </rect>
        </property>
@@ -1747,7 +1749,7 @@
        <rect>
         <x>400</x>
         <y>150</y>
-        <width>750</width>
+        <width>931</width>
         <height>165</height>
        </rect>
       </property>
@@ -1762,7 +1764,7 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>731</width>
+         <width>911</width>
          <height>131</height>
         </rect>
        </property>
