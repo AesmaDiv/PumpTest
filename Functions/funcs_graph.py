@@ -47,7 +47,7 @@ def get_points(chart_type='etalon'):
     is_etalon = (chart_type == 'etalon')
     src = gvars.rec_type if is_etalon else gvars.rec_test
     if src.num_points:
-        flws = sorted(src.values_flw, reverse=True)
+        flws = src.values_flw
         lfts = src.values_lft
         pwrs = src.values_pwr
         if is_etalon:

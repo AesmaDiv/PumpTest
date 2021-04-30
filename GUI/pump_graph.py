@@ -13,7 +13,7 @@ from AesmaLib.journal import Journal
 
 
 is_logged = True
-limits_pen = QPen(QColor(200, 200, 0, 20), 1, Qt.SolidLine)
+limits_pen = QPen(QColor(200, 200, 0, 40), 1, Qt.SolidLine)
 
 
 class PumpGraph(Graph):

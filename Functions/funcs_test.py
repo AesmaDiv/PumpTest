@@ -44,7 +44,6 @@ def add_point_to_table(flw, lft, pwr, eff):
             'lft': round(lft, 2),
             'pwr': round(pwr, 4),
             'eff': round(eff, 1)}
-    if is_logged: Journal.log(__name__, "\tдобавление точки в таблицу", data)
     funcsTable.add_row(gvars.wnd_main.tablePoints, data)
     pass
 

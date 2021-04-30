@@ -106,7 +106,7 @@ def on_clicked_pump_save():
     Journal.log(__name__, "::\t", on_clicked_pump_save.__doc__)
     pump_id, do_select = funcs_common.check_exists_serial()
     if do_select:
-        funcs_wnd.display_pump(pump_id['ID'])
+        funcs_wnd.display_pump(pump_id)
     if not pump_id and funcs_wnd.group_check(gvars.wnd_main.groupPumpInfo):
         if funcs_wnd.save_pump_info():
             funcs_wnd.fill_combos_pump()

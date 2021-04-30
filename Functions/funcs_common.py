@@ -60,17 +60,42 @@ def set_current_date():
 
 def generate_result_text():
     """ генерирует миниотчёт об испытании """
-    result = ""
+    result_lines = []
+    if gvars.rec_test['Flows']:
+        generate_deltas_report(result_lines)
+        generate_effs_report(result_lines)
+    return '\n'.join(result_lines)
+
+
+def generate_deltas_report(lines: list):
+    reports = []
+    for name, title in zip(('lft', 'pwr'),('Напор', 'Мощность')):
+        deltas = calculate_deltas_for(name)
+        string = f'\u0394 {title}, %\t'
+        string += '\t{:>10.2f}\t{:>10.2f}\t{:>10.2f}'.format(*deltas)
+        lines.append(string)
+
+
+def generate_effs_report(lines: list):
     chart = gvars.pump_graph.get_chart('test_eff')
-    if gvars.rec_test['Flows'] and chart:
-        spline = chart.getSpline()
-        curve = chart.regenerateCurve()
-        nom = gvars.rec_type['Nom']
-        eff_nom = float(spline(nom))
-        eff_max = float(max(curve['y']))
-        eff_del = abs(eff_max - eff_nom)
-        result = \
-        f"КПД.ном = {round(eff_nom, 2)}%\n" + \
-        f"КПД.мах = {round(eff_max, 2)}%\n" + \
-        f"КПД.Δ   = {round(eff_del, 2)}%"
+    spline = chart.getSpline()
+    curve = chart.regenerateCurve()
+    nom = gvars.rec_type['Nom']
+    eff_nom = float(spline(nom))
+    eff_max = float(max(curve['y']))
+    eff_dlt = abs(eff_max - eff_nom)
+    string = 'Отклонение КПД от номинального, %\t{:>10.2f}'.format(eff_dlt)
+    lines.append(string)
+
+
+def calculate_deltas_for(chart_name: str):
+    names = (f'test_{chart_name}', f'{chart_name}')
+    ranges = ('Min', 'Nom', 'Max')
+    get_val = lambda spl, rng: float(spl(gvars.rec_type[rng]))
+    get_dlt = lambda tst, etl: round((tst / etl * 100 - 100), 2)
+    vals = list()        
+    for name in names:
+        spln = gvars.pump_graph.get_chart(f'{name}').getSpline()
+        vals.append([get_val(spln, rng) for rng in ranges])
+    result = [get_dlt(x, y) for x, y in zip(vals[0], vals[1])]
     return result

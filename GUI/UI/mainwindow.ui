@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1180</width>
-    <height>768</height>
+    <width>1366</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -21,8 +21,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1180</width>
-    <height>700</height>
+    <width>1366</width>
+    <height>800</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -791,9 +791,9 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>335</y>
+         <y>334</y>
          <width>451</width>
-         <height>40</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="palette">
@@ -1243,8 +1243,14 @@
          <pointsize>8</pointsize>
         </font>
        </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhMultiLine</set>
+       </property>
        <property name="text">
         <string>TextLabel</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::PlainText</enum>
        </property>
       </widget>
      </widget>
@@ -3641,7 +3647,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1180</width>
+     <width>1366</width>
      <height>30</height>
     </rect>
    </property>
