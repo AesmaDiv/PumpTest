@@ -2,7 +2,6 @@ import os
 from PyQt5.QtWidgets import QWidget, QFrame
 from PyQt5 import uic
 from AesmaLib.journal import Journal
-import gvars
 
 
 class Adam5K(QFrame):

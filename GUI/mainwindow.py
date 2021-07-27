@@ -49,26 +49,3 @@ class Window(QMainWindow):
         funcs_wnd.group_lock(self.groupTestInfo, True)
         funcs_wnd.group_lock(self.groupPumpInfo, True)
         funcs_test.switch_test_running_state()
-
-    @staticmethod
-    @Journal.logged
-    def __display_record():
-        """ отображение выбранную запись """
-        funcs_wnd.display_record()
-
-    @Journal.logged
-    def __clear_record(self):
-        """ очисткает поля отображения записи """
-        funcs_wnd.clear_record(True)
-
-    @Journal.logged
-    def __store_record(self):
-        """ сохраняет текущую запись """
-        # self.__store_type_info()
-        # self.__store_pump_info()
-        # if Infos.Test.save_to_gvars_info():
-        #     if funcs_db.update_record('Tests', gvars.rec_test):
-        #         Journal.log(__name__, "::", "\trecord updated success")
-        #         self.__fill_testlist()
-        #     else:
-        #         Journal.log(__name__, "::", "\terror updating record")

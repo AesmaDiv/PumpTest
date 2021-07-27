@@ -257,15 +257,18 @@ def on_markers_move(point_data: dict):
 
 
 def on_mouse_wheel_flow(event):
+    """ изменяет значение расхода колесиком мышки """
     funcs_temp.process_mouse_wheel(
         gvars.wnd_main.txtFlow, event, 1)
 
 
 def on_mouse_wheel_lift(event):
+    """ изменяет значение напора колесиком мышки """
     funcs_temp.process_mouse_wheel(
         gvars.wnd_main.txtLift, event, 0.1)
 
 
 def on_mouse_wheel_power(event):
+    """ изменяет значение мощности колесиком мышки """
     funcs_temp.process_mouse_wheel(
         gvars.wnd_main.txtPower, event, 0.001)
