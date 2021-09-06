@@ -60,6 +60,7 @@ def set_current_date():
 
 def generate_result_text():
     """ генерирует миниотчёт об испытании """
+    gvars.rec_deltas.clear()
     result_lines = []
     if gvars.rec_test['Flows']:
         generate_deltas_report(result_lines)
@@ -68,15 +69,16 @@ def generate_result_text():
 
 
 def generate_deltas_report(lines: list):
-    reports = []
+    """ расчитывает отклонения для напора и мощности """
     for name, title in zip(('lft', 'pwr'),('Напор', 'Мощность')):
-        deltas = calculate_deltas_for(name)
+        calculate_deltas_for(name)
         string = f'\u0394 {title}, %\t'
-        string += '\t{:>10.2f}\t{:>10.2f}\t{:>10.2f}'.format(*deltas)
+        string += '\t{:>10.2f}\t{:>10.2f}\t{:>10.2f}'.format(*gvars.rec_deltas[name])
         lines.append(string)
 
 
 def generate_effs_report(lines: list):
+    """ расчитывает отклонения для кпд """
     chart = gvars.pump_graph.get_chart('test_eff')
     spline = chart.getSpline()
     curve = chart.regenerateCurve()
@@ -86,16 +88,18 @@ def generate_effs_report(lines: list):
     eff_dlt = abs(eff_max - eff_nom)
     string = 'Отклонение КПД от номинального, %\t{:>10.2f}'.format(eff_dlt)
     lines.append(string)
+    gvars.rec_deltas['eff'] = eff_dlt
 
 
 def calculate_deltas_for(chart_name: str):
+    """ расчитывает отклонения для указанной характеристики """
     names = (f'test_{chart_name}', f'{chart_name}')
     ranges = ('Min', 'Nom', 'Max')
     get_val = lambda spl, rng: float(spl(gvars.rec_type[rng]))
     get_dlt = lambda tst, etl: round((tst / etl * 100 - 100), 2)
-    vals = list()        
+    vals = list()
     for name in names:
         spln = gvars.pump_graph.get_chart(f'{name}').getSpline()
         vals.append([get_val(spln, rng) for rng in ranges])
     result = [get_dlt(x, y) for x, y in zip(vals[0], vals[1])]
-    return result
+    gvars.rec_deltas[name] = result

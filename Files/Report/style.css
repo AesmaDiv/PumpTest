@@ -1,0 +1,120 @@
+body {
+    width: 210mm;
+    height: 297mm;
+    background-color: rgb(255,255,255);
+    --border-style: 1px solid black;
+    border: var(--border-style);
+    font-size: small;
+}
+p {
+    margin: 2px;
+    font-weight: 600;
+}
+/* ЗАГОЛОВОК */
+header {
+    width: 100%;
+    height: 5%;
+    display: grid;
+    grid-template-columns: 33% 34% 33%;
+    grid-template-rows: 100%;
+    align-items: flex-start;
+}
+#header-pump-type {
+    justify-self: stretch;
+    text-align: start;
+}
+#header-title {
+    height: 100%;
+    justify-self: stretch;
+    text-align: center;
+    vertical-align: middle;
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 5px;
+}
+#logo {
+    height: 100%;
+    width: auto;
+}
+#company {
+    display: inline;
+    font-weight: 800;
+    font-size: 24px;
+    text-align: center;
+}
+#header-test-time {
+    justify-self: stretch;
+    text-align: end;
+}
+/* СОДЕРЖАНИЕ */
+main {
+    width: 100%;
+    height: 90%;
+    font-size: small;
+}
+#pump-info, #test-info {
+    display: grid;
+    grid-template-rows: repeat(3, auto);
+    column-gap: 20px;
+    grid-auto-flow: column;
+    justify-content: start;
+    justify-items: start;
+}
+#test-info {
+    grid-template-rows: repeat(4, auto);
+}
+.info-label {
+    margin-left: 30px;
+}
+.info-value {
+    margin-left: 00px;
+}
+#graph {
+    width: 80%;
+    height: 40%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px auto;
+    background-color: bisque;
+}
+#delta-info {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    grid-template-rows: repeat(4, auto);
+    grid-auto-flow: column;
+}
+.delta-lft {
+    color: blue;
+}
+.delta-pwr {
+    color: red;
+}
+.delta-eff {
+    color: green;
+}
+.delta-eff.title {
+    grid-area: auto / span 2;
+}
+#test-table {
+    display: grid;
+    grid-template-columns: 50px repeat(7, calc((100% - 50px) / 7));
+    margin: 5px 0px;
+    justify-items: stretch;
+    border-bottom: var(--border-style);
+    border-right: var(--border-style);
+}
+.test-table{
+    border-top: var(--border-style);
+    border-left: var(--border-style);
+    padding: 0px 5px;
+}
+.test-table.label {
+    text-align: center;
+}
+/* ОСНОВАНИЕ */
+footer {
+    width: 100%;
+    height: 30px;
+    background-color: rgb(167, 179, 189);
+}

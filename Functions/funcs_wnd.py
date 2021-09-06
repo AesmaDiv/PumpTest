@@ -3,7 +3,7 @@
 """
 from PyQt5.QtWidgets import QHeaderView, QGroupBox, QWidget
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
-from PyQt5 import QtCore
+from PyQt5.QtCore import Qt, QRegExp
 
 from Functions import funcs_db, funcs_graph, funcs_test
 from Functions import funcs_common, funcsTable, funcsAdam
@@ -19,6 +19,7 @@ def register_events():
     """ привязывает события элементов формы к обработчикам """
     wnd = gvars.wnd_main
     wnd.tableTests.selectionModel().currentChanged.connect(events.on_changed_testlist)
+    wnd.tableTests.customContextMenuRequested.connect(events.on_menu_testlist)
 
     wnd.cmbProducer.currentIndexChanged.connect(events.on_changed_combo_producers)
     wnd.cmbType.currentIndexChanged.connect(events.on_changed_combo_types)
@@ -92,6 +93,7 @@ def init_test_list():
                     filter_proxy=wnd.tests_filter, data=tests_data,
                     headers=tests_headers, headers_sizes=tests_headers_sizes,
                     headers_resizes=tests_resizes)
+    wnd.tableTests.setContextMenuPolicy(Qt.CustomContextMenu)
 
 
 @Journal.logged
@@ -189,8 +191,8 @@ def init_graph():
     gvars.pump_graph = pump_graph.PumpGraph(100, 100)
     gvars.pump_graph.set_margins([10, 10, 10, 10])
     gvars.markers = Markers(['test_lft', 'test_pwr'], gvars.pump_graph)
-    gvars.markers.setMarkerColor('test_lft', QtCore.Qt.blue)
-    gvars.markers.setMarkerColor('test_pwr', QtCore.Qt.red)
+    gvars.markers.setMarkerColor('test_lft', Qt.blue)
+    gvars.markers.setMarkerColor('test_pwr', Qt.red)
     gvars.wnd_main.gridGraphTest.addWidget(gvars.markers, 0, 0)
 
 
@@ -207,14 +209,6 @@ def display_sensors(sensors: dict):
 
 
 @Journal.logged
-def display_record():
-    """ отображает полную информации о записи """
-    wnd = gvars.wnd_main
-    row = funcsTable.get_row(wnd.tableTests)
-    if row:
-        display_test(row['ID'])
-
-
 def display_test(test_id: int):
     """ отображает информацию о тесте """
     Journal.log(f"{__name__}::\t загружает информацию о тесте --> {test_id}")
@@ -249,7 +243,7 @@ def display_test_data():
         funcs_test.add_point_to_table(flw, lft, pwr, eff)
 
 
-def display_test_result():
+def display_test_deltas():
     """ отображение результата испытания """
     test_result = funcs_common.generate_result_text()
     gvars.wnd_main.lblTestResult.setText(test_result)
@@ -293,7 +287,7 @@ def group_display(group: QGroupBox, record, log=False):
     for name, value in record.items():
         if name in ('ID', 'Type', 'Producer'):
             continue
-        item = group.findChildren(QWidget, QtCore.QRegExp(name))
+        item = group.findChildren(QWidget, QRegExp(name))
         if item:
             if isinstance(item[0], QLineEdit):
                 item[0].setText(str(value))
@@ -309,7 +303,7 @@ def group_save(group: QGroupBox, record, log=False):
                 f"из полей группы {group.objectName()}")
     record['ID'] = None
     for name in record.keys():
-        item = group.findChildren(QWidget, QtCore.QRegExp(name))
+        item = group.findChildren(QWidget, QRegExp(name))
         if item:
             if isinstance(item[0], QLineEdit):
                 record[name] = item[0].text()

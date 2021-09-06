@@ -73,8 +73,10 @@ def calculate_effs(flws: list, lfts: list, pwrs: list):
         result = [calculate_eff(flws[i], lfts[i], pwrs[i]) \
                   for i in range(count)]
     return result
-    
+
+
 def calculate_eff(flw: float, lft: float, pwr: float):
+    """ вычисление КПД """
     return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
            if flw and lft and pwr else 0
 

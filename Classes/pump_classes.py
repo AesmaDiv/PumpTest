@@ -98,6 +98,7 @@ class RecordType(Record):
         self.values_flw = []
         self.values_lft = []
         self.values_pwr = []
+        self.values_eff = []
 
     def load(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
@@ -108,12 +109,33 @@ class RecordType(Record):
                 self.values_flw = list(map(float, self.Flows.split(',')))
                 self.values_lft = list(map(float, self.Lifts.split(',')))
                 self.values_pwr = list(map(float, self.Powers.split(',')))
+                self.values_eff = RecordType.calculate_effs(
+                    self.values_flw, self.values_lft, self.values_pwr
+                )
             else:
                 self.values_flw = []
                 self.values_lft = []
                 self.values_pwr = []
+                self.values_eff = []
         return result
-        
+
+    @staticmethod
+    def calculate_effs(flws: list, lfts: list, pwrs: list):
+        """ расчёт точек КПД """
+        result = []
+        count = len(flws)
+        if count == len(lfts) and count == len(pwrs):
+            result = [RecordType.calculate_eff(flws[i], lfts[i], pwrs[i]) \
+                    for i in range(count)]
+        return result
+
+    @staticmethod
+    def calculate_eff(flw: float, lft: float, pwr: float):
+        """ вычисление КПД """
+        return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
+            if flw and lft and pwr else 0
+
+
     def num_points(self) -> int:
         """ проверяет есть ли точки и возвращает их количество (наименьшее) """
         if self.values_flw and self.values_lft and self.values_pwr:

@@ -1,11 +1,14 @@
 """
     Модуль содержащий функции обработки событий
 """
+from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMenu
 
 from Functions import funcs_common, funcs_messages, funcs_graph, funcs_temp
 from Functions import funcs_db, funcs_wnd, funcs_test, funcsAdam, funcsTable
 from AesmaLib.journal import Journal
+from Classes.report import Report, ReportInfo
 from Globals import gvars
 
 
@@ -20,9 +23,24 @@ def on_changed_testlist():
                     item['ID'] if item else "None")
         funcs_wnd.combos_filters_reset()
         funcs_wnd.clear_record(True)
-        funcs_wnd.display_record()
-        funcs_wnd.display_test_result()
+        funcs_wnd.display_test(item['ID'])
+        funcs_wnd.display_test_deltas()
         Journal.log('===' * 30)
+
+
+def on_menu_testlist():
+    """ создание контекстрого меню и обработка """
+    menu = QMenu()
+    print_action = menu.addAction("Распечатать")
+    action = menu.exec_(QtGui.QCursor.pos())
+    if action == print_action:
+        report_info = ReportInfo()
+        report_info.pump_info = gvars.rec_pump
+        report_info.test_info = gvars.rec_test
+        report_info.type_info = gvars.rec_type
+        report_info.deltas = gvars.rec_deltas
+        gvars.report.generate_report(report_info)
+        print("PRINTING REPORT")
 
 
 def on_changed_combo_producers(index):
