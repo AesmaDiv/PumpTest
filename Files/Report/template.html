@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=210mm, height=297mm, initial-scale=1.0">
+    <!-- <meta name="viewport" content="width=210mm, height=297mm, initial-scale=1.0"> -->
     <link rel="stylesheet" href="./style.css">
     <title>Document</title>
 </head>
 <body>
     <header>
-        <div id="header-pump-type">{{ test_info.number }}</div>
+        <div id="header-pump-type">№ {{ test_info['ID'] }}</div>
         <div id="header-title">
-            <img id="logo" src="./logo.png">
-            <div id="company">ЛУКОЙЛ ЭПУ СЕРВИС</div>
+            <img id="header-title-logo" src="logo.png">
+            <div id="header-title-company">ЛУКОЙЛ ЭПУ СЕРВИС</div>
         </div>
-        <div id="header-test-time">{{ test_info.date }}</div>
+        <div id="header-test-time">{{ test_info['DateTime'] }}</div>
     </header>
     <main>
         <p>Информация по насосу:</p>
@@ -22,13 +22,15 @@
             <span class="info-label">Производитель</span>
             <span class="info-label">Типоразмер</span>
             <span class="info-label">Заводской номер</span>
+
             <span class="info-value">{{type_info["Producer_Name"]}}</span>
             <span class="info-value">{{type_info["Name"] }}</span>
             <span class="info-value">{{pump_info["Serial"] }}</span>
-
+            
             <span class="info-label">Длина</span>
             <span class="info-label">Кол-во ступеней</span>
             <span class="info-label">Вылет вала</span>
+            
             <span class="info-value">{{pump_info["Length"]}}</span>
             <span class="info-value">{{pump_info["Stages"]}}</span>
             <span class="info-value">{{pump_info["Shaft"]}}</span>
@@ -39,6 +41,7 @@
             <span class="info-label">Заказчик</span>
             <span class="info-label">Наряд-заказ №</span>
             <span class="info-label">Сборка</span>
+            
             <span class="info-value">{{test_info["DateTime"]}}</span>
             <span class="info-value">{{test_info["Customer"]}}</span>
             <span class="info-value">{{test_info["OrderNum"]}}</span>
@@ -48,30 +51,34 @@
             <span class="info-label">Куст</span>
             <span class="info-label">Скважина</span>
             <span class="info-label">Суткопробег</span>
+            
             <span class="info-value">{{test_info["Location"]}}</span>
             <span class="info-value">{{test_info["Lease"]}}</span>
             <span class="info-value">{{test_info["Well"]}}</span>
             <span class="info-value">{{test_info["DaysRun"]}}</span>
         </div>
-        <div id="graph">This is test graph</div>
+        <p>Результаты испытания:</p>
+        <div id="graph-container">
+            <img id="graph-image" src="./graph_image.jpg" alt="graph image">
+        </div>
         <div id="delta-info">
             <span class="delta-all title"></span>
-            <span class="delta-lft title">Дельта напора</span>
-            <span class="delta-pwr title">Дельта мощности</span>
-            <span class="delta-eff title">Отклонение максимального КПД от номинального</span>
+            <span class="delta-lft title">Дельта напора, %:</span>
+            <span class="delta-pwr title">Дельта мощности, %:</span>
+            <span class="delta-eff title">Отклонение максимального КПД от номинального, %:</span>
 
             <span class="delta-all min">Мин.</span>
-            <span class="delta-lft min">{{delta_lft[0]}}</span>
-            <span class="delta-pwr min">{{delta_pwr[0]}}</span>
+            <span class="delta-lft min">{{delta_lft[0] | round(2)}}</span>
+            <span class="delta-pwr min">{{delta_pwr[0] | round(2)}}</span>
 
             <span class="delta-all nom">Ном.</span>
-            <span class="delta-lft nom">{{delta_lft[1]}}</span>
-            <span class="delta-pwr nom">{{delta_pwr[1]}}</span>
-            <span class="delta-eff nom">{{delta_eff}}</span>
+            <span class="delta-lft nom">{{delta_lft[1] | round(2)}}</span>
+            <span class="delta-pwr nom">{{delta_pwr[1] | round(2)}}</span>
+            <span class="delta-eff nom">{{delta_eff | round(2)}}</span>
 
             <span class="delta-all max">Макс.</span>
-            <span class="delta-lft max">{{delta_lft[2]}}</span>
-            <span class="delta-pwr max">{{delta_pwr[2]}}</span>
+            <span class="delta-lft max">{{delta_lft[2] | round(2)}}</span>
+            <span class="delta-pwr max">{{delta_pwr[2] | round(2)}}</span>
             <span class="delta-eff max"></span>
         </div>
         <div id="test-table">
@@ -80,108 +87,54 @@
             <span class="test-table label">Напор / ступ., м</span>
             <span class="test-table label">Мощность / ступ., кВт</span>
             <span class="test-table label">КПД, %</span>
-            <span class="test-table label">Об/мин</span>
+            <!-- <span class="test-table label">Об/мин</span> -->
             <span class="test-table label">Напор, м</span>
             <span class="test-table label">Мощность, кВт</span>
-
-            <!-- <span class="test-table value">1</span>
-            <span class="test-table value">{{flw[0]}}</span>
-            <span class="test-table value">{{lft_[0]}}</span>
-            <span class="test-table value">{{pwr_[0]}}</span>
-            <span class="test-table value">{{eff[0]}}</span>
-            <span class="test-table value">{{spd[0]}}</span>
-            <span class="test-table value">{{lft[0]}}</span>
-            <span class="test-table value">{{pwr[0]}}</span>
-
-            <span class="test-table value">2</span>
-            <span class="test-table value">{{flw[1]}}</span>
-            <span class="test-table value">{{lft_[1]}}</span>
-            <span class="test-table value">{{pwr_[1]}}</span>
-            <span class="test-table value">{{eff[1]}}</span>
-            <span class="test-table value">{{spd[1]}}</span>
-            <span class="test-table value">{{lft[1]}}</span>
-            <span class="test-table value">{{pwr[1]}}</span>
-
-            <span class="test-table value">3</span>
-            <span class="test-table value">{{ flw[2] }}</span>
-            <span class="test-table value">{{ lft_[2] }}</span>
-            <span class="test-table value">{{ pwr_[2] }}</span>
-            <span class="test-table value">{{ eff[2] }}</span>
-            <span class="test-table value">{{ spd[2] }}</span>
-            <span class="test-table value">{{ lft[2] }}</span>
-            <span class="test-table value">{{ pwr[2] }}</span>
-
-            <span class="test-table value">4</span>
-            <span class="test-table value">{{ flw[3] }}</span>
-            <span class="test-table value">{{ lft_[3] }}</span>
-            <span class="test-table value">{{ pwr_[3] }}</span>
-            <span class="test-table value">{{ eff[3] }}</span>
-            <span class="test-table value">{{ spd[3] }}</span>
-            <span class="test-table value">{{ lft[3] }}</span>
-            <span class="test-table value">{{ pwr[3] }}</span>
-
-            <span class="test-table value">5</span>
-            <span class="test-table value">{{ flw[4] }}</span>
-            <span class="test-table value">{{ lft_[4] }}</span>
-            <span class="test-table value">{{ pwr_[4] }}</span>
-            <span class="test-table value">{{ eff[4] }}</span>
-            <span class="test-table value">{{ spd[4] }}</span>
-            <span class="test-table value">{{ lft[4] }}</span>
-            <span class="test-table value">{{ pwr[4] }}</span>
-
-            <span class="test-table value">6</span>
-            <span class="test-table value">{{ flw[5] }}</span>
-            <span class="test-table value">{{ lft_[5] }}</span>
-            <span class="test-table value">{{ pwr_[5] }}</span>
-            <span class="test-table value">{{ eff[5] }}</span>
-            <span class="test-table value">{{ spd[5] }}</span>
-            <span class="test-table value">{{ lft[5] }}</span>
-            <span class="test-table value">{{ pwr[5] }}</span>
-
-            <span class="test-table value">7</span>
-            <span class="test-table value">{{ flw[6] }}</span>
-            <span class="test-table value">{{ lft_[6] }}</span>
-            <span class="test-table value">{{ pwr_[6] }}</span>
-            <span class="test-table value">{{ eff[6] }}</span>
-            <span class="test-table value">{{ spd[6] }}</span>
-            <span class="test-table value">{{ lft[6] }}</span>
-            <span class="test-table value">{{ pwr[6] }}</span>
-
-            <span class="test-table value">8</span>
-            <span class="test-table value">{{ flw[7] }}</span>
-            <span class="test-table value">{{ lft_[7] }}</span>
-            <span class="test-table value">{{ pwr_[7] }}</span>
-            <span class="test-table value">{{ eff[7] }}</span>
-            <span class="test-table value">{{ spd[7] }}</span>
-            <span class="test-table value">{{ lft[7] }}</span>
-            <span class="test-table value">{{ pwr[7] }}</span>
-
-            <span class="test-table value">9</span>
-            <span class="test-table value">{{ flw[8] }}</span>
-            <span class="test-table value">{{ lft_[8] }}</span>
-            <span class="test-table value">{{ pwr_[8] }}</span>
-            <span class="test-table value">{{ eff[8] }}</span>
-            <span class="test-table value">{{ spd[8] }}</span>
-            <span class="test-table value">{{ lft[8] }}</span>
-            <span class="test-table value">{{ pwr[8] }}</span>
-
-            <span class="test-table value">10</span>
-            <span class="test-table value">{{ flw[9] }}</span>
-            <span class="test-table value">{{ lft_[9] }}</span>
-            <span class="test-table value">{{ pwr_[9] }}</span>
-            <span class="test-table value">{{ eff[9] }}</span>
-            <span class="test-table value">{{ spd[9] }}</span>
-            <span class="test-table value">{{ lft[9] }}</span>
-            <span class="test-table value">{{ pwr[9] }}</span> -->
+            {% for i in range(test_info.num_points()) %}
+                <span class="test-table value">{{i}}</span>
+                <span class="test-table value">{{test_info.values_flw[i]|round(1)}}</span>
+                <span class="test-table value">{{test_info.values_lft[i]|round(1)}}</span>
+                <span class="test-table value">{{test_info.values_pwr[i]|round(3)}}</span>
+                <span class="test-table value">{{test_info.values_eff[i]|round(1)}}</span>
+                <span class="test-table value">{{(test_info.values_lft[i] * pump_info['Stages'])|round(3)}}</span>
+                <span class="test-table value">{{(test_info.values_pwr[i] * pump_info['Stages'])|round(3)}}</span>
+            {% endfor %}
         </div>
-        <span>
-            Мощность и напор даны с поправкой на плотность воды (1000 кг/м3).<br>
-            Дебит, напор и мощность нормализированы на 2910 об/мин.<br>
-            Насос испытывался в горизонтальном положении.<br>
-        </span>
+        <div id="test-table-bottom">
+            <span><i>
+                * Мощность и напор даны с поправкой на плотность воды (1000 кг/м3).<br>
+                * Дебит, напор и мощность нормализированы на 2910 об/мин.<br>
+                * Насос испытывался в горизонтальном положении.<br></i>
+            </span>
+            <div class="vibr-info">
+                <p >Замер вибрации:</p>
+                <div class="vibr-table">
+                    <span>Точка 1:</span>
+                    <span>{{test_info.values_vbr[0]}}</span>
+                    <span>Точка 2:</span>
+                    <span>{{test_info.values_vbr[1]}}</span>
+                    <span>Точка 3:</span>
+                    <span>{{test_info.values_vbr[2]}}</span>
+                </div>
+            </div>
+        </div>
     </main>
     <footer>
-
+        <div class="comments">
+            <p>Примечания:</p>
+            <span>
+                Должен заметить, что мы продолжаем мониторинг, и должен также заметить,
+                что это не первый случай, когда после предостережений, высказанных в том
+                числе и членами нашей комиссии, такие компании, как Google, удаляют
+                вредоносный контент, который, по сути, является противоправным.
+            </span>
+        </div>
+        <div class="signatures">
+            <p>Испытатель:</p>
+            <p>_______________________________</p>
+            <p>Мастер:</p>
+            <p>_______________________________</p>
+        </div>
     </footer>
 </body>
 </html>

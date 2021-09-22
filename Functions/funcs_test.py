@@ -3,6 +3,7 @@
 """
 from PyQt5.QtCore import QPoint, QPointF, Qt
 from PyQt5.QtGui import QPen
+from PyQt5.QtWidgets import QTableView
 
 from AesmaLib import aesma_funcs
 from AesmaLib.journal import Journal
@@ -45,7 +46,16 @@ def add_point_to_table(flw, lft, pwr, eff):
             'pwr': round(pwr, 4),
             'eff': round(eff, 1)}
     funcsTable.add_row(gvars.wnd_main.tablePoints, data)
-    pass
+
+
+def add_vibrations_to_table(vibrations):
+    """ добавление вибрации в таблицу """
+    for i, vbr in enumerate(vibrations):
+        data = {
+            'num': i + 1,
+            'vbr': round(vbr, 2)
+        }
+        funcsTable.add_row(gvars.wnd_main.tableVibrations, data)
 
 
 def remove_last_point_from_table():
@@ -54,11 +64,25 @@ def remove_last_point_from_table():
     funcsTable.remove_last_row(gvars.wnd_main.tablePoints)
 
 
-def clear_points_from_table():
+def clear_points_from_table(table_view: QTableView):
     """ удаление всех точек из таблицы """
     if is_logged: Journal.log(__name__, "\tудаление всех точек из таблицы")
-    funcsTable.clear_table(gvars.wnd_main.tablePoints)
+    funcsTable.clear_table(table_view)
 
+
+def switch_points_stages_real():
+    """ переключение таблицы точек на ступень / реальные """
+    wnd = gvars.wnd_main
+    data = funcsTable.get_data(gvars.wnd_main.tablePoints)
+    if data:
+        if wnd.radioPointsReal.isChecked():
+            func = lambda x: (x * gvars.rec_pump['Stages'])
+        else:
+            func = lambda x: (x / gvars.rec_pump['Stages'])
+        for item in data:
+            item['lft'] = round(func(item['lft']), 2)
+            item['pwr'] = round(func(item['pwr']), 2)
+        funcsTable.set_data(gvars.wnd_main.tablePoints, data)
 
 def add_points_to_charts(flw, lft, pwr, eff):
     """ добавление точек напора и мощности на график """

@@ -2,7 +2,7 @@
     Модуль содержащий функции обработки событий
 """
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QMenu
 
 from Functions import funcs_common, funcs_messages, funcs_graph, funcs_temp
@@ -39,8 +39,8 @@ def on_menu_testlist():
         report_info.test_info = gvars.rec_test
         report_info.type_info = gvars.rec_type
         report_info.deltas = gvars.rec_deltas
+        report_info.pump_graph = gvars.pump_graph
         gvars.report.generate_report(report_info)
-        print("PRINTING REPORT")
 
 
 def on_changed_combo_producers(index):
@@ -236,12 +236,16 @@ def on_clicked_remove_point():
     funcs_graph.display_charts(gvars.markers)
 
 
+def on_changed_points_mode():
+    funcs_test.switch_points_stages_real()
+
+
 def on_clicked_clear_curve():
     """ нажата кнопка удаления всех точек """
     Journal.log('___' * 30)
     Journal.log(__name__, "::\t", on_clicked_clear_curve.__doc__)
     gvars.markers.clearAllKnots()
-    funcs_test.clear_points_from_table()
+    funcs_test.clear_points_from_table(gvars.wnd_main.tablePoints)
     funcs_test.clear_points_from_charts()
     funcs_graph.display_charts(gvars.markers)
 

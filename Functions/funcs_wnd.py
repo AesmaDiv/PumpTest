@@ -3,8 +3,7 @@
 """
 from PyQt5.QtWidgets import QHeaderView, QGroupBox, QWidget
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
-from PyQt5.QtCore import Qt, QRegExp
-
+from PyQt5.QtCore import Qt, QRegExp, fixed
 from Functions import funcs_db, funcs_graph, funcs_test
 from Functions import funcs_common, funcsTable, funcsAdam
 from GUI import events, models, pump_graph
@@ -57,9 +56,9 @@ def register_events():
 
     wnd.checkConnection.clicked.connect(events.on_clicked_adam_connection)
     funcsAdam.broadcaster.event.connect(events.on_adam_data_received)
-    
+
+    wnd.radioPointsReal.toggled.connect(events.on_changed_points_mode)
     # gvars.markers.eventMove.connect(events.on_markers_move)
-    
     wnd.txtFlow.wheelEvent = events.on_mouse_wheel_flow
     wnd.txtLift.wheelEvent = events.on_mouse_wheel_lift
     wnd.txtPower.wheelEvent = events.on_mouse_wheel_power
@@ -108,7 +107,7 @@ def fill_test_list():
 
 @Journal.logged
 def init_points_table():
-    """ инициализирует список точек """
+    """ инициализирует таблицу точек """
     wnd = gvars.wnd_main
     display = ['flw', 'lft', 'pwr', 'eff']
     headers = ['расход\nм³/сут', 'напор\nм', 'мощность\nкВт', 'кпд\n%']
@@ -117,6 +116,20 @@ def init_points_table():
     for i, v in enumerate(headers_sizes):
         wnd.tablePoints.setColumnWidth(i, v)
     funcsTable.init(wnd.tablePoints, display=display, headers=headers,
+                    headers_sizes=headers_sizes, headers_resizes=resizes)
+
+
+@Journal.logged
+def init_vibrations_table():
+    """ инициализирует таблицу вибрации """
+    wnd = gvars.wnd_main
+    display = ['num','vbr']
+    headers = ['№','мм/с2']
+    headers_sizes = [60, 80]
+    resizes = [QHeaderView.Fixed, QHeaderView.Stretch]
+    wnd.tablePoints.setColumnWidth(0, 60)
+    wnd.tablePoints.setColumnWidth(1, 80)
+    funcsTable.init(wnd.tableVibrations, display=display, headers=headers,
                     headers_sizes=headers_sizes, headers_resizes=resizes)
 
 
@@ -234,19 +247,26 @@ def display_pump(pump_id: int):
 
 def display_test_data():
     """ отображение точек испытания в таблице """
-    funcs_test.clear_points_from_table()
+    funcs_test.clear_points_from_table(gvars.wnd_main.tablePoints)
     for i in range(gvars.rec_test.num_points()):
         flw = gvars.rec_test.values_flw[i]
         lft = gvars.rec_test.values_lft[i]
         pwr = gvars.rec_test.values_pwr[i]
         eff = funcs_graph.calculate_effs([flw], [lft], [pwr])[0]
         funcs_test.add_point_to_table(flw, lft, pwr, eff)
+    funcs_test.add_vibrations_to_table(gvars.rec_test.values_vbr)
 
 
 def display_test_deltas():
     """ отображение результата испытания """
     test_result = funcs_common.generate_result_text()
     gvars.wnd_main.lblTestResult.setText(test_result)
+
+
+def display_test_vibrations():
+    """ отображение показаний вибрации """
+    funcs_test.clear_points_from_table(gvars.wnd_main.tableVibrations)
+
 
 
 @Journal.logged

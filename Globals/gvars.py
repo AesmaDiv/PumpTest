@@ -3,6 +3,7 @@
 """
 import os
 import __main__
+
 from GUI.mainwindow import Window as MainWindow
 from GUI.PumpWindow import Window as PumpWindow
 from GUI.pump_graph import PumpGraph
@@ -18,8 +19,8 @@ wnd_pump: PumpWindow    # окно описания типа насоса
 
 ROOT = os.path.dirname(__main__.__file__)
 PATH_TO_DB = os.path.join(ROOT, 'Files/pump.sqlite')  # путь к файлу базы данных
-PATH_TO_TEMPLATE = os.path.join(ROOT, 'Files/Report/template.html')
-PATH_TO_REPORTS = os.path.join(ROOT, '.')
+PATH_TO_TEMPLATE = os.path.join(ROOT, 'Files/Report')
+
 TESTLIST_QUERY: str =\
     """Select Tests.ID, Tests.DateTime, Tests.OrderNum, Pumps.Serial From Tests
     Inner Join Pumps on Pumps.ID = Tests.Pump
@@ -38,4 +39,4 @@ rec_deltas = {}                      # отклонения итоговых з�
 pump_graph: PumpGraph = None         # график испытания
 markers: Markers = None              # маркеры на графике (расход, мощность, кпд)
 active_flwmeter: str = 'flw2'        # текущий расходомер
-report = Report(PATH_TO_TEMPLATE, PATH_TO_REPORTS)
+report = Report(PATH_TO_TEMPLATE)

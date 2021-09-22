@@ -50,9 +50,9 @@ def clear_table(table_view: QTableView):
 
 def get_row(table_view: QTableView):
     try:
-        index = table_view.currentIndex()
-        index= index.sibling(index.row(), index.column())
-        items: dict = index.data(Qt.UserRole)
+        m_index = table_view.currentIndex()
+        m_index = m_index.sibling(m_index.row(), m_index.column())
+        items = m_index.data(Qt.UserRole)
         return items
     except BaseException as error:
         journal.log(__name__ + " error: " + str(error))
@@ -83,5 +83,4 @@ def select_row(table_view: QTableView, row: int):
 
 def get_selected_row(table_view: QTableView):
     sel_model: QItemSelectionModel = table_view.selectionModel()
-    sel_row = sel_model.selectedRows()[0]
     return get_row(table_view)

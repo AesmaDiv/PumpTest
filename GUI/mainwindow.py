@@ -35,6 +35,7 @@ class Window(QMainWindow):
         funcs_wnd.set_color_scheme()
         funcs_wnd.init_test_list()
         funcs_wnd.init_points_table()
+        funcs_wnd.init_vibrations_table()
         funcs_wnd.init_graph()
         funcs_wnd.fill_combos()
         funcs_wnd.fill_test_list()

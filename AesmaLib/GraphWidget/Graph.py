@@ -19,7 +19,6 @@ class Graph(QWidget):
         self.setGeometry(0, 0, width, height)
         self._margins = [20, 20, 40, 50]
         self.set_margins(self._margins)
-
         self._background = QBrush(QColor(30, 30, 30))  # temp 0,0,0
         self._grid_background = QBrush(QColor(50, 50, 50))  # 50,50,50
         self._grid_pen = QPen(QColor(100, 100, 100), 1)  # 255,255,255

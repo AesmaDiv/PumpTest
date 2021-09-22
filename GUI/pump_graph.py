@@ -12,7 +12,6 @@ from AesmaLib.journal import Journal
 IS_LOGGED = True
 LIMIT_PEN = QPen(QColor(200, 200, 0, 40), 1, Qt.SolidLine)
 
-
 class PumpGraph(Graph):
     """ класс компонента графика характеристик ЭЦН """
     def __init__(self, width: int, height: int, parent=None):
@@ -22,6 +21,37 @@ class PumpGraph(Graph):
         self._range_pixels = [0, 0, 0]
         self._grid_divs: dict = {}
         self._charts_data = {}
+        # цветовые палитры для приложения или протокола
+        self._grid_ranges = QBrush(QColor(70, 70, 70))
+        self._palettes = {
+            'application': {
+                'background': QBrush(QColor(30, 30, 30)),
+                'grid_background': QBrush(QColor(50, 50, 50)),
+                'grid_ranges': QBrush(QColor(70, 70, 70)),
+                'grid_pen': QPen(QColor(100, 100, 100), 1),
+                'grid_border_pen': QPen(QColor(255, 255, 255), 2),
+                'grid_font': QFont("times", 10)
+            },
+            'report': {
+                'background': QBrush(QColor(255, 255, 255)),
+                'grid_background': QBrush(QColor(250, 250, 250)),
+                'grid_ranges': QBrush(QColor(230, 230, 230)),
+                'grid_pen': QPen(QColor(50, 50, 50), 1),
+                'grid_border_pen': QPen(QColor(0, 0, 0), 2),
+                'grid_font': QFont("times", 10)
+            }
+        }
+        self.switch_palette('application')
+
+    def switch_palette(self, name='application'):
+        """ переключение цветовой палитры """
+        if name in self._palettes:
+            self._background = self._palettes[name]['background']
+            self._grid_background = self._palettes[name]['grid_background']
+            self._grid_ranges = self._palettes[name]['grid_ranges']
+            self._grid_pen = self._palettes[name]['grid_pen']
+            self._grid_border_pen = self._palettes[name]['grid_border_pen']
+            self._grid_font = self._palettes[name]['grid_font']
 
     def render_to_image(self, size: QSize, path_to_file=None):
         """ отрисовка содержимого компонента в рисунок и в файл """
@@ -49,9 +79,9 @@ class PumpGraph(Graph):
     def set_visibile_charts(self, names_of_charts_to_show: list = 'all'):
         """ установка флага видимости для кривых """
         for chart in self._charts.values():
-            chart.setVisibility(names_of_charts_to_show == 'all'
-                                or chart.name
-                                in names_of_charts_to_show)
+            chart.visibility = names_of_charts_to_show == 'all' \
+                               or chart.name \
+                               in names_of_charts_to_show
 
     def clear_charts(self):
         """ удаление всех кривых """
@@ -98,7 +128,7 @@ class PumpGraph(Graph):
         painter.setPen(self._grid_border_pen)
         painter.fillRect(
             x_0, y_0, x_2 - x_0, y_1 - y_0,
-            QBrush(QColor(70, 70, 70))
+            self._grid_ranges
         )
         painter.drawLine(x_0, y_0, x_0, y_1)
         painter.drawLine(x_1, y_0, x_1, y_1)

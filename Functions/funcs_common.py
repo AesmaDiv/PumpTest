@@ -97,7 +97,7 @@ def calculate_deltas_for(chart_name: str):
     ranges = ('Min', 'Nom', 'Max')
     get_val = lambda spl, rng: float(spl(gvars.rec_type[rng]))
     get_dlt = lambda tst, etl: round((tst / etl * 100 - 100), 2)
-    vals = list()
+    vals = []
     for name in names:
         spln = gvars.pump_graph.get_chart(f'{name}').getSpline()
         vals.append([get_val(spln, rng) for rng in ranges])

@@ -95,10 +95,10 @@ class RecordType(Record):
     """ Класс информации о типоразмере """
     def __init__(self, db: SqliteDB, rec_id=0):
         super().__init__(db, 'Types', rec_id)
+        self.values_vbr = []
         self.values_flw = []
         self.values_lft = []
         self.values_pwr = []
-        self.values_eff = []
 
     def load(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
@@ -135,7 +135,6 @@ class RecordType(Record):
         return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
             if flw and lft and pwr else 0
 
-
     def num_points(self) -> int:
         """ проверяет есть ли точки и возвращает их количество (наименьшее) """
         if self.values_flw and self.values_lft and self.values_pwr:
@@ -150,3 +149,15 @@ class RecordTest(RecordType):
     """ Класс информации об испытании """
     def __init__(self, db: SqliteDB, rec_id=0):
         Record.__init__(self, db, 'Tests', rec_id)
+        self.values_vbr = []
+
+    def load(self, rec_id) -> bool:
+        """ загружает запись из таблицы БД по ID
+        -> возвращает успех """
+        result = super().load(rec_id)
+        if result:
+            if self.Vibrations:
+                self.values_vbr = list(map(float, self.Vibrations.split(',')))
+            else:
+                self.values_vbr = []
+        return result
