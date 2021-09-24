@@ -16,8 +16,12 @@ class Journal:
     def logged(func):
         """ Декоратор журналирования """
         def wrapped(*args, **kwargs):
-            Journal.log(f"{func.__module__}::\t{func.__doc__}")
-            result = func(*args, **kwargs)
+            if isinstance(func, staticmethod):
+                Journal.log(f"{func.__class__.__name__}::\t{func.__func__.__doc__}")
+                result = func.__func__(*args, **kwargs)
+            else:
+                Journal.log(f"{func.__module__}::\t{func.__doc__}")
+                result = func(*args, **kwargs)
             return result
         return wrapped
 
@@ -44,11 +48,7 @@ class Journal:
             message = str(Journal.LINE_NUMBER) + '> ' + message
         cur_date = date.today().strftime('%Y-%m-%d')
         if Journal.WRITE_TO_FILE:
-            try:
-                file_ = open(cur_date, 'a')
+            with open(cur_date, 'a', encoding='utf-8') as file_:
                 file_.write(message + '\n')
-                # file_.writelines([(message)])
                 file_.close()
-            except IOError as error:
-                print("Log file error: %s" % error)
         print(message, end=end)

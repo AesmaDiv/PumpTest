@@ -3,40 +3,33 @@
 """
 import os, jinja2
 from PyQt5.QtGui import QPageSize
-
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from GUI.pump_graph import PumpGraph
 from PyQt5.QtCore import QSize, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from .pump_classes import RecordPump, RecordTest, RecordType
-
-
-class ReportInfo:
-    """ Структура данных для протокола """
-    pump_graph = None
-    path_graph = ""
-    pump_info: RecordPump = None
-    test_info: RecordTest = None
-    type_info: RecordType = None
-    deltas: dict = {}
+from Classes.graph_manager import GraphManager
+from Classes.record import TestInfo
 
 
 class Report:
     """ Класс протокола об испытании """
-    def __init__(self, path_to_template):
+    def __init__(self, path_to_template: str,
+                 graph_manager: GraphManager,
+                 test_info: TestInfo):
         self._webview = None
         self._printer = None
         self._template_folder = path_to_template
+        self._test_info = test_info
+        self._graph_manager = graph_manager
         self._template_name = "template.html"
         self._report_name = "report.pdf"
         self._base_url = QUrl.fromLocalFile(path_to_template + os.path.sep)
 
-    def generate_report(self, report_info: ReportInfo):
+    def generate_report(self):
         """ Генерирование протокола """
         if not self._webview:
             self.__init_printer()
-        self.__create_graph_image(report_info)
-        report = self.__create_report(report_info)
+        self.__create_graph_image()
+        report = self.__create_report()
         self.__print_report(report)
 
     def __init_printer(self):
@@ -46,18 +39,18 @@ class Report:
         self._printer.setOutputFormat(QPrinter.NativeFormat)
         self._printer.setPageSize(QPageSize(QPageSize.A4))
 
-    def __create_graph_image(self, report_info: PumpGraph):
+    def __create_graph_image(self):
         """ сохранение графика испытания в jpg"""
         img_size = QSize(794, 450)
         path_to_img = os.path.join(self._template_folder, "graph_image.jpg")
-        report_info.pump_graph.switch_palette('report')
-        report_info.pump_graph.render_to_image(img_size, path_to_img)
-        report_info.pump_graph.switch_palette('application')
+        self._graph_manager.switch_palette('report')
+        self._graph_manager.render_to_image(img_size, path_to_img)
+        self._graph_manager.switch_palette('application')
 
-    def __create_report(self, report_info):
+    def __create_report(self):
         """ создание web страницы протокола """
         result = self.__load_template()
-        result = self.__fill_report(report_info, result)
+        result = self.__fill_report(result)
         return result
 
     def __print_report(self, report):
@@ -79,16 +72,15 @@ class Report:
         result = jinja_env.get_template(self._template_name)
         return result
 
-    def __fill_report(self, report_info, template):
+    def __fill_report(self, template):
         """ заполнение шаблона данными об испытании """
         context = {
-            "pump_info": report_info.pump_info,
-            "test_info": report_info.test_info,
-            "type_info": report_info.type_info,
-            "delta_lft": report_info.deltas['lft'],
-            "delta_pwr": report_info.deltas['pwr'],
-            "delta_eff": report_info.deltas['eff'],
-            "path_graph": report_info.path_graph,
+            "pump_info": self._test_info.pump_,
+            "test_info": self._test_info.test_,
+            "type_info": self._test_info.type_,
+            "delta_lft": self._test_info.dlts_['lft'],
+            "delta_pwr": self._test_info.dlts_['pwr'],
+            "delta_eff": self._test_info.dlts_['eff'],
         }
         result = template.render(context)
         return result

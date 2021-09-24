@@ -87,14 +87,14 @@ class Record():
 
 class RecordPump(Record):
     """ Класс информации о насосе """
-    def __init__(self, db: SqliteDB, rec_id=0):
-        super().__init__(db, 'Pumps', rec_id)
+    def __init__(self, db: SqliteDB, table='Pumps', rec_id=0):
+        super().__init__(db, table, rec_id)
 
 
 class RecordType(Record):
     """ Класс информации о типоразмере """
-    def __init__(self, db: SqliteDB, rec_id=0):
-        super().__init__(db, 'Types', rec_id)
+    def __init__(self, db: SqliteDB, table='Types', rec_id=0):
+        super().__init__(db, table, rec_id)
         self.values_vbr = []
         self.values_flw = []
         self.values_lft = []
@@ -147,8 +147,8 @@ class RecordType(Record):
 
 class RecordTest(RecordType):
     """ Класс информации об испытании """
-    def __init__(self, db: SqliteDB, rec_id=0):
-        Record.__init__(self, db, 'Tests', rec_id)
+    def __init__(self, db: SqliteDB, table='Tests', rec_id=0):
+        RecordType.__init__(self, db, table, rec_id)
         self.values_vbr = []
 
     def load(self, rec_id) -> bool:
@@ -161,3 +161,11 @@ class RecordTest(RecordType):
             else:
                 self.values_vbr = []
         return result
+
+class TestInfo:
+    """ Класс для полной информации об испытании """
+    def __init__(self, db) -> None:
+        self.type_ = RecordType(db)
+        self.pump_ = RecordPump(db)
+        self.test_ = RecordTest(db)
+        self.dlts_ = {}
