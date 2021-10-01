@@ -6,19 +6,19 @@ from PyQt5.QtGui import QPageSize
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtCore import QSize, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from Classes.graph_manager import GraphManager
-from Classes.record import TestInfo
+from Classes.Graph.graph_manager import GraphManager
+from Classes.Data.data_manager import TestData
 
 
 class Report:
     """ Класс протокола об испытании """
     def __init__(self, path_to_template: str,
                  graph_manager: GraphManager,
-                 test_info: TestInfo):
+                 test_data: TestData):
         self._webview = None
         self._printer = None
         self._template_folder = path_to_template
-        self._test_info = test_info
+        self._test_data = test_data
         self._graph_manager = graph_manager
         self._template_name = "template.html"
         self._report_name = "report.pdf"
@@ -75,12 +75,12 @@ class Report:
     def __fill_report(self, template):
         """ заполнение шаблона данными об испытании """
         context = {
-            "pump_info": self._test_info.pump_,
-            "test_info": self._test_info.test_,
-            "type_info": self._test_info.type_,
-            "delta_lft": self._test_info.dlts_['lft'],
-            "delta_pwr": self._test_info.dlts_['pwr'],
-            "delta_eff": self._test_info.dlts_['eff'],
+            "pump_info": self._test_data.pump_,
+            "test_info": self._test_data.test_,
+            "type_info": self._test_data.type_,
+            "delta_lft": self._test_data.dlts_['lft'],
+            "delta_pwr": self._test_data.dlts_['pwr'],
+            "delta_eff": self._test_data.dlts_['eff'],
         }
         result = template.render(context)
         return result

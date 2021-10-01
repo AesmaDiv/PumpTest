@@ -6,8 +6,7 @@
 """
 import faulthandler, sys, os
 from PyQt5.QtWidgets import QApplication
-from Classes.wnd_manager import WindowManager
-from GUI.mainwindow import Window as MainWindow
+from Classes.mainwindow import MainWindow
 
 
 # Добавляю текущую папку к путям, где питон ищет модули
@@ -19,6 +18,7 @@ Journal = __import__('AesmaLib.journal', fromlist=['Journal']).Journal
 ROOT = os.path.dirname(__file__)
 PATHES = {
     'DB': os.path.join(ROOT, 'Files/pump.sqlite'),  # путь к файлу базы данных
+    'WND': os.path.join(ROOT, 'Files/mainwindow.ui'),  # путь к файлу базы данных
     'TEMPLATE': os.path.join(ROOT, 'Files/Report')  # путь к шаблону протокола
 }
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     faulthandler.enable() # вкл. обработчика ошибок
     app = QApplication(sys.argv)
 
-    window = WindowManager(PATHES)
+    window = MainWindow(PATHES)
     window.prepare()
     window.show()
 

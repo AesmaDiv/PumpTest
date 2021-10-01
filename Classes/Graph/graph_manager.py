@@ -1,44 +1,39 @@
 """
     Модуль содержит функции работы с графиками
 """
-from GUI.pump_graph import PumpGraph
 from PyQt5.QtGui import QPalette, QBrush, QColor, QPen
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtWidgets import QFrame
-
+from Classes.Graph.pump_graph import PumpGraph
+from Classes.Graph.graph_markers import Markers
+from Classes.UI.funcs_aux import calculate_effs
 from AesmaLib.GraphWidget.Chart import Chart
-from Classes.record import TestInfo
-from Classes.graph_markers import Markers
 
 
 class GraphManager(PumpGraph):
     """ Менеджер графиков """
-
-    def __init__(self, test_info) -> None:
+    def __init__(self, testdata) -> None:
         super().__init__(100, 100, parent=None)
-        self._info: TestInfo = test_info
-        self._markers: Markers = None
+        self._testdata = testdata
+        self._markers = None
         self.set_margins([10, 10, 10, 10])
-        self.create_markers()
 
-    def create_markers(self):
-        self._markers = Markers(['test_lft', 'test_pwr'], self)
-        self._markers.setMarkerColor('test_lft', Qt.blue)
-        self._markers.setMarkerColor('test_pwr', Qt.red)
-
-    def markers(self):
-        return self._markers
+    def init_markers(self, params, host):
+        self._markers = Markers(params.keys(), self)
+        for key, val in params.items():
+            self._markers.setMarkerColor(key, val)
+        host.addWidget(self._markers, 0, 0)
 
     def draw_charts(self, frame: QFrame):
         """ отрисовка графиков испытания """
         self.clear_charts()
-        if self._info.type_:
+        if self._testdata.type_:
             charts = self.load_charts()
             for chart in charts.values():
                 self.add_chart(chart, chart.name)
-            self.set_limits(self._info.type_['Min'],
-                            self._info.type_['Nom'],
-                            self._info.type_['Max'])
+            self.set_limits(self._testdata.type_['Min'],
+                            self._testdata.type_['Nom'],
+                            self._testdata.type_['Max'])
         self.display_charts(frame)
 
     def display_charts(self, frame: QFrame):
@@ -53,7 +48,7 @@ class GraphManager(PumpGraph):
         """ загрузка данных о точках """
         points = self.get_points('etalon')
         result = self.create_charts_etalon(points)
-        if self._info.test_:
+        if self._testdata.test_:
             points = self.get_points('test')
             result.update(self.create_charts_test(points, result))
         return result
@@ -61,30 +56,16 @@ class GraphManager(PumpGraph):
     def get_points(self, chart_type='etalon'):
         """ парсинг значений точек из строк """
         is_etalon = (chart_type == 'etalon')
-        src = self._info.type_ if is_etalon else self._info.test_
+        src = self._testdata.type_ if is_etalon else self._testdata.test_
         if src.num_points:
             flws = src.values_flw
             lfts = src.values_lft
             pwrs = src.values_pwr
             if is_etalon:
                 pwrs = list(map(lambda x: x * 0.7457, pwrs))
-            effs = self.calculate_effs(flws, lfts, pwrs)
+            effs = calculate_effs(flws, lfts, pwrs)
             return [flws, lfts, pwrs, effs]
         return None
-
-    def calculate_effs(self, flws: list, lfts: list, pwrs: list):
-        """ расчёт точек КПД """
-        result = []
-        count = len(flws)
-        if count == len(lfts) and count == len(pwrs):
-            result = [self.calculate_eff(flws[i], lfts[i], pwrs[i]) \
-                    for i in range(count)]
-        return result
-
-    def calculate_eff(self, flw: float, lft: float, pwr: float):
-        """ вычисление КПД """
-        return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
-            if flw and lft and pwr else 0
 
     def create_charts_etalon(self, points: list):
         """ создание кривых графиков для эталона """
@@ -143,18 +124,31 @@ class GraphManager(PumpGraph):
         """ сохранение данных из таблицы в запись испытания """
         points_lft_x = super().get_chart('test_lft').getPoints('x')
         points_lft_y = super().get_chart('test_lft').getPoints('y')
-        points_pwr_x = super().get_chart('test_pwr').getPoints('x')
+        # points_pwr_x = super().get_chart('test_pwr').getPoints('x')
         points_pwr_y = super().get_chart('test_pwr').getPoints('y')
-        self._info.test_['Flows'] = ','.join(list(map(str, points_lft_x)))
-        self._info.test_['Lifts'] = ','.join(list(map(str, points_lft_y)))
-        self._info.test_['Powers'] = ','.join(list(map(str, points_pwr_y)))
+        self._testdata.test_['Flows'] = ','.join(list(map(str, points_lft_x)))
+        self._testdata.test_['Lifts'] = ','.join(list(map(str, points_lft_y)))
+        self._testdata.test_['Powers'] = ','.join(list(map(str, points_pwr_y)))
 
+    def markers_reposition(self):
+        self._markers.repositionFor(self)
 
-    def move_markers(self, vals):
+    def markers_move(self, params):
         """ перемещение маркеров отображающих текущие значения """
-        flw, lft, pwr, _ = vals
-        self._markers.moveMarker(QPointF(flw, lft), 'test_lft')
-        self._markers.moveMarker(QPointF(flw, pwr), 'test_pwr')
+        for param in params:
+            self._markers.moveMarker(
+                QPointF(param['x'], param['y']),
+                param['name']
+            )
+
+    def markers_add_knots(self):
+        self._markers.addKnots()
+
+    def markers_remove_knots(self):
+        self._markers.removeKnots()
+
+    def markers_clear_knots(self):
+        self._markers.clearAllKnots()
 
     def add_points_to_charts(self, flw, lft, pwr, eff):
         """ добавление точек напора и мощности на график """
@@ -224,3 +218,47 @@ class GraphManager(PumpGraph):
         self.set_visibile_charts(['lft', 'pwr', 'test_lft', 'test_pwr']
                                             if state else 'all')
         self.display_charts(self._markers)
+
+    def generate_result_text(self):
+        """ генерирует миниотчёт об испытании """
+        self._testdata.dlts_.clear()
+        result_lines = []
+        if self._testdata.test_['Flows']:
+            self.generate_deltas_report(result_lines)
+            self.generate_effs_report(result_lines)
+        return '\n'.join(result_lines)
+
+
+    def generate_deltas_report(self, lines: list):
+        """ расчитывает отклонения для напора и мощности """
+        for name, title in zip(('lft', 'pwr'),('Напор', 'Мощность')):
+            self.calculate_deltas_for(name)
+            string = f'\u0394 {title}, %\t'
+            string += '\t{:>10.2f}\t{:>10.2f}\t{:>10.2f}'.format(*self._testdata.dlts_[name])
+            lines.append(string)
+
+    def generate_effs_report(self, lines: list):
+        """ расчитывает отклонения для кпд """
+        chart = self.get_chart('test_eff')
+        spline = chart.getSpline()
+        curve = chart.regenerateCurve()
+        nom = self._testdata.type_['Nom']
+        eff_nom = float(spline(nom))
+        eff_max = float(max(curve['y']))
+        eff_dlt = abs(eff_max - eff_nom)
+        string = 'Отклонение КПД от номинального, %\t{:>10.2f}'.format(eff_dlt)
+        lines.append(string)
+        self._testdata.dlts_['eff'] = eff_dlt
+
+    def calculate_deltas_for(self, chart_name: str):
+        """ расчитывает отклонения для указанной характеристики """
+        names = (f'test_{chart_name}', f'{chart_name}')
+        ranges = ('Min', 'Nom', 'Max')
+        get_val = lambda spl, rng: float(spl(self._testdata.type_[rng]))
+        get_dlt = lambda tst, etl: round((tst / etl * 100 - 100), 2)
+        vals = []
+        for name in names:
+            spln = self.get_chart(f'{name}').getSpline()
+            vals.append([get_val(spln, rng) for rng in ranges])
+        result = [get_dlt(x, y) for x, y in zip(vals[0], vals[1])]
+        self._testdata.dlts_[name] = result

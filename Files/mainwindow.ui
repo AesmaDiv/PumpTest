@@ -2448,16 +2448,16 @@
           <enum>QLayout::SetMaximumSize</enum>
          </property>
          <property name="leftMargin">
-          <number>5</number>
+          <number>1</number>
          </property>
          <property name="topMargin">
-          <number>5</number>
+          <number>1</number>
          </property>
          <property name="rightMargin">
-          <number>3</number>
+          <number>1</number>
          </property>
          <property name="bottomMargin">
-          <number>3</number>
+          <number>1</number>
          </property>
          <property name="spacing">
           <number>0</number>
@@ -3424,8 +3424,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>96</width>
-          <height>26</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3690,8 +3690,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>96</width>
-          <height>26</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3794,8 +3794,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>96</width>
-          <height>26</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">

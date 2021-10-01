@@ -1,14 +1,15 @@
 """
     Модуль описывающий классы для Испытания, Насоса и Типоразмера
 """
-from AesmaLib.database import SqliteDB
+from Classes.Data.alchemy_tables import Type, Pump, Test
 
 
 class Record():
     """ Класс-шаблон описания записи таблицы БД """
-    def __init__(self, db: SqliteDB, table: str, rec_id=0):
-        self._db = db
-        self._table = table
+    def __init__(self, db_manager, parent_class: str, rec_id=0):
+        self._db_manager = db_manager
+        self._parent_class = parent_class
+        self._current = None
         self._props = {}
         self._ready = self.load(rec_id) if rec_id else self.create()
 
@@ -42,20 +43,21 @@ class Record():
     def load(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
         -> возвращает успех """
-        items = self._db.select(self._table, '*', {'ID': rec_id})
-        if items:
-            self._props = items[0]
+        self._current = self._db_manager.session().query(
+            self._parent_class
+        ).where(self._parent_class.ID == rec_id).one()
+        if self._current:
+            self._props = self._current.__dict__
             return True
         return False
 
     def create(self) -> bool:
         """ создаёт пустую запись для таблицы БД
         -> возвращает успех """
-        query = f'Select name from pragma_table_info("{self._table}")'
-        table_columns = self._db.execute_with_retval(query)
+        self._current = self._parent_class()
+        table_columns = self._parent_class.__table__.columns.keys()
         if table_columns:
-            keys = [item['name'] for item in table_columns]
-            self._props = dict.fromkeys(keys)
+            self._props = dict.fromkeys(table_columns)
             return True
         return False
 
@@ -67,7 +69,7 @@ class Record():
         """ проверяет, существует ли запись с такими условиями """
         if not conditions:
             conditions = [{'ID': self._props['ID']}]
-        items = self._db.select(self._table, ['ID'], conditions)
+        items = self._db_manager.select(self._parent_class, ['ID'], conditions)
         if items:
             return items[0]['ID']
         return 0
@@ -78,23 +80,17 @@ class Record():
         -> возвращает успех """
         if self._ready:
             if self._props['ID']:
-                return self._db.update(self._table, self._props,
+                return self._db_manager.update(self._parent_class, self._props,
                                        {'ID': self._props['ID']})
-            self._props['ID'] = self._db.insert(self._table, self._props)
+            self._props['ID'] = self._db_manager.insert(self._parent_class, self._props)
             return self.ID > 0
         return False
 
 
-class RecordPump(Record):
-    """ Класс информации о насосе """
-    def __init__(self, db: SqliteDB, table='Pumps', rec_id=0):
-        super().__init__(db, table, rec_id)
-
-
 class RecordType(Record):
     """ Класс информации о типоразмере """
-    def __init__(self, db: SqliteDB, table='Types', rec_id=0):
-        super().__init__(db, table, rec_id)
+    def __init__(self, db_manager, parent_class=Type, rec_id=0):
+        super().__init__(db_manager, parent_class, rec_id)
         self.values_vbr = []
         self.values_flw = []
         self.values_lft = []
@@ -145,10 +141,16 @@ class RecordType(Record):
         return 0
 
 
+class RecordPump(Record):
+    """ Класс информации о насосе """
+    def __init__(self, db_manager, parent_class=Pump, rec_id=0):
+        super().__init__(db_manager, parent_class, rec_id)
+
+
 class RecordTest(RecordType):
     """ Класс информации об испытании """
-    def __init__(self, db: SqliteDB, table='Tests', rec_id=0):
-        RecordType.__init__(self, db, table, rec_id)
+    def __init__(self, db_manager, parent_class=Test, rec_id=0):
+        RecordType.__init__(self, db_manager, parent_class, rec_id)
         self.values_vbr = []
 
     def load(self, rec_id) -> bool:
@@ -161,11 +163,3 @@ class RecordTest(RecordType):
             else:
                 self.values_vbr = []
         return result
-
-class TestInfo:
-    """ Класс для полной информации об испытании """
-    def __init__(self, db) -> None:
-        self.type_ = RecordType(db)
-        self.pump_ = RecordPump(db)
-        self.test_ = RecordTest(db)
-        self.dlts_ = {}

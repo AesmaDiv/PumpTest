@@ -1,13 +1,11 @@
-from threading import Timer
 from operator import itemgetter
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QEvent, QPoint, QPointF, pyqtSignal
-from PyQt5.QtCore import QRect
-from PyQt5.QtGui import QPen, QPixmap, QPalette, QBrush
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame
-from AesmaLib.GraphWidget import Graph, Chart, Axis
-from GUI.pump_graph import PumpGraph
+from AesmaLib.GraphWidget import Chart
+from Classes.Graph.pump_graph import PumpGraph
 
 
 class Markers(QFrame):

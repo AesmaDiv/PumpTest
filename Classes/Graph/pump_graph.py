@@ -64,7 +64,7 @@ class PumpGraph(Graph):
 
     def set_limits(self, minimum: float, nominal: float, maximum: float):
         """ установка области рабочего диапазона """
-        self._limits_value = [minimum, nominal, maximum]
+        self._limits_value = list(map(float, [minimum, nominal, maximum]))
 
     def add_chart(self, chart: Chart, name: str):
         """ добавление графика """
