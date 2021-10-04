@@ -1,6 +1,7 @@
 """
     Модуль содержит функции основного окна программы
 """
+from inspect import getdoc
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QMenu
@@ -40,7 +41,7 @@ class MainWindow(QMainWindow):
     def prepare(self):
         """ инициализирует и подготавливает компоненты главного окна """
         funcs_testlist.init(self)
-        funcs_testlist.fill(self, self._data_manager)
+        funcs_testlist.refresh(self, self._data_manager)
         funcs_combo.fill_combos(self, self._data_manager)
         funcs_table_points.init(self)
         funcs_table_vibr.init(self)
@@ -127,16 +128,16 @@ class MainWindow(QMainWindow):
         """ изменение выбора теста """
         item = funcs_table.get_row(self.tableTests)
         if item:
-            # Journal.log('*********************************************************')
             Journal.log('***' * 30)
-            Journal.log(__name__, "::\t", __doc__, "-->",
+            Journal.log(__name__, "::\t", self.on_changed_testlist.__doc__, "-->",
                         item['ID'] if item else "None")
             funcs_combo.filters_reset(self)
             funcs_group.group_clear(self.groupTestInfo)
             funcs_group.group_clear(self.groupPumpInfo)
             self._data_manager.clear_record()
-            funcs_display.display_test(self, self._data_manager, item['ID'])
-            funcs_display.display_test_deltas(self, self._graph_manager)
+            if self._data_manager.load_record(item['ID']):
+                funcs_display.display_record(self, self._data_manager)
+                funcs_display.display_test_deltas(self, self._graph_manager)
             Journal.log('===' * 30)
 
     def on_menu_testlist(self):
@@ -149,14 +150,14 @@ class MainWindow(QMainWindow):
 
     def on_changed_column_testlist(self):
         """ изменён столбец списка тестов """
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_changed_column_testlist.__doc__)
         funcs_testlist.filter_switch(self)
 
     def on_changed_combo_producers(self, index):
         """ изменение выбора производителя """
         item = self.cmbProducer.currentData(Qt.UserRole)
         if item:
-            Journal.log(__name__, "::\t", __doc__, "-->",
+            Journal.log(__name__, "::\t", self.on_changed_combo_producers.__doc__, "-->",
                         item['Name'] if item else "None")
             # ↓ фильтрует типоразмеры для данного производителя
             condition = {'Producer': item['ID']} if index else None
@@ -167,7 +168,7 @@ class MainWindow(QMainWindow):
         """ изменение выбора типоразмера """
         item = self.cmbType.currentData(Qt.UserRole)
         if item:
-            Journal.log(__name__, "::\t", __doc__, "-->",
+            Journal.log(__name__, "::\t", self.on_changed_combo_types.__doc__, "-->",
                         item['Name'] if item else "None")
             # ↑ выбирает производителя для данного типоразмера
             condition = {'ID': item['Producer']} if index else None
@@ -182,7 +183,7 @@ class MainWindow(QMainWindow):
         """ изменение выбора заводского номера """
         item = self.cmbSerial.currentData(Qt.UserRole)
         if item:
-            Journal.log(__name__, "::\t", __doc__, "-->",
+            Journal.log(__name__, "::\t", self.on_changed_combo_serials.__doc__, "-->",
                         item['Serial'] if item else "None")
             # ↑ выбирает типоразмер для данного серийника
             condition = {'ID': item['Type']} if index else None
@@ -193,13 +194,13 @@ class MainWindow(QMainWindow):
     def on_changed_filter_apply(self, text: str):
         """ изменён значение фильтра списка тестов """
         if text:
-            Journal.log(__name__, "::\t", __doc__, "-->", text)
+            Journal.log(__name__, "::\t", self.on_changed_filter_apply.__doc__, "-->", text)
         funcs_testlist.filter_apply(self)
 
     def on_clicked_filter_reset(self):
         """ нажата кнопка сброса фильтра """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_filter_reset.__doc__)
         funcs_testlist.filter_reset(self, self._data_manager)
         funcs_group.group_lock(self.groupTestInfo, True)
         funcs_group.group_lock(self.groupPumpInfo, True)
@@ -207,7 +208,7 @@ class MainWindow(QMainWindow):
     def on_clicked_pump_new(self):
         """ нажата кнопка добавления нового насоса """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_pump_new.__doc__)
         funcs_group.group_lock(self.groupPumpInfo, False)
         funcs_group.group_clear(self.groupPumpInfo)
 
@@ -215,24 +216,24 @@ class MainWindow(QMainWindow):
     def on_clicked_pump_save(self):
         """ нажата кнопка сохранения нового насоса """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_pump_save.__doc__)
         pump_id, do_select = self._data_manager.check_exists_serial(
             self.cmbSerial.currentText()
         )
-        pump_data = self._testdata.pump_
+        pump_info = self._testdata.pump_
         if do_select:
-            funcs_display.display_pump(self, pump_data)
+            funcs_display.display_pump_info(self, self._testdata)
         if not pump_id and funcs_group.group_check(self.groupPumpInfo):
-            funcs_group.group_save(self.groupPumpInfo, pump_data)
             funcs_group.group_lock(self.groupPumpInfo, True)
+            funcs_group.group_save(self.groupPumpInfo, pump_info)
             if self._data_manager.save_pump_info():
                 funcs_combo.fill_combos_pump(self, self._data_manager)
-                self.cmbSerial.model().select_contains(pump_data.ID)
+                self.cmbSerial.model().select_contains(pump_info.ID)
 
     def on_clicked_pump_cancel(self):
         """ нажата кнопка отмены добавления нового насоса """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_pump_cancel.__doc__)
         # self._wnd.display_record()
         funcs_combo.filters_reset(self)
         funcs_group.group_display(
@@ -242,43 +243,43 @@ class MainWindow(QMainWindow):
     def on_clicked_test_new(self):
         """ нажата кнопка добавления нового теста """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
-        funcs_group.group_lock(self.groupTestInfo, False)
+        Journal.log(__name__, "::\t", self.on_clicked_test_new.__doc__)
         funcs_group.group_clear(self.groupTestInfo)
+        funcs_group.group_lock(self.groupTestInfo, False)
         funcs_aux.set_current_date(self)
 
     def on_clicked_test_info_save(self):
         """ нажата кнопка сохранения нового теста """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_test_info_save.__doc__)
         test_id, choice = self._data_manager.check_exists_ordernum(
             self.txtOrderNum.text(), with_select=True
         )
         if choice != 2:
-            funcs_testlist.select_test(self, test_id['ID'])
+            funcs_testlist.select_test(self, test_id)
             if choice == 1:
                 funcs_aux.set_current_date(self)
         if not test_id and funcs_group.group_check(self.groupTestInfo):
             self._data_manager.clear_test_info()
-            funcs_group.group_save(self.groupTestInfo, self._test_data.test_)
+            funcs_group.group_save(self.groupTestInfo, self._testdata.test_)
             funcs_group.group_lock(self.groupTestInfo, True)
             self._data_manager.save_test_info()
-            funcs_testlist.fill(self, self._data_manager)
+            funcs_testlist.refresh(self, self._data_manager)
 
     def on_clicked_test_info_cancel(self):
         """ нажата кнопка отмены добавления нового теста """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_test_info_cancel.__doc__)
         funcs_group.group_display(self.groupTestInfo, self._testdata.test_)
         funcs_group.group_lock(self.groupTestInfo, True)
 
     def on_clicked_test_result_save(self):
         """ нажата кнопка сохранения результатов теста """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_test_result_save.__doc__)
         title = 'УСПЕХ'
         message = 'Результаты сохранены'
-        self._graph_manager.save_test_data()
+        self._graph_manager.save_testdata()
         if not self._testdata.test_.save():
             title = 'ОШИБКА'
             message = 'Запись заблокирована'
@@ -291,7 +292,7 @@ class MainWindow(QMainWindow):
     def on_clicked_go_test(self):
         """ нажата кнопка перехода к тестированию """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_go_test.__doc__)
         self.stackedWidget.setCurrentIndex(1)
         self._graph_manager.display_charts(self.frameGraphTest)
         self._graph_manager.markers_reposition()
@@ -299,14 +300,14 @@ class MainWindow(QMainWindow):
     def on_clicked_go_back(self):
         """ нажата кнопка возврата на основное окно """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_go_back.__doc__)
         self.stackedWidget.setCurrentIndex(0)
         funcs_testlist.select_test(self, self._testdata.test_['ID'])
 
     def on_clicked_test(self):
         """ нажата кнопка начала/остановки испытания """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_test.__doc__)
         Test.is_running = not Test.is_running
         self._graph_manager.switch_charts_visibility(Test.is_running)
         Test.switch_running_state(self, Test.is_running)
@@ -314,7 +315,7 @@ class MainWindow(QMainWindow):
     def on_clicked_add_point(self):
         """ нажата кнопка добавления точки """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_add_point.__doc__)
         current_vals = Test.get_current_vals(self)
         funcs_table_points.add(self, *current_vals)
         self._graph_manager.markers_add_knots()
@@ -324,7 +325,7 @@ class MainWindow(QMainWindow):
     def on_clicked_remove_point(self):
         """ нажата кнопка удаления точки """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_remove_point.__doc__)
         funcs_table_points.remove_last(self)
         self._graph_manager.markers_remove_knots()
         self._graph_manager.remove_last_points_from_charts()
@@ -337,7 +338,7 @@ class MainWindow(QMainWindow):
     def on_clicked_clear_curve(self):
         """ нажата кнопка удаления всех точек """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_clear_curve.__doc__)
         funcs_table.clear(self.tablePoints)
         self._graph_manager.markers_clear_knots()
         self._graph_manager.clear_points_from_charts()
@@ -346,14 +347,14 @@ class MainWindow(QMainWindow):
     def on_clicked_adam_connection(self):
         """ нажата кнопка подключения к ADAM5000TCP """
         Journal.log('___' * 30)
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_clicked_adam_connection.__doc__)
         state = self._adam.changeConnectionState()
         self.checkConnection.setChecked(state)
         self.checkConnection.setText("подключено" if state else "отключено")
 
     def on_adam_data_received(self, sensors: dict):
         """ приход данных от ADAM5000TCP """
-        Journal.log(__name__, "::\t", __doc__)
+        Journal.log(__name__, "::\t", self.on_adam_data_received.__doc__)
         point_data = {key: sensors[key] for key
                     in ['rpm', 'torque', 'pressure_in', 'pressure_out']}
         point_data['flw'] = sensors[self._active_flowmeter]

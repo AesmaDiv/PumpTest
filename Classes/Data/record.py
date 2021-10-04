@@ -43,11 +43,15 @@ class Record():
     def load(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
         -> возвращает успех """
-        self._current = self._db_manager.session().query(
+        self.clear()
+        query = self._db_manager.session().query(
             self._parent_class
-        ).where(self._parent_class.ID == rec_id).one()
-        if self._current:
-            self._props = self._current.__dict__
+        ).where(self._parent_class.ID == rec_id)
+        if query.count():
+            self._current = query.one()
+            self._props = {
+                k: self._current.__dict__[k] for k in self._props.keys()
+            }
             return True
         return False
 
@@ -63,6 +67,7 @@ class Record():
 
     def clear(self):
         """ очищает все данные в записи """
+        self._current = self._parent_class()
         self._props = dict.fromkeys(self._props)
 
     def check_exist(self, conditions: dict=None):
@@ -79,11 +84,13 @@ class Record():
         добавляет новую и сохраняет ID или обновляет существующую
         -> возвращает успех """
         if self._ready:
-            if self._props['ID']:
-                return self._db_manager.update(self._parent_class, self._props,
-                                       {'ID': self._props['ID']})
-            self._props['ID'] = self._db_manager.insert(self._parent_class, self._props)
-            return self.ID > 0
+            with self._db_manager.session() as session:
+                self._current.__dict__.update(self._props)
+                session.add(self._current)
+                session.flush()
+                session.refresh(self._current)
+                session.commit()
+                return self._current.ID > 0
         return False
 
 

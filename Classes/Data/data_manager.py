@@ -1,5 +1,7 @@
 from sqlalchemy import create_engine, MetaData, Table
+import sqlalchemy
 from sqlalchemy.orm.session import Session
+from sqlalchemy.sql.operators import exists
 from Classes.Data.alchemy_tables import Assembly, Customer, Producer, Type, Pump, Test
 from Classes.Data.record import RecordType, RecordPump, RecordTest
 from AesmaLib.message import Message
@@ -45,6 +47,11 @@ class DataManager:
         self.clear_test_info()
         self._testdata.dlts_ = {}
 
+    def load_record(self, test_id: int) -> bool:
+        """ загружает информацию о тесте """
+        Journal.log(f"{__name__}::\t {__doc__} --> {test_id}")
+        return self._testdata.test_.load(test_id)
+
     def clear_type_info(self):
         self._testdata.type_.clear()
 
@@ -71,10 +78,10 @@ class DataManager:
 
 
     def check_exists_serial(self, serial):
-        """ возвращает ID записи с введенным номером наряд-заказа"""
+        """ возвращает ID записи с введенным серийным номером """
         with Session(self._engine) as session:
-            pump_id = session.query(Pump).where(Pump.Serial == serial).one()
-            if pump_id:
+            query = session.query(Pump).where(Pump.Serial == serial)
+            if query.count():
                 choice =  Message.ask(
                     "Внимание",
                     "Насос с таким заводским номером "
@@ -82,14 +89,14 @@ class DataManager:
                     "Хотите выбрать его?",
                     "Выбрать", "Отмена"
                 )
-                return pump_id['ID'], choice
+                return query.one().ID, choice
         return 0, False
 
     def check_exists_ordernum(self, order_num, with_select=False):
-        """ возвращает ID записи с введенным номером наряд-заказа"""
+        """ возвращает ID записи с введенным номером наряд-заказа """
         with Session(self._engine) as session:
-            test_id = session.query(Test).where(Test.OrderNum == order_num)
-            if test_id:
+            query = session.query(Test).where(Test.OrderNum == order_num)
+            if query.count():
                 if with_select:
                     choice =  Message.choice(
                         "Внимание",
@@ -98,7 +105,7 @@ class DataManager:
                         "Хотите выбрать её или создать новую?",
                         ("Выбрать", "Создать", "Отмена")
                     )
-                return test_id['ID'], choice
+                return query.one().ID, choice
         return 0, -1
 
     @Journal.logged

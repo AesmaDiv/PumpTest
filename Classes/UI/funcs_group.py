@@ -71,8 +71,8 @@ def group_clear(group: QGroupBox):
 
 def group_lock(group: QGroupBox, state: bool):
     """ блокирует поля группы от изменений """
-    Journal.log(f"{__name__}::\t устанавливает блокировку полей группы",
-                f"{group.objectName()} => {state}")
+    Journal.log(f"{__name__}::\t"
+                f"{'устанавливает' if state else 'снимает'} блокировку полей группы")
     widgets = group.findChildren(QWidget)
     for item in widgets:
         if isinstance(item, QLineEdit):

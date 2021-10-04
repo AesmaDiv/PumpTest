@@ -28,7 +28,7 @@ def init(window):
 
 
 @Journal.logged
-def fill(window, db_manager):
+def refresh(window, db_manager):
     """ заполняет список тестов """
     tests_data = db_manager.get_tests_list()
     funcs_table.set_data(window.tableTests, tests_data)

@@ -120,7 +120,7 @@ class GraphManager(PumpGraph):
             if yticks:
                 chart.getAxis('y').setDivs(yticks)
 
-    def save_test_data(self):
+    def save_testdata(self):
         """ сохранение данных из таблицы в запись испытания """
         points_lft_x = super().get_chart('test_lft').getPoints('x')
         points_lft_y = super().get_chart('test_lft').getPoints('y')
