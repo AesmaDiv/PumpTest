@@ -1,15 +1,17 @@
-from sqlalchemy import create_engine, MetaData, Table
-import sqlalchemy
+"""
+    Модуль описывает структуру хранения информации об испытании
+    и класс по управлению этой информацией
+"""
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.operators import exists
-from Classes.Data.alchemy_tables import Assembly, Customer, Producer, Type, Pump, Test
+from Classes.Data.alchemy_tables import Pump, Test
 from Classes.Data.record import RecordType, RecordPump, RecordTest
 from AesmaLib.message import Message
 from AesmaLib.journal import Journal
 
 
 class TestData:
-    """ Класс для полной информации об испытании """
+    """ Класс для полной информации об записи """
     def __init__(self, db_manager) -> None:
         self.type_ = RecordType(db_manager)
         self.pump_ = RecordPump(db_manager)
@@ -23,25 +25,18 @@ class DataManager:
         self._engine = create_engine(f'sqlite:///{path_to_db}')
         self._meta = MetaData(self._engine)
         self._testdata = TestData(self)
-        # self._assemblies = self._create_and_map_table(Assembly)
-        # self._customers = self._create_and_map_table(Customer)
-        # self._producers = self._create_and_map_table(Producer)
-        # self._types = self._create_and_map_table(Type)
-        # self._pumps = self._create_and_map_table(Pump)
-        # self._tests = self._create_and_map_table(Test)
-
-    def _create_and_map_table(self, cls):
-        result = Table(cls.__tablename__, self._meta, autoload=True)
-        # mapper(cls, result)
-        return result
 
     def session(self):
+        """ создаёт новую сессию для запросов """
         return Session(self._engine)
 
     def get_testdata(self):
+        """ возвращает ссылку на информацию об записи """
         return self._testdata
 
+    @Journal.logged
     def clear_record(self):
+        """ очищает информацию о записи """
         self.clear_type_info()
         self.clear_pump_info()
         self.clear_test_info()
@@ -49,19 +44,34 @@ class DataManager:
 
     def load_record(self, test_id: int) -> bool:
         """ загружает информацию о тесте """
-        Journal.log(f"{__name__}::\t {__doc__} --> {test_id}")
-        return self._testdata.test_.load(test_id)
+        Journal.log_func(self.load_record, test_id)
+        return self._testdata.test_.read(test_id)
+
+    @Journal.logged
+    def remove_current_record(self):
+        """ удаляет текущую запись из БД"""
+        test_id = self._testdata.test_['ID']
+        if test_id:
+            with self.session() as session:
+                query = session.query(Test).where(Test.ID == test_id)
+                if query.count():
+                    session.delete(query.one())
+                    session.commit()
 
     def clear_type_info(self):
+        """ очистка информации о типоразмере """
         self._testdata.type_.clear()
 
     def clear_pump_info(self):
+        """ очистка информации о насосе """
         self._testdata.pump_.clear()
 
     def clear_test_info(self):
+        """ очистка информации о тесте """
         self._testdata.test_.clear()
 
     def get_tests_list(self):
+        """ получает список тестов """
         result = []
         with Session(self._engine) as session:
             result = session.query(
@@ -70,12 +80,12 @@ class DataManager:
         return list(map(dict, result))
 
     def get_list_for(self, table_class, fields):
+        """ получает список элементов из таблицы """
         result = []
         with Session(self._engine) as session:
             columns = [getattr(table_class, field) for field in fields]
             result = session.query(*columns).all()
         return list(map(dict, result))
-
 
     def check_exists_serial(self, serial):
         """ возвращает ID записи с введенным серийным номером """
@@ -110,23 +120,11 @@ class DataManager:
 
     @Journal.logged
     def save_test_info(self):
-        """ сохраняет информацию о насосе """
-        Journal.log(f"{__name__}::\t сохраняет информацию о новом тесте")
+        """ сохраняет информацию о тесте """
         self._testdata.test_['Pump'] = self._testdata.pump_['ID']
-        self._testdata.test_.save()
+        self._testdata.test_.write()
 
     @Journal.logged
     def save_pump_info(self) -> bool:
         """ сохраняет информацию о насосе """
-        return self._testdata.pump_.save()
-
-
-    if __name__ == '__main__':
-        import os
-        path = os.path.join(os.path.dirname(__file__), '../Files/pump.sqlite')
-        dbm = DataManager(path)
-        retval = dbm.session().query(Test.ID, Test.DateTime, Pump.Serial).filter(Test.Pump == Pump.ID)
-        for i in retval:
-            dictionary = dict(i)
-            # result['DateTime'] = f"{result['DateTime']:%Y-%m-%d %H:%M:%S}"
-            print(dictionary)
+        return self._testdata.pump_.write()

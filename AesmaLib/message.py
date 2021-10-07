@@ -1,7 +1,8 @@
 """
     Модуль содержит функции диалоговых окон
 """
-from PyQt5.QtWidgets import QMessageBox
+import hashlib
+from PyQt5.QtWidgets import QLineEdit, QMessageBox, QInputDialog
 from PyQt5.QtCore import Qt
 
 class Message:
@@ -12,10 +13,10 @@ class Message:
         msg: QMessageBox = QMessageBox()
         msg.setWindowTitle(title)
         msg.setText(text)
-        ok = msg.addButton(accept, QMessageBox.AcceptRole)
+        is_ok = msg.addButton(accept, QMessageBox.AcceptRole)
         msg.addButton(reject, QMessageBox.RejectRole)
         msg.exec()
-        return msg.clickedButton() == ok
+        return msg.clickedButton() == is_ok
 
     @staticmethod
     def get(title: str, text: str, accept: str = "Добавить", reject: str = "Отмена"):
@@ -24,10 +25,10 @@ class Message:
         msg.setWindowTitle(title)
         msg.setText(text)
         msg.setTextInteractionFlags(Qt.TextEditable)
-        ok = msg.addButton(accept, QMessageBox.AcceptRole)
+        is_ok = msg.addButton(accept, QMessageBox.AcceptRole)
         msg.addButton(reject, QMessageBox.RejectRole)
         msg.exec()
-        return msg.clickedButton() == ok
+        return msg.clickedButton() == is_ok
 
     @staticmethod
     def choice(title: str, text: str, choices: list):
@@ -39,6 +40,16 @@ class Message:
         buttons = [msg.addButton(name, QMessageBox.ActionRole) for name in choices]
         msg.exec()
         return buttons.index(msg.clickedButton())
+
+    @staticmethod
+    def ask_password(title: str, text: str):
+        """ вывод окна с полем ввода """
+        msg = QInputDialog()
+        hash_func = hashlib.sha256()
+        hash_func.update(msg.getText(None, title, text, QLineEdit.Password)[0].encode('utf-8'))
+        result = hash_func.digest()
+        return result
+
 
     @staticmethod
     def show(title: str, *messages):

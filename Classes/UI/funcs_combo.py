@@ -90,3 +90,8 @@ def filters_reset(window):
     """ сбрасывает фильт для комбобоксов насоса """
     window.cmbType.model().resetFilter()
     window.cmbSerial.model().resetFilter()
+
+
+def select_contains(combo, condition):
+    if not combo.model().check_already_selected(condition):
+        combo.model().select_contains(condition)

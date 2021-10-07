@@ -1,29 +1,31 @@
 """
     Модуль описания класса протокола об испытании
 """
-import os, jinja2
+import os
+from jinja2 import FileSystemLoader, Environment
 from PyQt5.QtGui import QPageSize
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtCore import QSize, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from Classes.Graph.graph_manager import GraphManager
 from Classes.Data.data_manager import TestData
+from AesmaLib.journal import Journal
 
 
 class Report:
     """ Класс протокола об испытании """
-    def __init__(self, path_to_template: str,
-                 graph_manager: GraphManager,
-                 test_data: TestData):
+    def __init__(self, template_folder, graph_manager: GraphManager, test_data: TestData):
         self._webview = None
         self._printer = None
-        self._template_folder = path_to_template
+        self._template_folder = template_folder
         self._test_data = test_data
         self._graph_manager = graph_manager
         self._template_name = "template.html"
+        self._path_to_img = os.path.join(self._template_folder, "graph_image.jpg")
         self._report_name = "report.pdf"
-        self._base_url = QUrl.fromLocalFile(path_to_template + os.path.sep)
+        self._base_url = QUrl.fromLocalFile(self._template_folder + os.path.sep)
 
+    @Journal.logged
     def generate_report(self):
         """ Генерирование протокола """
         if not self._webview:
@@ -31,6 +33,7 @@ class Report:
         self.__create_graph_image()
         report = self.__create_report()
         self.__print_report(report)
+        self.__remove_graph_image()
 
     def __init_printer(self):
         """ инициализация представления и принтера при первом запросе """
@@ -42,9 +45,8 @@ class Report:
     def __create_graph_image(self):
         """ сохранение графика испытания в jpg"""
         img_size = QSize(794, 450)
-        path_to_img = os.path.join(self._template_folder, "graph_image.jpg")
         self._graph_manager.switch_palette('report')
-        self._graph_manager.render_to_image(img_size, path_to_img)
+        self._graph_manager.render_to_image(img_size, self._path_to_img)
         self._graph_manager.switch_palette('application')
 
     def __create_report(self):
@@ -60,6 +62,11 @@ class Report:
         if QPrintDialog(self._printer).exec_():
             print("Report\t\t->отправка протокола на печать")
             self._webview.page().print(self._printer, self.__on_printed)
+        os.remove(self._path_to_img)
+
+    def __remove_graph_image(self):
+        if os.path.exists(self._path_to_img):
+            os.remove(self._path_to_img)
 
     def __on_printed(self, result: bool):
         """ callback вызова печати """
@@ -67,8 +74,8 @@ class Report:
 
     def __load_template(self):
         """ загрузка html шаблона """
-        loader = jinja2.FileSystemLoader(self._template_folder)
-        jinja_env = jinja2.Environment(loader=loader, autoescape=True)
+        loader = FileSystemLoader(self._template_folder)
+        jinja_env = Environment(loader=loader, autoescape=True)
         result = jinja_env.get_template(self._template_name)
         return result
 

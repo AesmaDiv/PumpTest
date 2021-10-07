@@ -6,7 +6,7 @@
 """
 import faulthandler, sys, os
 from PyQt5.QtWidgets import QApplication
-from Classes.mainwindow import MainWindow
+from Classes.UI.mainwindow import MainWindow
 
 
 # Добавляю текущую папку к путям, где питон ищет модули
@@ -19,7 +19,7 @@ ROOT = os.path.dirname(__file__)
 PATHES = {
     'DB': os.path.join(ROOT, 'Files/pump.sqlite'),  # путь к файлу базы данных
     'WND': os.path.join(ROOT, 'Files/mainwindow.ui'),  # путь к файлу базы данных
-    'TEMPLATE': os.path.join(ROOT, 'Files/Report')  # путь к шаблону протокола
+    'TEMPLATE': os.path.join(ROOT, 'Files/report')  # путь к шаблону протокола
 }
 
 if __name__ == '__main__':
@@ -27,9 +27,7 @@ if __name__ == '__main__':
     faulthandler.enable() # вкл. обработчика ошибок
     app = QApplication(sys.argv)
 
-    window = MainWindow(PATHES)
-    window.prepare()
-    window.show()
+    MainWindow(PATHES).show()
 
     app.exec_()
     faulthandler.disable() # выкл. обработчика ошибок

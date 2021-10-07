@@ -23,17 +23,17 @@
             <span class="info-label">Типоразмер</span>
             <span class="info-label">Заводской номер</span>
 
-            <span class="info-value">{{type_info["Producer_Name"]}}</span>
-            <span class="info-value">{{type_info["Name"] }}</span>
-            <span class="info-value">{{pump_info["Serial"] }}</span>
+            <span class="info-value">{{type_info.ProducerName}}</span>
+            <span class="info-value">{{type_info.Name }}</span>
+            <span class="info-value">{{pump_info.Serial }}</span>
             
             <span class="info-label">Длина</span>
             <span class="info-label">Кол-во ступеней</span>
             <span class="info-label">Вылет вала</span>
             
-            <span class="info-value">{{pump_info["Length"]}}</span>
-            <span class="info-value">{{pump_info["Stages"]}}</span>
-            <span class="info-value">{{pump_info["Shaft"]}}</span>
+            <span class="info-value">{{pump_info.Length}}</span>
+            <span class="info-value">{{pump_info.Stages}}</span>
+            <span class="info-value">{{pump_info.Shaft}}</span>
         </div>
         <p>Информация по испытанию:</p>
         <div id="test-info">
@@ -42,20 +42,20 @@
             <span class="info-label">Наряд-заказ №</span>
             <span class="info-label">Сборка</span>
             
-            <span class="info-value">{{test_info["DateTime"]}}</span>
-            <span class="info-value">{{test_info["Customer"]}}</span>
-            <span class="info-value">{{test_info["OrderNum"]}}</span>
-            <span class="info-value">{{test_info["Assembly"]}}</span>
+            <span class="info-value">{{test_info.DateTime}}</span>
+            <span class="info-value">{{test_info.Customer}}</span>
+            <span class="info-value">{{test_info.OrderNum}}</span>
+            <span class="info-value">{{test_info.Assembly}}</span>
             
             <span class="info-label">Месторождение</span>
             <span class="info-label">Куст</span>
             <span class="info-label">Скважина</span>
             <span class="info-label">Суткопробег</span>
             
-            <span class="info-value">{{test_info["Location"]}}</span>
-            <span class="info-value">{{test_info["Lease"]}}</span>
-            <span class="info-value">{{test_info["Well"]}}</span>
-            <span class="info-value">{{test_info["DaysRun"]}}</span>
+            <span class="info-value">{{test_info.Location}}</span>
+            <span class="info-value">{{test_info.Lease}}</span>
+            <span class="info-value">{{test_info.Well}}</span>
+            <span class="info-value">{{test_info.DaysRun}}</span>
         </div>
         <p>Результаты испытания:</p>
         <div id="graph-container">

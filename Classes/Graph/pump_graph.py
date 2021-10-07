@@ -147,7 +147,7 @@ class PumpGraph(Graph):
                 if name == 'x0':
                     coord = i * step + self._margins[0]
                     p_0 = QPointF(coord, self._margins[1])
-                    p_1 = QPointF(coord, self.height() - self._margins[3]) 
+                    p_1 = QPointF(coord, self.height() - self._margins[3])
                 else:
                     coord = (len(divs) - i) * step + self._margins[1]
                     p_0 = QPointF(self._margins[0], coord)
@@ -239,7 +239,8 @@ class PumpGraph(Graph):
 
     def _draw_charts(self, painter: QPainter):
         """ отрисовка всех графиков """
-        if IS_LOGGED: Journal.log(__name__, "\tотрисовка графиков ->")
+        if IS_LOGGED:
+            Journal.log(__name__, "\tотрисовка графиков ->")
         transform: QTransform = QTransform()
         self._preparing_charts_data()
         self._set_canvas_transform(painter, transform)
@@ -289,8 +290,8 @@ class PumpGraph(Graph):
     def _draw_knots(painter: QPainter, points):
         """ отрисовка узлов """
         if len(points['x']):
-            for p in points:
-                painter.drawEllipse(QPointF(p[0], p[1]), 2, 2)
+            for point in points:
+                painter.drawEllipse(QPointF(point[0], point[1]), 2, 2)
 
     @staticmethod
     def _draw_limit_polygon(painter: QPainter, chart, points):
@@ -302,8 +303,8 @@ class PumpGraph(Graph):
             old_pen = painter.pen()
             old_brush = painter.brush()
             polygon = QPolygonF()
-            for p in points:
-                polygon.append(QPointF(p[0], p[1]))
+            for point in points:
+                polygon.append(QPointF(point[0], point[1]))
             painter.setPen(LIMIT_PEN)
             painter.setBrush(LIMIT_PEN.color())
             painter.drawPolygon(polygon, Qt.OddEvenFill)
@@ -351,15 +352,15 @@ class PumpGraph(Graph):
 
     def _preparing_charts_data(self):
         """ подготовка данных для формирования графика """
-        if IS_LOGGED: Journal.log(__name__, "\tподготовка данных для кривых ->")
+        if IS_LOGGED:
+            Journal.log(__name__, "\tподготовка данных для кривых ->")
         for chart in self._charts.values():
             self._prepare_chart_data(chart)
 
     def _prepare_chart_data(self, chart: Chart):
         """ подготовка данных для построения кривой """
         if IS_LOGGED:
-            Journal.log(__name__, "\t-> подготовка данных для кривой",
-                        chart.name)
+            Journal.log(__name__, "\t-> подготовка данных для кривой", chart.name)
         draw_area = self.get_draw_area()
         knots = self._get_chart_knots(chart, draw_area)
         curve = self._get_chart_curve(chart, draw_area)

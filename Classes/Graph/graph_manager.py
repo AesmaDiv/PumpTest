@@ -19,6 +19,7 @@ class GraphManager(PumpGraph):
         self.set_margins([10, 10, 10, 10])
 
     def init_markers(self, params, host):
+        """ инициализация маркеров """
         self._markers = Markers(params.keys(), self)
         for key, val in params.items():
             self._markers.setMarkerColor(key, val)
@@ -131,6 +132,7 @@ class GraphManager(PumpGraph):
         self._testdata.test_['Powers'] = ','.join(list(map(str, points_pwr_y)))
 
     def markers_reposition(self):
+        """ перенос маркеров на другой холст """
         self._markers.repositionFor(self)
 
     def markers_move(self, params):
@@ -142,12 +144,15 @@ class GraphManager(PumpGraph):
             )
 
     def markers_add_knots(self):
+        """ добавление узлов (точки) """
         self._markers.addKnots()
 
     def markers_remove_knots(self):
+        """ удаление узлов (точки) """
         self._markers.removeKnots()
 
     def markers_clear_knots(self):
+        """ очистка узлов (всех точек) """
         self._markers.clearAllKnots()
 
     def add_points_to_charts(self, flw, lft, pwr, eff):
@@ -174,8 +179,9 @@ class GraphManager(PumpGraph):
             else:
                 print(__name__, '\tError: не найден эталон для', chart_name)
 
-    def get_chart(self, chart_name: str):
+    def get_chart(self, name: str):
         """ получение ссылки на кривую по имени """
+        chart_name = name
         chart: Chart = super().get_chart(chart_name)
         if chart is None:
             etalon: Chart = super().get_chart(chart_name.replace('test_', ''))
@@ -194,7 +200,6 @@ class GraphManager(PumpGraph):
         self.clear_points_from_chart('test_pwr')
         self.clear_points_from_chart('test_eff')
 
-
     def clear_points_from_chart(self, chart_name: str):
         """ удаление всех точек из графика """
         chart = super().get_chart(chart_name)
@@ -207,7 +212,6 @@ class GraphManager(PumpGraph):
         self.remove_last_point_from_chart('test_pwr')
         self.remove_last_point_from_chart('test_eff')
 
-
     def remove_last_point_from_chart(self, chart_name: str):
         """ удаление последней точки из графика """
         chart = super().get_chart(chart_name)
@@ -215,6 +219,7 @@ class GraphManager(PumpGraph):
             chart.removePoint()
 
     def switch_charts_visibility(self, state):
+        """ переключение видимости для кривых """
         self.set_visibile_charts(['lft', 'pwr', 'test_lft', 'test_pwr']
                                             if state else 'all')
         self.display_charts(self._markers)
@@ -227,7 +232,6 @@ class GraphManager(PumpGraph):
             self.generate_deltas_report(result_lines)
             self.generate_effs_report(result_lines)
         return '\n'.join(result_lines)
-
 
     def generate_deltas_report(self, lines: list):
         """ расчитывает отклонения для напора и мощности """

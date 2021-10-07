@@ -4,7 +4,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey
-from sqlalchemy.sql.sqltypes import DECIMAL, INTEGER, VARCHAR, String
+from sqlalchemy.sql.sqltypes import FLOAT, INTEGER, VARCHAR, String
 
 
 Base = declarative_base()
@@ -37,10 +37,10 @@ class Type(Base):
     Name = Column('Name', VARCHAR)
     Producer = Column('Producer', INTEGER, ForeignKey("Producers.ID"))
     Date = Column('Date', VARCHAR)
-    Rpm = Column('Rpm', DECIMAL)
-    Min = Column('Min', DECIMAL)
-    Nom = Column('Nom', DECIMAL)
-    Max = Column('Max', DECIMAL)
+    Rpm = Column('Rpm', FLOAT)
+    Min = Column('Min', FLOAT)
+    Nom = Column('Nom', FLOAT)
+    Max = Column('Max', FLOAT)
     Flows = Column('Flows', VARCHAR)
     Lifts = Column('Lifts', VARCHAR)
     Powers = Column('Powers', VARCHAR)

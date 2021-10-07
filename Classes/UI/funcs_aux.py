@@ -2,6 +2,7 @@
     Модуль вспомогательных функций
 """
 from datetime import datetime
+from AesmaLib.message import Message
 
 
 def parse_float(text: str):
@@ -42,3 +43,12 @@ def process_mouse_wheel(obj, event, coef):
     val += event.angleDelta().y() / 120 * coef
     val = round(val, 5)
     obj.setText(str(val if val >= 0 else 0))
+
+
+def ask_password():
+    """ проверка пароля """
+    return Message.ask_password(
+        'Внимание',
+        'Необходимо подтверждение паролем:'
+    ) == b'h\x87\x87\xd8\xff\x14LP,\x7f\\\xff\xaa\xfe,\xc5' \
+         b'\x88\xd8`y\xf9\xde\x880L&\xb0\xcb\x99\xce\x91\xc6'

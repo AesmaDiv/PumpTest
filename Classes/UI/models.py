@@ -240,6 +240,7 @@ class ComboItemModel(FilterModel):
         index = self.find_index(value)
         self._log(f"=-> {self.parent.objectName()}", "::\t",
                   f"элемент найден по индексу {index}")
+        self.applyFilter()
         self.select(index)
 
     def select(self, index):
@@ -249,23 +250,22 @@ class ComboItemModel(FilterModel):
                       f"выбор индекса {index}")
             self.parent.setCurrentIndex(index)
 
-    def check_selected(self, condition):
+    def check_already_selected(self, condition):
         """ проверяет выбран ли элемент списка отвечающий условию """
-        if condition:
-            if self.parent:
-                self._log(f"=-> {self.parent.objectName()}", "::\t",
-                          f"должен содержать {condition}")
-                item = self.parent.currentData()
-                self._log(f"=-> {self.parent.objectName()}", "::\t",
-                          f"содержит {item}")
-                if item:
-                    if isinstance(condition, dict):
-                        key = next(iter(condition))
-                        result = key in item and item[key] == condition[key]
-                        self._log(f"=-> {self.parent.objectName()}", "::\t",
-                                  f"результат сравнения {result}")
-                        return result
-                    return condition in item.values()
+        if condition and self.parent:
+            self._log(f"=-> {self.parent.objectName()}", "::\t",
+                        f"должен содержать {condition}")
+            item = self.parent.currentData()
+            self._log(f"=-> {self.parent.objectName()}", "::\t",
+                        f"содержит {item}")
+            if item:
+                if isinstance(condition, dict):
+                    key = next(iter(condition))
+                    result = key in item and item[key] == condition[key]
+                    self._log(f"=-> {self.parent.objectName()}", "::\t",
+                                f"результат сравнения {result}")
+                    return result
+                return condition in item.values()
         return False
 
     def applyFilter(self, filters=None):

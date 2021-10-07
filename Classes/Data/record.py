@@ -1,7 +1,8 @@
 """
     Модуль описывающий классы для Испытания, Насоса и Типоразмера
 """
-from Classes.Data.alchemy_tables import Type, Pump, Test
+import sqlalchemy
+from Classes.Data.alchemy_tables import Producer, Type, Pump, Test
 
 
 class Record():
@@ -9,9 +10,8 @@ class Record():
     def __init__(self, db_manager, parent_class: str, rec_id=0):
         self._db_manager = db_manager
         self._parent_class = parent_class
-        self._current = None
         self._props = {}
-        self._ready = self.load(rec_id) if rec_id else self.create()
+        _ = self.read(rec_id) if rec_id else self.create()
 
     def __getitem__(self, key) -> any:
         """ возвращает значение поля записи по имени """
@@ -37,10 +37,10 @@ class Record():
         return self._props.values()
 
     def items(self):
-        ''' возвращает список имен столбцов '''
+        ''' возвращает список элементы столбцов '''
         return self._props.items()
 
-    def load(self, rec_id) -> bool:
+    def read(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
         -> возвращает успех """
         self.clear()
@@ -48,9 +48,8 @@ class Record():
             self._parent_class
         ).where(self._parent_class.ID == rec_id)
         if query.count():
-            self._current = query.one()
             self._props = {
-                k: self._current.__dict__[k] for k in self._props.keys()
+                k: query.one().__dict__[k] for k in self._props.keys()
             }
             return True
         return False
@@ -67,7 +66,6 @@ class Record():
 
     def clear(self):
         """ очищает все данные в записи """
-        self._current = self._parent_class()
         self._props = dict.fromkeys(self._props)
 
     def check_exist(self, conditions: dict=None):
@@ -79,19 +77,25 @@ class Record():
             return items[0]['ID']
         return 0
 
-    def save(self) -> bool:
+    def write(self) -> bool:
         """ сохраняет запись в таблицу БД:
         добавляет новую и сохраняет ID или обновляет существующую
         -> возвращает успех """
-        if self._ready:
-            with self._db_manager.session() as session:
-                self._current.__dict__.update(self._props)
-                session.add(self._current)
-                session.flush()
-                session.refresh(self._current)
+        with self._db_manager.session() as session:
+            data = self._props.copy()
+            id_ = data.pop('ID')
+            if id_:
+                item = session.query(self._parent_class).get(id_)
+            else:
+                item = self._parent_class()
+            for k in data.keys():
+                setattr(item, k, data[k])
+            session.add(item)
+            try:
                 session.commit()
-                return self._current.ID > 0
-        return False
+            except sqlalchemy.exc.IntegrityError:
+                return False
+            return item.ID > 0
 
 
 class RecordType(Record):
@@ -102,11 +106,13 @@ class RecordType(Record):
         self.values_flw = []
         self.values_lft = []
         self.values_pwr = []
+        if type(self) is RecordType:
+            self.ProducerName = ""
 
-    def load(self, rec_id) -> bool:
+    def read(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
         -> возвращает успех """
-        result = super().load(rec_id)
+        result = super().read(rec_id)
         if result:
             if self.Flows and self.Lifts and self.Powers:
                 self.values_flw = list(map(float, self.Flows.split(',')))
@@ -115,11 +121,17 @@ class RecordType(Record):
                 self.values_eff = RecordType.calculate_effs(
                     self.values_flw, self.values_lft, self.values_pwr
                 )
+                if type(self) is RecordType:
+                    with self._db_manager.session() as session:
+                        producer = session.query(Producer).get(self['Producer'])
+                        self.ProducerName = producer.Name
             else:
                 self.values_flw = []
                 self.values_lft = []
                 self.values_pwr = []
                 self.values_eff = []
+                if type(self) is RecordType:
+                    self.ProducerName = ""
         return result
 
     @staticmethod
@@ -140,7 +152,7 @@ class RecordType(Record):
 
     def num_points(self) -> int:
         """ проверяет есть ли точки и возвращает их количество (наименьшее) """
-        if self.values_flw and self.values_lft and self.values_pwr:
+        if all([self.values_flw, self.values_lft, self.values_pwr]):
             num_flw = len(self.values_flw)
             num_lft = len(self.values_lft)
             num_pwr = len(self.values_pwr)
@@ -160,10 +172,10 @@ class RecordTest(RecordType):
         RecordType.__init__(self, db_manager, parent_class, rec_id)
         self.values_vbr = []
 
-    def load(self, rec_id) -> bool:
+    def read(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
         -> возвращает успех """
-        result = super().load(rec_id)
+        result = super().read(rec_id)
         if result:
             if self.Vibrations:
                 self.values_vbr = list(map(float, self.Vibrations.split(',')))

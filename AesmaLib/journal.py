@@ -17,10 +17,10 @@ class Journal:
         """ Декоратор журналирования """
         def wrapped(*args, **kwargs):
             if isinstance(func, staticmethod):
-                Journal.log(f"{func.__class__.__name__}::\t{func.__func__.__doc__}")
+                Journal.log_stfunc(func)
                 result = func.__func__(*args, **kwargs)
             else:
-                Journal.log(f"{func.__module__}::\t{func.__doc__}")
+                Journal.log_func(func)
                 result = func(*args, **kwargs)
             return result
         return wrapped
@@ -52,3 +52,17 @@ class Journal:
                 file_.write(message + '\n')
                 file_.close()
         print(message, end=end)
+
+    @staticmethod
+    def log_func(func, postfix=""):
+        """ журналирование выполняемого метода """
+        Journal.log(f"{func.__module__}::",
+                    f"\t{func.__doc__.strip()}",
+                    f"--> {postfix}" if postfix else "")
+
+    @staticmethod
+    def log_stfunc(func, postfix=""):
+        """ журналирование выполняемого статического метода """
+        Journal.log(f"{func.__self__.__class__.__name__}::",
+                    f"\t{func.__func__.__doc__.strip()}",
+                    f"--> {postfix}" if postfix else "")

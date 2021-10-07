@@ -43,12 +43,11 @@ def display_test_points(window, testdata):
 def display_pump_info(window, testdata):
     """ отображает информацию о насосе """
     pump_id = testdata.test_['Pump']
-    # pump_id = test_info.pump_['ID']
     Journal.log(f"{__name__}::\t загружает информацию о насосе --> {pump_id}")
-    if testdata.pump_.load(pump_id):
+    if testdata.pump_.read(pump_id):
         type_id = testdata.pump_['Type']
         Journal.log(f"{__name__}::\t загружает информацию о типе --> {type_id}")
-        if testdata.type_.load(type_id):
+        if testdata.type_.read(type_id):
             funcs_group.group_display(window.groupPumpInfo, testdata.pump_)
             funcs_group.group_lock(window.groupPumpInfo, True)
             window.groupTestFrame.setTitle(testdata.type_.Name)
