@@ -4,16 +4,16 @@
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QMenu
-from PyQt5.QtGui import QCursor
+from PyQt5.QtGui import QCursor, QCloseEvent
+from Classes.Adam import adam_config as adam
 
 from Classes.UI import funcs_table, funcs_table_points, funcs_table_vibr
 from Classes.UI import funcs_testlist, funcs_combo, funcs_group, funcs_display
-from Classes.Adam.adam_manager import AdamManager
-from Classes.UI import funcs_aux
-from Classes.Report.report import Report
+from Classes.UI import funcs_aux, funcs_test
+from Classes.Data.report import Report
 from Classes.Data.data_manager import DataManager
 from Classes.Graph.graph_manager import GraphManager
-from Classes.test import Test
+from Classes.Adam.adam_manager import AdamManager
 
 from AesmaLib.message import Message
 from AesmaLib.journal import Journal
@@ -30,12 +30,11 @@ class MainWindow(QMainWindow):
             Journal.log(__name__, "::\t", "ошибка:", str(error))
             return None
         self._is_displaying = dict.fromkeys(['Producer','Type','Serial'], False)
-        self._adam = AdamManager()
         self._data_manager = DataManager(pathes['DB'])
         self._testdata = self._data_manager.get_testdata()
         self._graph_manager = GraphManager(self._testdata)
+        self._adam_manager = AdamManager(adam.IP, adam.PORT, adam.ADDRESS)
         self._report = Report(pathes['TEMPLATE'], self._graph_manager, self._testdata)
-
 
     @Journal.logged
     def show(self):
@@ -43,7 +42,13 @@ class MainWindow(QMainWindow):
         self._prepare()
         super().show()
         self.move(1, 1)
-        Test.switch_running_state(self, False)
+        funcs_test.switch_running_state(self, self._adam_manager, False)
+
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        """ погдотовка к закрытию приложения """
+        self._adam_manager.disconnect()
+        # print("main window prepared for closing")
+        return super().closeEvent(a0)
 
     @Journal.logged
     def set_color_scheme(self):
@@ -61,6 +66,7 @@ class MainWindow(QMainWindow):
         funcs_testlist.refresh(self, self._data_manager)
         funcs_testlist.filter_switch(self)
         funcs_combo.fill_combos(self, self._data_manager)
+        funcs_test.prepare_sliders_range(self)
         funcs_table_points.init(self)
         funcs_table_vibr.init(self)
         self.set_color_scheme()
@@ -74,49 +80,52 @@ class MainWindow(QMainWindow):
         """ привязывает события элементов формы к обработчикам """
         self.tableTests.selectionModel().currentChanged.connect(self.on_changed_testlist)
         self.tableTests.customContextMenuRequested.connect(self.on_menu_testlist)
-
-        self.cmbProducer.currentIndexChanged.connect(self.on_changed_combo_producers)
-        self.cmbType.currentIndexChanged.connect(self.on_changed_combo_types)
-        self.cmbSerial.currentIndexChanged.connect(self.on_changed_combo_serials)
-
-        self.btnTest.clicked.connect(self.on_clicked_test)
-        self.btnTest_New.clicked.connect(self.on_clicked_test_info_new)
-        self.btnTest_Save.clicked.connect(self.on_clicked_test_info_save)
-        self.btnTest_Cancel.clicked.connect(self.on_clicked_test_info_cancel)
-
-        self.btnPump_New.clicked.connect(self.on_clicked_pump_info_new)
-        self.btnPump_Save.clicked.connect(self.on_clicked_pump_info_save)
-        self.btnPump_Cancel.clicked.connect(self.on_clicked_pump_info_cancel)
-
-        self.btnFilterReset.clicked.connect(self.on_clicked_filter_reset)
-
+        #
         self.txtFilter_ID.textChanged.connect(self.on_changed_filter_apply)
         self.txtFilter_DateTime.textChanged.connect(self.on_changed_filter_apply)
         self.txtFilter_OrderNum.textChanged.connect(self.on_changed_filter_apply)
         self.txtFilter_Serial.textChanged.connect(self.on_changed_filter_apply)
-
+        self.btnFilterReset.clicked.connect(self.on_clicked_filter_reset)
         self.radioOrderNum.toggled.connect(self.on_changed_column_testlist)
-
+        #
+        self.cmbProducer.currentIndexChanged.connect(self.on_changed_combo_producers)
+        self.cmbType.currentIndexChanged.connect(self.on_changed_combo_types)
+        self.cmbSerial.currentIndexChanged.connect(self.on_changed_combo_serials)
+        #
+        self.btnTest_New.clicked.connect(self.on_clicked_test_info_new)
+        self.btnTest_Save.clicked.connect(self.on_clicked_test_info_save)
+        self.btnTest_Cancel.clicked.connect(self.on_clicked_test_info_cancel)
+        #
+        self.btnPump_New.clicked.connect(self.on_clicked_pump_info_new)
+        self.btnPump_Save.clicked.connect(self.on_clicked_pump_info_save)
+        self.btnPump_Cancel.clicked.connect(self.on_clicked_pump_info_cancel)
+        #
         self.btnGoTest.clicked.connect(self.on_clicked_go_test)
         self.btnGoBack.clicked.connect(self.on_clicked_go_back)
-
+        #
         self.txtFlow.textChanged.connect(self.on_changed_sensors)
         self.txtLift.textChanged.connect(self.on_changed_sensors)
         self.txtPower.textChanged.connect(self.on_changed_sensors)
-
+        #
         self.btnAddPoint.clicked.connect(self.on_clicked_add_point)
         self.btnRemovePoint.clicked.connect(self.on_clicked_remove_point)
         self.btnClearCurve.clicked.connect(self.on_clicked_clear_curve)
         self.btnSaveCharts.clicked.connect(self.on_clicked_test_result_save)
-
-        self.checkConnection.clicked.connect(self.on_clicked_adam_connection)
-        # funcsAdam.broadcaster.event.connect(self.on_adam_data_received)
-
+        #
         self.radioPointsReal.toggled.connect(self.on_changed_points_mode)
         # gvars.markers.eventMove.connect(self.on_markers_move)
         self.txtFlow.wheelEvent = self.on_mouse_wheel_flow
         self.txtLift.wheelEvent = self.on_mouse_wheel_lift
         self.txtPower.wheelEvent = self.on_mouse_wheel_power
+        #
+        self.checkConnection.clicked.connect(self.on_clicked_adam_connection)
+        self.btnEngine.clicked.connect(self.on_clicked_engine)
+        self.sliderPressure.sliderReleased.connect(self.on_changed_pressure)
+        self.sliderSpeed.sliderReleased.connect(self.on_changed_speed)
+        self.radioFlow0.toggled.connect(self.on_changed_flowmeter)
+        self.radioFlow1.toggled.connect(self.on_changed_flowmeter)
+        self.radioFlow2.toggled.connect(self.on_changed_flowmeter)
+        self._adam_manager.data_received().connect(self.on_adam_data_received)
 
     def _init_markers(self):
         """ инициирует маркеры графика испытания """
@@ -323,19 +332,19 @@ class MainWindow(QMainWindow):
         self._graph_manager.display_charts(self.frameGraphInfo)
         funcs_testlist.select_test(self, self._testdata.test_['ID'])
 
-    def on_clicked_test(self):
+    def on_clicked_engine(self):
         """ нажата кнопка начала/остановки испытания """
         Journal.log('___' * 30)
-        Journal.log_func(self.on_clicked_test)
-        Test.is_running = not Test.is_running
-        self._graph_manager.switch_charts_visibility(Test.is_running)
-        Test.switch_running_state(self, Test.is_running)
+        Journal.log_func(self.on_clicked_engine)
+        state = not funcs_test.states["is_running"]
+        self._graph_manager.switch_charts_visibility(state)
+        funcs_test.switch_running_state(self, self._adam_manager, state)
 
     def on_clicked_add_point(self):
         """ нажата кнопка добавления точки """
         Journal.log('___' * 30)
         Journal.log_func(self.on_clicked_add_point)
-        current_vals = Test.get_current_vals(self)
+        current_vals = funcs_test.get_current_vals(self)
         funcs_table_points.add(self, *current_vals)
         self._graph_manager.markers_add_knots()
         self._graph_manager.add_points_to_charts(*current_vals)
@@ -352,7 +361,7 @@ class MainWindow(QMainWindow):
 
     def on_changed_points_mode(self):
         """ переключение значений точек реальные / на ступень """
-        Test.switch_points_stages_real(self, self._testdata)
+        funcs_test.switch_points_stages_real(self, self._testdata)
 
     def on_clicked_clear_curve(self):
         """ нажата кнопка удаления всех точек """
@@ -367,21 +376,35 @@ class MainWindow(QMainWindow):
         """ нажата кнопка подключения к ADAM5000TCP """
         Journal.log('___' * 30)
         Journal.log_func(self.on_clicked_adam_connection)
-        state = self._adam.changeConnectionState()
+        state = self.checkConnection.isChecked()
+        state = funcs_test.switch_connection(self._adam_manager, state)
         self.checkConnection.setChecked(state)
         self.checkConnection.setText("подключено" if state else "отключено")
 
     def on_adam_data_received(self, sensors: dict):
         """ приход данных от ADAM5000TCP """
-        Journal.log_func(self.on_adam_data_received)
+        # Journal.log_func(self.on_adam_data_received)
         point_data = {key: sensors[key] for key
                     in ['rpm', 'torque', 'pressure_in', 'pressure_out']}
-        point_data['flw'] = sensors[self._active_flowmeter]
+        # point_data['flw'] = sensors[self._active_flowmeter]
         funcs_display.display_sensors(self, sensors)
+
+    def on_changed_pressure(self):
+        """ изменение положение задвижки """
+        funcs_test.change_flow_valve(self, self._adam_manager)
+
+    def on_changed_speed(self):
+        """ изменение скорости вращения двигателя """
+        funcs_test.change_engine_rpm(self, self._adam_manager)
+
+    def on_changed_flowmeter(self):
+        """ изменение текущего расходомера """
+        Journal.log_func(self.on_changed_flowmeter)
+        funcs_test.switch_active_flowmeter(self)
 
     def on_changed_sensors(self):
         """ изменения значений датчиков """
-        vals = Test.get_current_vals(self)
+        vals = funcs_test.get_current_vals(self)
         params = [
             {'name': 'test_lft', 'x': vals[0], 'y': vals[1]},
             {'name': 'test_pwr', 'x': vals[0], 'y': vals[2]}

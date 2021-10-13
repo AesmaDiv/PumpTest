@@ -1,95 +1,81 @@
-import threading
-from PyQt5.QtCore import QThread, QObject, pyqtSignal
-from Classes.Adam import adam_config
-from AesmaLib.Hardware.Adam5k import Adam5K
+"""
+    Модуль содержит классы для работы с Advantech ADAM 5000 TCP
+"""
+from PyQt5.QtCore import pyqtSignal, QObject
+from .adam_5k import Adam5K, Param, SlotType
+from . import adam_config as adam
 
 
-class Privategvars:
-    is_displaying = False
-    is_timer_active = False
-    display_iteration: int = 0
-    adam = Adam5K(
-        adam_config.ip,
-        adam_config.port,
-        adam_config.modbus
-    )
+class AdamManager(Adam5K):
+    """ Класс для связи контроллера Adam5000TCP с интерфейсом программы """
+    class Broadcaster(QObject):
+        """ Класс вещателя события """
+        event = pyqtSignal(dict)
 
-
-class Broadcaster(QObject):
-    event = pyqtSignal(dict)
-
-
-class AdamManager:
-    __private = Privategvars()
-    broadcaster = Broadcaster()
     sensors = {
         'rpm': 0.0,
         'torque': 0.0,
         'pressure_in': 0.0,
         'pressure_out': 0.0,
-        'flw05': 0.0,
+        'flw0': 0.0,
         'flw1': 0.0,
         'flw2': 0.0
     }
 
-    def changeConnectionState(self):
-        state = False
-        if not self.__private.adam.isConnected():
-            state = self.startDisplaying()
-        else:
-            self.stopDisplaying()
-        return state
+    def __init__(self, host, port=502, address=1) -> None:
+        super().__init__(host=host, port=port, address=address)
+        self._broadcaster = AdamManager.Broadcaster()
 
-    def startDisplaying(self):
-        if self.__private.adam.connect():
-            self.__private.adam.startReading()
-            self.__private.display_iteration = 0
-            self.__private.is_displaying = True
-            threading.Thread(target=AdamManager.__displayTimerThread).start()
+    def data_received(self):
+        """ ссылка на событие прибытие данных """
+        return self._broadcaster.event
+
+    def set_polling_state(self, state: bool, interval=1):
+        """ вкл/выкл опрос устройства """
+        if state and self.connect():
+            self.set_interval(interval)
+            return self.set_reading_state(True)
+        self.set_reading_state(False)
+        self.disconnect()
+        return False
+
+    def set_value(self, param: Param, value: int) -> bool:
+        """ установка значения для канала """
+        if self.check_params(param, value):
+            self.set_channel_value(
+                param.slot_type, param.slot, param.channel, value
+            )
             return True
         return False
 
-    def stopDisplaying(self):
-        self.__private.is_displaying = False
-        while self.__private.is_timer_active:
-            continue
-        self.__private.adam.stopReading()
-        self.__private.adam.disconnect()
+    @staticmethod
+    def check_params(params: Param, value) -> bool:
+        """ проверка параметров """
+        if params.slot_type in (SlotType.ANALOG, SlotType.DIGITAL):
+            if 0 <= params.slot < 8 and 0 <= params.channel < 8:
+                if 0 <= value < params.dig_max:
+                    return True
+        return False
 
-    def __displayTimerThread(self):
-        print('funcsAdam:', '\tdisplayTimer started...')
-        self.__private.is_timer_active = True
-        while self.__private.is_displaying:
-            timer = threading.Timer(1, AdamManager.__displayTimerTick)
-            timer.start()
-            timer.join()
-        self.__private.is_timer_active = False
-        print('funcsAdam:', '\tdisplayTimer stopped')
+    def _timer_tick(self):
+        """ тик таймера опроса устройства """
+        super()._timer_tick()
+        self.__read_registers()
+        self.__calculate_real_values()
+        self.data_received().emit(self.sensors)
 
-    def __displayTimerTick(self):
-        self.__getValuesFromRegisters()
-        self.__calculateRealValues()
-        self.broadcaster.event.emit(self.sensors)
-        print('funcsAdam:', '\tdisplayTick iteration:', self.__private.display_iteration)
-        self.__private.display_iteration += 1
+    def __read_registers(self):
+        """ чтение регистров """
+        for key in self.sensors:
+            self.sensors[key] = self.__read_register(adam.params[key])
 
-    def __getValuesFromRegisters(self):
-        self.sensors['rpm'] = AdamManager.__getValueFromRegister(*adam_config.rpm)
-        self.sensors['torque'] = AdamManager.__getValueFromRegister(*adam_config.torque)
-        self.sensors['pressure_in'] = AdamManager.__getValueFromRegister(*adam_config.pressure_in)
-        self.sensors['pressure_out'] = AdamManager.__getValueFromRegister(*adam_config.pressure_out)
-        self.sensors['flw05'] = AdamManager.__getValueFromRegister(*adam_config.flw05)
-        self.sensors['flw1'] = AdamManager.__getValueFromRegister(*adam_config.flw1)
-        self.sensors['flw2'] = AdamManager.__getValueFromRegister(*adam_config.flw2)
+    def __read_register(self, param: Param):
+        """ чтение региста аналогового слота"""
+        return self.get_value(param.slot_type, param.slot, param.channel)
 
-    def __getValueFromRegister(self, name):
-        return self.__private.adam.getValue(Adam5K.SlotType.ANALOG, name, None)
-
-    def __calculateRealValues(self):
-        self.sensors['rpm'] = (self.sensors['rpm'] - 32767) * 10000 / 65535
-        self.sensors['torque'] = (self.sensors['torque'] - 32767) * 20000 / 65535
-        self.sensors['pressure_in'] *= (600 * 0.145 / 65535)
-        self.sensors['pressure_out'] *= (6000 / 65535)
-        self.sensors['flw05'] *= (1282 * 0.158 / 65535)
-        self.sensors['flw1'] *= (1700 * 0.158 / 65535)
-        self.sensors['flw2'] *= (13000 * 0.158 / 65535)
+    def __calculate_real_values(self):
+        """ расчёт значений """
+        for key, value in self.sensors.items():
+            param = adam.params[key]
+            value = param.val_rng * (value - param.offset) / param.dig_max
+            self.sensors[key] = round(value, 2)

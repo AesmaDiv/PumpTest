@@ -3,5 +3,5 @@ find . -type d -name __pycache__ -exec rm -rf {} \;
 git config --global user.name "AesmaDiv"
 git config --global user.email "jhwh.0001@gmail.com"
 git add .
-git commit -m "привёл в порядок структуру проекта"
+git commit -m "готова аппаратная часть"
 git push origin main

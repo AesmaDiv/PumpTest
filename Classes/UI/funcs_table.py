@@ -3,7 +3,7 @@
 """
 from PyQt5.QtWidgets import QTableView, QHeaderView
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
-from Classes.UI import models as models
+from Classes.UI import models
 from AesmaLib.journal import Journal
 
 

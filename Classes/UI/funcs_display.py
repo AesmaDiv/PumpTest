@@ -4,7 +4,7 @@
 from AesmaLib.journal import Journal
 from Classes.UI.funcs_aux import calculate_eff
 from Classes.UI import funcs_table, funcs_table_points
-from Classes.UI import funcs_table_vibr, funcs_group
+from Classes.UI import funcs_table_vibr, funcs_group, funcs_test
 
 
 def display_sensors(window, sensors: dict):
@@ -13,9 +13,12 @@ def display_sensors(window, sensors: dict):
     window.txtTorque.setText(str(sensors['torque']))
     window.txtPsiIn.setText(str(sensors['pressure_in']))
     window.txtPsiOut.setText(str(sensors['pressure_out']))
-    window.txtFlow05.setText(str(sensors['flw05']))
+    window.txtFlow0.setText(str(sensors['flw0']))
     window.txtFlow1.setText(str(sensors['flw1']))
     window.txtFlow2.setText(str(sensors['flw2']))
+    window.txtFlow.setText(
+        str(sensors[funcs_test.states["active_flowmeter"]])
+    )
 
 
 @Journal.logged
