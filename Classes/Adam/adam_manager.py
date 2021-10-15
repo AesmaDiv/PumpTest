@@ -26,54 +26,54 @@ class AdamManager(Adam5K):
         super().__init__(host=host, port=port, address=address)
         self._broadcaster = AdamManager.Broadcaster()
 
-    def data_received(self):
+    def dataReceived(self):
         """ ссылка на событие прибытие данных """
         return self._broadcaster.event
 
-    def set_polling_state(self, state: bool, interval=1):
+    def setPollingState(self, state: bool, interval=1):
         """ вкл/выкл опрос устройства """
         if state and self.connect():
-            self.set_interval(interval)
-            return self.set_reading_state(True)
-        self.set_reading_state(False)
+            self.setInterval(interval)
+            return self.setReadingState(True)
+        self.setReadingState(False)
         self.disconnect()
         return False
 
-    def set_value(self, param: Param, value: int) -> bool:
+    def setValue(self, param: Param, value: int) -> bool:
         """ установка значения для канала """
-        if self.check_params(param, value):
-            self.set_channel_value(
+        if self.checkParams(param, value):
+            self.setChannelValue(
                 param.slot_type, param.slot, param.channel, value
             )
             return True
         return False
 
     @staticmethod
-    def check_params(params: Param, value) -> bool:
+    def checkParams(params: Param, value) -> bool:
         """ проверка параметров """
         if params.slot_type in (SlotType.ANALOG, SlotType.DIGITAL):
             if 0 <= params.slot < 8 and 0 <= params.channel < 8:
-                if 0 <= value < params.dig_max:
+                if 0 <= value <= params.dig_max:
                     return True
         return False
 
-    def _timer_tick(self):
+    def _threadTick(self):
         """ тик таймера опроса устройства """
-        super()._timer_tick()
-        self.__read_registers()
-        self.__calculate_real_values()
-        self.data_received().emit(self.sensors)
+        super()._threadTick()
+        self.__readRegisters()
+        self.__calculateRealValues()
+        self.dataReceived().emit(self.sensors)
 
-    def __read_registers(self):
+    def __readRegisters(self):
         """ чтение регистров """
         for key in self.sensors:
-            self.sensors[key] = self.__read_register(adam.params[key])
+            self.sensors[key] = self.__readRegister(adam.params[key])
 
-    def __read_register(self, param: Param):
+    def __readRegister(self, param: Param):
         """ чтение региста аналогового слота"""
-        return self.get_value(param.slot_type, param.slot, param.channel)
+        return self.getValue(param.slot_type, param.slot, param.channel)
 
-    def __calculate_real_values(self):
+    def __calculateRealValues(self):
         """ расчёт значений """
         for key, value in self.sensors.items():
             param = adam.params[key]

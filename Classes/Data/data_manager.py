@@ -2,6 +2,7 @@
     Модуль описывает структуру хранения информации об испытании
     и класс по управлению этой информацией
 """
+from dataclasses import dataclass, field
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm.session import Session
 from Classes.Data.alchemy_tables import Pump, Test
@@ -10,13 +11,14 @@ from AesmaLib.message import Message
 from AesmaLib.journal import Journal
 
 
+@dataclass
 class TestData:
     """ Класс для полной информации об записи """
     def __init__(self, db_manager) -> None:
         self.type_ = RecordType(db_manager)
         self.pump_ = RecordPump(db_manager)
         self.test_ = RecordTest(db_manager)
-        self.dlts_ = {}
+        self.dlts_ = field(default_factory=dict)
 
 
 class DataManager:
@@ -30,25 +32,25 @@ class DataManager:
         """ создаёт новую сессию для запросов """
         return Session(self._engine)
 
-    def get_testdata(self):
+    def getTestdata(self):
         """ возвращает ссылку на информацию об записи """
         return self._testdata
 
     @Journal.logged
-    def clear_record(self):
+    def clearRecord(self):
         """ очищает информацию о записи """
-        self.clear_type_info()
-        self.clear_pump_info()
-        self.clear_test_info()
+        self.clearTypeInfo()
+        self.clearPumpInfo()
+        self.clearTestInfo()
         self._testdata.dlts_ = {}
 
-    def load_record(self, test_id: int) -> bool:
+    def loadRecord(self, test_id: int) -> bool:
         """ загружает информацию о тесте """
-        Journal.log_func(self.load_record, test_id)
+        Journal.log_func(self.loadRecord, test_id)
         return self._testdata.test_.read(test_id)
 
     @Journal.logged
-    def remove_current_record(self):
+    def removeCurrentRecord(self):
         """ удаляет текущую запись из БД"""
         test_id = self._testdata.test_['ID']
         if test_id:
@@ -58,19 +60,19 @@ class DataManager:
                     session.delete(query.one())
                     session.commit()
 
-    def clear_type_info(self):
+    def clearTypeInfo(self):
         """ очистка информации о типоразмере """
         self._testdata.type_.clear()
 
-    def clear_pump_info(self):
+    def clearPumpInfo(self):
         """ очистка информации о насосе """
         self._testdata.pump_.clear()
 
-    def clear_test_info(self):
+    def clearTestInfo(self):
         """ очистка информации о тесте """
         self._testdata.test_.clear()
 
-    def get_tests_list(self):
+    def getTestsList(self):
         """ получает список тестов """
         result = []
         with Session(self._engine) as session:
@@ -79,7 +81,7 @@ class DataManager:
             ).filter(Test.Pump == Pump.ID).order_by(Test.ID.desc()).all()
         return list(map(dict, result))
 
-    def get_list_for(self, table_class, fields):
+    def getListFor(self, table_class, fields):
         """ получает список элементов из таблицы """
         result = []
         with Session(self._engine) as session:
@@ -87,7 +89,7 @@ class DataManager:
             result = session.query(*columns).all()
         return list(map(dict, result))
 
-    def check_exists_serial(self, serial):
+    def checkExists_serial(self, serial):
         """ возвращает ID записи с введенным серийным номером """
         with Session(self._engine) as session:
             query = session.query(Pump).where(Pump.Serial == serial)
@@ -102,7 +104,7 @@ class DataManager:
                 return query.one().ID, choice
         return 0, False
 
-    def check_exists_ordernum(self, order_num, with_select=False):
+    def checkExists_ordernum(self, order_num, with_select=False):
         """ возвращает ID записи с введенным номером наряд-заказа """
         with Session(self._engine) as session:
             query = session.query(Test).where(Test.OrderNum == order_num)
@@ -119,12 +121,12 @@ class DataManager:
         return 0, -1
 
     @Journal.logged
-    def save_test_info(self):
+    def saveTestInfo(self):
         """ сохраняет информацию о тесте """
         self._testdata.test_['Pump'] = self._testdata.pump_['ID']
         self._testdata.test_.write()
 
     @Journal.logged
-    def save_pump_info(self) -> bool:
+    def savePumpInfo(self) -> bool:
         """ сохраняет информацию о насосе """
         return self._testdata.pump_.write()

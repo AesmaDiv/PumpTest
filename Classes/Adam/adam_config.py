@@ -11,15 +11,18 @@ ADDRESS         = 1
 params = {
     # "имя": ((тип_слота, слот, канал), (диапазон, смещение, макс.цифр)
     # данные
-    "torque":       Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
-    "pressure_in":  Param(SlotType.ANALOG, 2, 1,    1000, 0x0, 0x0FFF),
-    "pressure_out": Param(SlotType.ANALOG, 2, 2,    1000, 0x0, 0x0FFF),
-    "rpm":          Param(SlotType.ANALOG, 2, 3,    1000, 0x0, 0x0FFF),
-    "flw0":        Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
-    "flw1":         Param(SlotType.ANALOG, 2, 1,    1000, 0x0, 0x0FFF),
-    "flw2":         Param(SlotType.ANALOG, 2, 2,    1000, 0x0, 0x0FFF),
+    "flw0":         Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
+    "flw1":         Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
+    "flw2":         Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
+    "rpm":          Param(SlotType.ANALOG, 2, 1,    1000, 0x0, 0x0FFF),
+    "torque":       Param(SlotType.ANALOG, 2, 2,    1000, 0x0, 0x0FFF),
+    "pressure_in":  Param(SlotType.ANALOG, 2, 3,    1000, 0x0, 0x0FFF),
+    "pressure_out": Param(SlotType.ANALOG, 2, 3,    1000, 0x0, 0x0FFF),
     # управление
     "engine":       Param(SlotType.DIGITAL, 0, 1,      0, 0x0, 0xFF00),
-    "valve":        Param(SlotType.ANALOG,  2, 0,      0, 0x0, 0xFFFF),
-    "speed":        Param(SlotType.ANALOG,  2, 1,      0, 0x0, 0xFFFF)
+    "valve":        Param(SlotType.ANALOG,  2, 0,      0, 0x0, 0x0FFF),
+    "speed":        Param(SlotType.ANALOG,  2, 1,      0, 0x0, 0x0FFF),
+    # ВРЕМЕННО
+    "torque_":      Param(SlotType.ANALOG,  2, 2,      0, 0x0, 0x0FFF),
+    "pressure_":    Param(SlotType.ANALOG,  2, 3,      0, 0x0, 0x0FFF),
 }

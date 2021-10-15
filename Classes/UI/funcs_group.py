@@ -7,7 +7,7 @@ from PyQt5.QtCore import QRegExp
 from AesmaLib.journal import Journal
 
 
-def group_display(group: QGroupBox, record, log=False):
+def groupDisplay(group: QGroupBox, record, log=False):
     """ отображает информацию записи в полях группы """
     Journal.log(f"{__name__}::\t заполняет поля группы {group.objectName()}")
     for name, value in record.items():
@@ -18,12 +18,12 @@ def group_display(group: QGroupBox, record, log=False):
             if isinstance(item[0], QLineEdit):
                 item[0].setText(str(value))
             elif isinstance(item[0], QComboBox):
-                item[0].model().select_contains(value)
+                item[0].model().selectContains(value)
             if log:
                 Journal.log(f"{item[0].objectName()} <== {value}")
 
 
-def group_save(group: QGroupBox, record, log=False):
+def groupSave(group: QGroupBox, record, log=False):
     """ сохраняет информацию записи в полях группы """
     Journal.log(f"{__name__}::\t сохраняет значения",
                 f"из полей группы {group.objectName()}")
@@ -41,7 +41,7 @@ def group_save(group: QGroupBox, record, log=False):
                 Journal.log(f"{item[0].objectName()} ==> {record[name]}")
 
 
-def group_check(group: QGroupBox, log=True):
+def groupCheck(group: QGroupBox, log=True):
     """ проверяет заполнение всех полей группы """
     Journal.log(f"{__name__}::\t проверяет заполнение",
                 f"всех полей группы {group.objectName()}")
@@ -56,7 +56,7 @@ def group_check(group: QGroupBox, log=True):
     return True
 
 
-def group_clear(group: QGroupBox):
+def groupClear(group: QGroupBox):
     """ очищает отображаемую информацию записи в полях группы """
     Journal.log(f"{__name__}::\t очищает поля группы {group.objectName()}")
     widgets = group.findChildren(QWidget)
@@ -69,7 +69,7 @@ def group_clear(group: QGroupBox):
     group.repaint()
 
 
-def group_lock(group: QGroupBox, state: bool):
+def groupLock(group: QGroupBox, state: bool):
     """ блокирует поля группы от изменений """
     Journal.log(f"{__name__}::\t"
                 f"{'устанавливает' if state else 'снимает'} блокировку полей группы")

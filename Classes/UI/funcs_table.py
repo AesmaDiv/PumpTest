@@ -1,36 +1,87 @@
 """
     Модуль содержит функции для работы с таблицами главного окна
 """
+from dataclasses import dataclass, field
 from PyQt5.QtWidgets import QTableView, QHeaderView
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
 from Classes.UI import models
 from AesmaLib.journal import Journal
 
 
-def create(table_view: QTableView, display: list, headers: list,
-            data=None, headers_sizes: list=None, headers_resizes: list=None,
-            filter_proxy: QSortFilterProxyModel=None):
-    """ создание таблицы """
-    model = models.ListModel(data=data, display=display, headers=headers)
-    if filter_proxy is None:
-        filter_proxy = QSortFilterProxyModel()
-    filter_proxy.setSourceModel(model)
-    table_view.setModel(filter_proxy)
-    set_headers(table_view, len(display),
-                                headers_sizes, headers_resizes)
+@dataclass
+class TableParams:
+    """ Класс параметров таблицы """
+    display: list = field(default_factory=list)
+    headers: list = field(default_factory=list)
+    data: object = None
+    headers_sizes: list = field(default_factory=list)
+    headers_resizes: list = field(default_factory=list)
+    filter_proxy: QSortFilterProxyModel = None
 
 
-def get_data(table_view: QTableView):
+@Journal.logged
+def initTable_points(window):
+    """ инициализирует таблицу точек """
+    for i, val in enumerate([60, 60, 80, 60]):
+        window.tablePoints.setColumnWidth(i, val)
+    create(
+        window.tablePoints,
+        TableParams(
+            display=['flw', 'lft', 'pwr', 'eff'],
+            headers=['расход\nм³/сут', 'напор\nм', 'мощность\nкВт', 'кпд\n%'],
+            headers_sizes=[60, 60, 80, 60],
+            headers_resizes=[
+                QHeaderView.Stretch,
+                QHeaderView.Stretch,
+                QHeaderView.Fixed,
+                QHeaderView.Stretch
+            ]
+        )
+    )
+
+
+@Journal.logged
+def initTable_vibrations(window):
+    """ инициализирует таблицу вибрации """
+    window.tableVibrations.setColumnWidth(0, 60)
+    window.tableVibrations.setColumnWidth(1, 80)
+    create(
+        window.tableVibrations,
+        TableParams(
+            display=['num','vbr'],
+            headers=['№','мм/с2'],
+            headers_sizes=[60, 80],
+            headers_resizes=[QHeaderView.Fixed, QHeaderView.Stretch]
+        )
+    )
+
+
+def create(table_view: QTableView, params: TableParams):
+    " создание таблицы """
+    model = models.ListModel(
+        data=params.data, display=params.display, headers=params.headers
+    )
+    if params.filter_proxy is None:
+        params.filter_proxy = QSortFilterProxyModel()
+    params.filter_proxy.setSourceModel(model)
+    table_view.setModel(params.filter_proxy)
+    setHeaders(
+        table_view, len(params.display),
+        params.headers_sizes, params.headers_resizes
+    )
+
+
+def getData(table_view: QTableView):
     """ получение данных из таблицы """
-    proxy: QSortFilterProxyModel = table_view.model()
+    proxy = table_view.model()
     current_model = proxy.sourceModel()
     data = current_model.getData()
     return data
 
 
-def set_data(table_view: QTableView, data):
+def setData(table_view: QTableView, data):
     """ запись данных в таблицу """
-    proxy: QSortFilterProxyModel = table_view.model()
+    proxy = table_view.model()
     current_model = proxy.sourceModel()
     display, headers = current_model.getDisplay(), current_model.getHeaders()
     new_model = models.ListModel(data=data, display=display, headers=headers)
@@ -38,45 +89,67 @@ def set_data(table_view: QTableView, data):
     table_view.setModel(proxy)
 
 
-def add_row(table_view: QTableView, row):
+def addToTable_points(window, flw, lft, pwr, eff):
+    """ добавление точки в таблицу """
+    data = {'flw': round(flw, 1),
+            'lft': round(lft, 2),
+            'pwr': round(pwr, 4),
+            'eff': round(eff, 1)}
+    addRow(window.tablePoints, data)
+
+
+def addToTable_vibrations(window, vibrations):
+    """ добавление вибрации в таблицу """
+    for i, vbr in enumerate(vibrations):
+        data = {
+            'num': i + 1,
+            'vbr': round(vbr, 2)
+        }
+        addRow(window.tableVibrations, data)
+
+
+def addRow(table_view: QTableView, row):
     """ добавление строки в таблицу """
-    data = get_data(table_view)
+    data = getData(table_view)
     data.append(row)
-    set_data(table_view, data)
+    setData(table_view, data)
 
 
-def remove_last_row(table_view: QTableView):
+def removeLastRow(table_view: QTableView):
     """ удаление последней строки из таблицы """
-    data = get_data(table_view)
-    if len(data):
+    data = getData(table_view)
+    if data:
         data.pop()
-    set_data(table_view, data)
+    setData(table_view, data)
 
 
 def clear(table_view: QTableView):
     """ полная очистка таблицы """
-    set_data(table_view, [])
+    setData(table_view, [])
 
 
-def get_row(table_view: QTableView):
+def getRow(table_view: QTableView):
     """ получение строки из таблицы """
     try:
         m_index = table_view.currentIndex()
         m_index = m_index.sibling(m_index.row(), m_index.column())
         items = m_index.data(Qt.UserRole)
         return items
-    except BaseException as error:
+    except AttributeError as error:
+        Journal.log(__name__ + " error: " + str(error))
+        return None
+    except TypeError as error:
         Journal.log(__name__ + " error: " + str(error))
         return None
 
 
-def set_headers(table_view: QTableView, headers_count: int,
+def setHeaders(table_view: QTableView, headers_count: int,
                 headers_sizes: list, headers_resizes: list):
     """ установка заголовков столбцов таблицы """
-    header: QHeaderView = table_view.verticalHeader()
+    header = table_view.verticalHeader()
     header.setSectionResizeMode(QHeaderView.Fixed)
     header.setDefaultSectionSize(20)
-    header: QHeaderView = table_view.horizontalHeader()
+    header = table_view.horizontalHeader()
     if headers_sizes and len(headers_sizes) == headers_count:
         for i in range(headers_count):
             table_view.setColumnWidth(i, headers_sizes[i])
@@ -85,9 +158,9 @@ def set_headers(table_view: QTableView, headers_count: int,
             header.setSectionResizeMode(i, headers_resizes[i])
 
 
-def select_row(table_view: QTableView, row: int):
+def selectRow(table_view: QTableView, row: int):
     """ выбор строки в таблице по индексу """
-    sel_model: QItemSelectionModel = table_view.selectionModel()
+    sel_model = table_view.selectionModel()
     index = table_view.model().sourceModel().index(row, 0)
     mode = QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows
     sel_model.select(index, mode)

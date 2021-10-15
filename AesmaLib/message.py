@@ -42,7 +42,7 @@ class Message:
         return buttons.index(msg.clickedButton())
 
     @staticmethod
-    def ask_password(title: str, text: str):
+    def password(title: str, text: str):
         """ вывод окна с полем ввода """
         msg = QInputDialog()
         hash_func = hashlib.sha256()

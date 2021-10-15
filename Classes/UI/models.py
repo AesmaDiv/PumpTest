@@ -2,11 +2,10 @@
     Модуль содержит классы моделей для таблиц и комбобоксов,
     которые описывают механизм отображения элементов
 """
-from PyQt5.QtCore import Qt, QAbstractTableModel, QAbstractListModel
+from PyQt5.QtCore import Qt, QAbstractTableModel
 from PyQt5.QtCore import QSortFilterProxyModel, QVariant
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.Qt import QModelIndex
-from PyQt5.QtWidgets import QComboBox
 
 
 class TemplateTableModel(QAbstractTableModel):
@@ -19,17 +18,17 @@ class TemplateTableModel(QAbstractTableModel):
         self._row_count = len(self._data)
         self._col_count = len(self._display)
 
-    def load_data(self, data: list):
+    def loadData(self, data: list):
         """ загружает данные из списка """
         self._data.clear()
         self._data = data
         self._row_count = len(data)
 
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, _parent=QModelIndex()):
         """ возвращает кол-во строк """
         return self._row_count
 
-    def columnCount(self, parent=QModelIndex()):
+    def columnCount(self, _parent=QModelIndex()):
         """ возвращает кол-во столбцов """
         return self._col_count
 
@@ -58,14 +57,14 @@ class ListModel(TemplateTableModel):
         if index.isValid():
             row = index.row()
             col = index.column()
-            data: dict = self._data[row]
+            data = self._data[row]
+            if role == Qt.UserRole:
+                return QVariant(data)
             if role == Qt.DisplayRole:
-                key: str = self._display[col]
+                key = self._display[col]
                 if key in data.keys():
                     value = data[key]
                     return value
-            elif role == Qt.UserRole:
-                return QVariant(data)
         return QVariant()
 
     def headerData(self, col, orientation, role=Qt.DisplayRole):
@@ -74,7 +73,7 @@ class ListModel(TemplateTableModel):
             return QVariant(self._headers[col])
         return QVariant()
 
-    def get_row_contains(self, column: int, value, role=Qt.DisplayRole):
+    def getRowContains(self, column: int, value, role=Qt.DisplayRole):
         """ возвращает строку содержащую значение """
         result = None
         matches = self.match(self.index(0, column), role, value, -1,
@@ -83,7 +82,7 @@ class ListModel(TemplateTableModel):
             result = matches[0]
         return result
 
-    def find_contains(self, value, role=Qt.DisplayRole):
+    def findContains(self, value, role=Qt.DisplayRole):
         """ возвращает список строк содержащих значение """
         result = []
         matches = self.match(self.index(0, 0), role, value, -1,
@@ -97,30 +96,6 @@ class ListModel(TemplateTableModel):
         return result
 
 
-class PumpListModel(TemplateTableModel):
-    """ Модель таблицы для списка насосов """
-    _display = []
-    _col_count = 0
-
-    def load_data(self, data: list, display: str):
-        """ загружает данные из списка """
-        super().load_data(data)
-        self._display = display
-        self._col_count = len(display)
-
-    def data(self, index: QModelIndex, role=Qt.DisplayRole):
-        """ возвращает отображаемое значение по индексу """
-        row = index.row()
-        column = index.column()
-        if role == Qt.DisplayRole:
-            col_name: str = self._display[column]
-            row_data: dict = self._data[row]
-            if col_name in row_data.keys():
-                result = row_data[col_name]
-                return str(result)
-        return ""
-
-
 class FilterModel(QSortFilterProxyModel):
     """ Модель для фильтра таблиц """
 
@@ -130,13 +105,13 @@ class FilterModel(QSortFilterProxyModel):
         self.setDynamicSortFilter(True)
         self.setFilterKeyColumn(0)
         self.parent = parent
-        self._filters: list = None
-        self._conditions: dict = None
+        self._filters: list = []
+        self._conditions: dict = {}
 
     def applyFilter(self, filters=None):
         """ применяет фильтр """
-        self._filters = filters if isinstance(filters, list) else None
-        self._conditions = filters if isinstance(filters, dict) else None
+        self._filters = filters if isinstance(filters, list) else []
+        self._conditions = filters if isinstance(filters, dict) else {}
         self.setFilterFixedString("")
 
     def resetFilter(self):
@@ -145,9 +120,9 @@ class FilterModel(QSortFilterProxyModel):
 
     def filterAcceptsRow(self, source_row, source_parent):
         """ применяет фильтр к ряду """
-        if self._conditions is not None:
+        if self._conditions:
             return self.__filterUserRole(source_row, source_parent)
-        if self._filters is not None:
+        if self._filters:
             return self.__filterDisplayRole(source_row, source_parent)
         return True
 
@@ -191,13 +166,13 @@ class ComboItemModel(FilterModel):
         """ заполняет комбобокс элементами из списка """
         self._display = display
         for _, value in enumerate(rows):
-            self._model.appendRow(self.create_row(value))
+            self._model.appendRow(self.createRow(value))
 
     def model(self):
         """ возвращает модель """
         return self._model
 
-    def create_row(self, data: dict):
+    def createRow(self, data: dict):
         """ создаёт элемент-строку для комбобокса """
         result = QStandardItem()
         result.setText(data[self._display] if self._display in data \
@@ -205,7 +180,7 @@ class ComboItemModel(FilterModel):
         result.setData(data, Qt.UserRole)
         return result
 
-    def find_index(self, value) -> int:
+    def findIndex(self, value) -> int:
         """ возвращает индекс элемента содержащего значение """
         items = self._model.findItems('', Qt.MatchContains)
         if items:
@@ -221,7 +196,7 @@ class ComboItemModel(FilterModel):
                          if func(item.data(Qt.UserRole))), 0)
         return 0
 
-    def get_item(self, index=-1):
+    def getItem(self, index=-1):
         """ возвращает элемент по индексу """
         items = self._model.findItems('', Qt.MatchContains)
         if items:
@@ -233,11 +208,11 @@ class ComboItemModel(FilterModel):
                 return items[index]
         return None
 
-    def select_contains(self, value):
+    def selectContains(self, value):
         """ устанавливает текущим элемент содержащий значение """
         self._log(f"=-> {self.parent.objectName()}", "::\t",
                   f"выбор элемента содержащего {value}")
-        index = self.find_index(value)
+        index = self.findIndex(value)
         self._log(f"=-> {self.parent.objectName()}", "::\t",
                   f"элемент найден по индексу {index}")
         self.applyFilter()
@@ -250,7 +225,7 @@ class ComboItemModel(FilterModel):
                       f"выбор индекса {index}")
             self.parent.setCurrentIndex(index)
 
-    def check_already_selected(self, condition):
+    def checkAlreadySelected(self, condition):
         """ проверяет выбран ли элемент списка отвечающий условию """
         if condition and self.parent:
             self._log(f"=-> {self.parent.objectName()}", "::\t",
@@ -270,16 +245,16 @@ class ComboItemModel(FilterModel):
 
     def applyFilter(self, filters=None):
         self.select(0)
-        self._log(f"=-> {self.parent.objectName()}", "::\t",
-                  f"применяем новые фильтры:")
-        self._log(f"=-> {self.parent.objectName()}", "::\t",
+        self._log(f"=-> {self.parent.objectName()}::\t",
+                  "применяем новые фильтры:")
+        self._log(f"=-> {self.parent.objectName()}::\t",
                   f"текущий фильтр filters    {self._filters}")
-        self._log(f"=-> {self.parent.objectName()}", "::\t",
+        self._log(f"=-> {self.parent.objectName()}::\t",
                   f"текущий фильтр conditions {self._conditions}")
         super().applyFilter(filters)
-        self._log(f"=-> {self.parent.objectName()}", "::\t",
+        self._log(f"=-> {self.parent.objectName()}::\t",
                   f"новый фильтр filters {self._filters}")
-        self._log(f"=-> {self.parent.objectName()}", "::\t",
+        self._log(f"=-> {self.parent.objectName()}::\t",
                   f"новый фильтр conditions {self._conditions}")
 
     def _log(self, *message):

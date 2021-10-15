@@ -2,7 +2,7 @@
     Модуль вспомогательных функций для всякий операций
 """
 
-def parse_to(to_type: type, string: str, default=None):
+def parseTo(to_type: type, string: str, default=None):
     """ Безопасная конвертация типов """
     try:
         return to_type(string)
@@ -10,12 +10,12 @@ def parse_to(to_type: type, string: str, default=None):
         return default
 
 
-def parse_to_float(string: str):
+def parseToFloat(string: str):
     """ Безопасная конвертация строки в число с пл.запятой """
-    return parse_to(float, string, default=0.0)
+    return parseTo(float, string, default=0.0)
 
 
-def combine_dicts(list_of_dicts: list):
+def combineDicts(list_of_dicts: list):
     """ Объединение списка словарей """
     result = {}
     if list_of_dicts:
@@ -23,23 +23,23 @@ def combine_dicts(list_of_dicts: list):
             result |= d
     return result
 
-def remove_lesser(sorted_array: list, value, is_included=False):
+def removeLesser(sorted_array: list, value, is_included=False):
     """ Удаляет из упорядоченого списка значения МЕНЬШЕ чем 'value'
         'is_included' - включительно
         возвращает новый список и индекс первого елемента
     """
-    return remove_from(sorted_array, value, '<', is_included)
+    return removeFrom(sorted_array, value, '<', is_included)
 
 
-def remove_greater(sorted_array: list, value, is_included=False):
+def removeGreater(sorted_array: list, value, is_included=False):
     """ Удаляет из упорядоченого списка значения БОЛЬШЕ чем 'value'
         'is_included' - включительно
         возвращает новый список и индекс последнего елемента
     """
-    return remove_from(sorted_array, value, '>', is_included)
+    return removeFrom(sorted_array, value, '>', is_included)
 
 
-def remove_from(sorted_array: list, value, condition='>', is_included=False):
+def removeFrom(sorted_array: list, value, condition='>', is_included=False):
     """ Удаляет из упорядоченого списка значения удовлетворяющие
         'condition':
             '>' - больше, чем 'value'
@@ -48,7 +48,7 @@ def remove_from(sorted_array: list, value, condition='>', is_included=False):
         возвращает новый список и индекс последнего елемента
     """
     result = sorted_array.copy()
-    index = get_next(result, value, is_included)
+    index = getNext(result, value, is_included)
     if 0 < index < len(result):
         if condition == '>':
             del result[index:]
@@ -57,7 +57,7 @@ def remove_from(sorted_array: list, value, condition='>', is_included=False):
     return result, index
 
 
-def get_next(sorted_array: list, value, is_including=False):
+def getNext(sorted_array: list, value, is_including=False):
     """ Находит индекс первого элемента равного или больше value """
     if sorted_array:
         func = lambda x: x >= value if is_including else x > value
@@ -69,7 +69,7 @@ def get_next(sorted_array: list, value, is_including=False):
 
 
 
-def split_to_subarrays(array: list, elements_count: int, with_reminder=False):
+def splitToSubarrays(array: list, elements_count: int, with_reminder=False):
     """ Разбивает список на части по 'elements_count' частей
         'with_reminder' - с остатком
     """

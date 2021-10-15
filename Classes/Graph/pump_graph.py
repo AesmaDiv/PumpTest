@@ -76,7 +76,7 @@ class PumpGraph(Graph):
             return self._charts[name]
         return None
 
-    def set_visibile_charts(self, names_of_charts_to_show: list = 'all'):
+    def set_visible_charts(self, names_of_charts_to_show: list = 'all'):
         """ установка флага видимости для кривых """
         for chart in self._charts.values():
             chart.visibility = names_of_charts_to_show == 'all' \

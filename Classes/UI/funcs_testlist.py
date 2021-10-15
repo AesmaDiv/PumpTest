@@ -20,23 +20,30 @@ def init(window):
     tests_data = None
     window.tests_filter = funcs_table.models.FilterModel(window)
     window.tests_filter.setDynamicSortFilter(True)
-    funcs_table.create(window.tableTests, display=tests_display,
-                    filter_proxy=window.tests_filter, data=tests_data,
-                    headers=tests_headers, headers_sizes=tests_headers_sizes,
-                    headers_resizes=tests_resizes)
+    funcs_table.create(
+        window.tableTests,
+        funcs_table.TableParams(
+            display=tests_display,
+            filter_proxy=window.tests_filter,
+            data=tests_data,
+            headers=tests_headers,
+            headers_sizes=tests_headers_sizes,
+            headers_resizes=tests_resizes
+        )
+    )
     window.tableTests.setContextMenuPolicy(Qt.CustomContextMenu)
 
 
 @Journal.logged
 def refresh(window, db_manager):
     """ заполняет список тестов """
-    tests_data = db_manager.get_tests_list()
-    funcs_table.set_data(window.tableTests, tests_data)
-    funcs_table.select_row(window.tableTests, 0)
+    tests_data = db_manager.getTestsList()
+    funcs_table.setData(window.tableTests, tests_data)
+    funcs_table.selectRow(window.tableTests, 0)
     # gvars.db.set_permission('Tests', False)
 
 
-def filter_apply(window, conditions: dict=None):
+def filterApply(window, conditions: dict=None):
     """ применяет фильтр к списку тестов """
     if conditions is None:
         filter_id = window.txtFilter_ID.text()
@@ -47,17 +54,17 @@ def filter_apply(window, conditions: dict=None):
     window.tests_filter.applyFilter(conditions)
 
 
-def filter_reset(window, data_manager):
+def filterReset(window, data_manager):
     """ сбрасывает фильтр списка тестов """
-    funcs_group.group_clear(window.groupTestList)
-    funcs_group.group_clear(window.groupTestInfo)
-    funcs_group.group_clear(window.groupPumpInfo)
-    data_manager.clear_record()
+    funcs_group.groupClear(window.groupTestList)
+    funcs_group.groupClear(window.groupTestInfo)
+    funcs_group.groupClear(window.groupPumpInfo)
+    data_manager.clearRecord()
     window.tests_filter.applyFilter()
-    funcs_table.select_row(window.tableTests, -1)
+    funcs_table.selectRow(window.tableTests, -1)
 
 
-def filter_switch(window):
+def filterSwitch(window):
     """ переключает список тестов (зав.номер/наряд-заказ) """
     if window.radioOrderNum.isChecked():
         window.tableTests.horizontalHeader().hideSection(3)
@@ -71,8 +78,8 @@ def filter_switch(window):
         window.txtFilter_Serial.show()
 
 
-def select_test(window, test_id: int):
+def setCurrentTest(window, test_id: int):
     """ выбирает в списке тестов запись и указаным ID """
     model = window.tableTests.model().sourceModel()
-    index = model.get_row_contains(0, test_id)
+    index = model.getRowContains(0, test_id)
     window.tableTests.selectRow(index.row())

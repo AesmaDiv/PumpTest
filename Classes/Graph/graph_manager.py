@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtWidgets import QFrame
 from Classes.Graph.pump_graph import PumpGraph
 from Classes.Graph.graph_markers import Markers
-from Classes.UI.funcs_aux import calculate_effs
+from Classes.UI.funcs_aux import calculateEffs
 from AesmaLib.GraphWidget.Chart import Chart
 
 
@@ -64,7 +64,7 @@ class GraphManager(PumpGraph):
             pwrs = src.values_pwr
             if is_etalon:
                 pwrs = list(map(lambda x: x * 0.7457, pwrs))
-            effs = calculate_effs(flws, lfts, pwrs)
+            effs = calculateEffs(flws, lfts, pwrs)
             return [flws, lfts, pwrs, effs]
         return None
 
@@ -155,6 +155,22 @@ class GraphManager(PumpGraph):
         """ очистка узлов (всех точек) """
         self._markers.clearAllKnots()
 
+    def set_point_lines_max(self):
+        """ установка макс.значения расхода для линий отбивания точек """
+        self._markers.setPointLinesMax(
+            max(self._charts['lft'].getPoints(), key=lambda item: item[0])[0]
+        )
+
+    def set_point_lines_num(self, value):
+        """ установка кол-ва линий для отбивания точек """
+        self._markers.setPointLinesNumber(value)
+        self._markers.repaint()
+
+    def set_point_lines_cur(self, value):
+        """ установка кол-ва линий для отбивания точек """
+        self._markers.setPointLinesCurrent(value)
+        self._markers.repaint()
+
     def add_points_to_charts(self, flw, lft, pwr, eff):
         """ добавление точек напора и мощности на график """
         self.add_point_to_chart('test_lft', flw, lft)
@@ -220,8 +236,9 @@ class GraphManager(PumpGraph):
 
     def switch_charts_visibility(self, state):
         """ переключение видимости для кривых """
-        self.set_visibile_charts(['lft', 'pwr', 'test_lft', 'test_pwr']
+        self.set_visible_charts(['lft', 'pwr', 'test_lft', 'test_pwr']
                                             if state else 'all')
+        self._markers.setPointLinesVis(state)
         self.display_charts(self._markers)
 
     def generate_result_text(self):

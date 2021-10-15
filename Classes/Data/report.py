@@ -14,72 +14,71 @@ from AesmaLib.journal import Journal
 
 class Report:
     """ Класс протокола об испытании """
+    _NAMES = {
+        "template": "template.html",
+        "report": "report.pdf",
+        "image": "graph_image.jpg"
+    }
+
     def __init__(self, template_folder, graph_manager: GraphManager, test_data: TestData):
         self._webview = None
         self._printer = None
         self._template_folder = template_folder
         self._test_data = test_data
         self._graph_manager = graph_manager
-        self._template_name = "template.html"
-        self._path_to_img = os.path.join(self._template_folder, "graph_image.jpg")
-        self._report_name = "report.pdf"
+        self._path_to_img = os.path.join(
+            self._template_folder,
+            self._NAMES["image"]
+        )
         self._base_url = QUrl.fromLocalFile(self._template_folder + os.path.sep)
 
     @Journal.logged
-    def generate_report(self):
+    def generate(self):
         """ Генерирование протокола """
         if not self._webview:
-            self.__init_printer()
-        self.__create_graph_image()
-        report = self.__create_report()
-        self.__print_report(report)
-        self.__remove_graph_image()
+            self.initPrinter()
+        self.__createGraphImage()
+        report = self.__create()
+        self.__print(report)
+        self.__deleteGraphImage()
 
-    def __init_printer(self):
+    def initPrinter(self):
         """ инициализация представления и принтера при первом запросе """
         self._webview = QWebEngineView()
         self._printer = QPrinter(QPrinter.ScreenResolution)
         self._printer.setOutputFormat(QPrinter.NativeFormat)
         self._printer.setPageSize(QPageSize(QPageSize.A4))
 
-    def __create_graph_image(self):
+    def __loadTemplate(self):
+        """ загрузка html шаблона """
+        loader = FileSystemLoader(self._template_folder)
+        jinja_env = Environment(loader=loader, autoescape=True)
+        result = jinja_env.get_template(self._NAMES["template"])
+        return result
+
+    def __createGraphImage(self):
         """ сохранение графика испытания в jpg"""
         img_size = QSize(794, 450)
         self._graph_manager.switch_palette('report')
         self._graph_manager.render_to_image(img_size, self._path_to_img)
         self._graph_manager.switch_palette('application')
 
-    def __create_report(self):
-        """ создание web страницы протокола """
-        result = self.__load_template()
-        result = self.__fill_report(result)
-        return result
-
-    def __print_report(self, report):
-        """ печать протокола испытания """
-        self._webview.setZoomFactor(1)
-        self._webview.setHtml(report, baseUrl=self._base_url)
-        if QPrintDialog(self._printer).exec_():
-            print("Report\t\t->отправка протокола на печать")
-            self._webview.page().print(self._printer, self.__on_printed)
-        os.remove(self._path_to_img)
-
-    def __remove_graph_image(self):
+    def __deleteGraphImage(self):
         if os.path.exists(self._path_to_img):
             os.remove(self._path_to_img)
 
-    def __on_printed(self, result: bool):
+    @staticmethod
+    def __onPrinted(result: bool):
         """ callback вызова печати """
         print(f"Report\t\t->{'успех' if result else 'ошибка'}")
 
-    def __load_template(self):
-        """ загрузка html шаблона """
-        loader = FileSystemLoader(self._template_folder)
-        jinja_env = Environment(loader=loader, autoescape=True)
-        result = jinja_env.get_template(self._template_name)
+    def __create(self):
+        """ создание web страницы протокола """
+        result = self.__loadTemplate()
+        result = self.__fill(result)
         return result
 
-    def __fill_report(self, template):
+    def __fill(self, template):
         """ заполнение шаблона данными об испытании """
         context = {
             "pump_info": self._test_data.pump_,
@@ -91,3 +90,12 @@ class Report:
         }
         result = template.render(context)
         return result
+
+    def __print(self, report):
+        """ печать протокола испытания """
+        self._webview.setZoomFactor(1)
+        self._webview.setHtml(report, baseUrl=self._base_url)
+        if QPrintDialog(self._printer).exec_():
+            print("Report\t\t->отправка протокола на печать")
+            self._webview.page().print(self._printer, self.__onPrinted)
+        os.remove(self._path_to_img)
