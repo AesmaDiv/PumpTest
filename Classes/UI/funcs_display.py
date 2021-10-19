@@ -1,6 +1,7 @@
 """
     Модуль содержит функции для отображения данных в главном окне
 """
+from PyQt5.QtWidgets import QLineEdit
 from AesmaLib.journal import Journal
 from Classes.UI.funcs_aux import calculateEff
 from Classes.UI import funcs_table, funcs_group, funcs_test
@@ -8,16 +9,21 @@ from Classes.UI import funcs_table, funcs_group, funcs_test
 
 def displaySensors(window, sensors: dict):
     """ отображает показания датчиков """
-    window.txtRPM.setText(str(sensors['rpm']))
-    window.txtTorque.setText(str(sensors['torque']))
-    window.txtPsiIn.setText(str(sensors['pressure_in']))
-    window.txtPsiOut.setText(str(sensors['pressure_out']))
-    window.txtFlow0.setText(str(sensors['flw0']))
-    window.txtFlow1.setText(str(sensors['flw1']))
-    window.txtFlow2.setText(str(sensors['flw2']))
-    window.txtFlow.setText(
-        str(sensors[funcs_test.states["active_flowmeter"]])
-    )
+    # датчики
+    pairs = {
+        "txtRPM": "rpm", "txtTorque": "torque",
+        "txtPsiIn": "psi_in", "txtPsiOut": "psi_out",
+        "txtFlow0": "flw0", "txtFlow1": "flw1", "txtFlow2": "flw2"
+    }
+    for name, key in pairs.items():
+        item = window.findChild(QLineEdit, name)
+        if item:
+            item.setText(str(round(sensors[key], 2)))
+    # расчётные значения
+    flw, lft, pwr = funcs_test.getCalculatedVals(sensors)
+    window.txtFlow.setText(str(round(flw, 2)))
+    window.txtLift.setText(str(round(lft, 2)))
+    window.txtPower.setText(str(round(pwr, 4)))
 
 
 @Journal.logged

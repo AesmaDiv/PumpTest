@@ -3381,7 +3381,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QCheckBox" name="checkConnection">
+      <widget class="QCheckBox" name="chkConnection">
        <property name="geometry">
         <rect>
          <x>11</x>
@@ -3393,8 +3393,11 @@
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QCheckBox { color: red; }</string>
+       </property>
        <property name="text">
-        <string>отключено</string>
+        <string>контроллер отключен</string>
        </property>
       </widget>
       <widget class="QPushButton" name="btnGoBack">

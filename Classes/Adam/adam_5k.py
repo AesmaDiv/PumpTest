@@ -18,11 +18,13 @@ class CommandType(Enum):
     WRITE = 1   # запись
     MULTI = 2   # несколько???
 
+
 class SlotType(Enum):
     """ Тип слота """
     ALL = 'ALL'
     ANALOG = 'ANALOG'
     DIGITAL = 'DIGITAL'
+
 
 @dataclass
 class Param:
@@ -33,6 +35,7 @@ class Param:
     val_rng: float = 0.0
     offset: int = 0x0
     dig_max: int = 0x0FFF
+
 
 class CommandBuilder:
     """ Класс строителя комманд """
@@ -76,7 +79,7 @@ class CommandBuilder:
             result[10:] = value.to_bytes(length=2, byteorder='big')
         else:
             result[10:] = b'\xff\00' if value else b'\x00\00'
-        print('build_register cmd =', result)
+        # print('build_register cmd =', result)
         return result
 
     def buildCommand_slot(self, slot_type: SlotType, slot: int, pattern: list):
@@ -97,8 +100,9 @@ class CommandBuilder:
             result.extend(pattern)
         prefix = bytearray(len(result).to_bytes(6, 'big'))
         result[0:0] = prefix
-        print('build_slot cmd =', result)
+        # print('build_slot cmd =', result)
         return result
+
 
 class Adam5K:
     """ Класс для работы с Advantech Adam5000TCP """
@@ -106,7 +110,8 @@ class Adam5K:
     _states = {
         "is_connected": False,
         "is_reading": False,
-        "is_paused": False
+        "is_paused": False,
+        "interval": 1.0
     }
 
     def __init__(self, host: str, port=502, address=1):
@@ -114,7 +119,7 @@ class Adam5K:
         self._builder = CommandBuilder(address.to_bytes(1, 'big')[0])
         self._sock: socket.socket = None
         self._thread: Thread = None
-        self._interval = 1.0
+        self._callback = None
         self._commands = []
         self._data = {
             SlotType.ANALOG: [],
@@ -124,6 +129,10 @@ class Adam5K:
     def __del__(self):
         self.disconnect()
         print('Adam5K:', '\tdestroyed')
+
+    def setCallback(self, callback):
+        """ привязка callback функции """
+        self._callback = callback
 
     def connect(self) -> bool:
         """ подключение """
@@ -181,21 +190,10 @@ class Adam5K:
 
     def setInterval(self, seconds: float):
         """ установка интервала опроса """
-        self._interval = seconds
+        self._states["interval"] = seconds
 
     def setReadingState(self, state: bool) -> bool:
         """ вкл/выкл режима чтения """
-        # # проверка подключения
-        # if self.isConnected():
-        #     # проверка текущего статуса опроса
-        #     if not self.isReading() == state:
-        #         _ = self._startThread() if state else self._stopThread()
-        #         print(f'Adam5K::setReadingState:\tresult {self._states["is_reading"]}')
-        #         return True
-        #     print(f'Adam5K::setReadingState:\treading state already {state}')
-        #     return False
-        # print('Adam5K::setReadingState:\tnot connected')
-        # return False
         # проверка подключения
         if not self.isConnected():
             print('Adam5K::setReadingState:\tnot connected')
@@ -215,13 +213,13 @@ class Adam5K:
             CommandType.WRITE, Param(slot_type, slot, channel), value
         )
         self.sendCommand(command)
-        print(f'Adam5K::set_channel_value:\t{slot_type.value}, {slot}, {channel}, {value}')
+        # print(f'Adam5K::set_channel_value:\t{slot_type.value}, {slot}, {channel}, {value}')
 
     def setSlotValues(self, slot_type: SlotType, slot: int, pattern: list):
         """ установка значений для слота """
         command = self._builder.buildCommand_slot(slot_type, slot, pattern)
         self.sendCommand(command)
-        print(f'Adam5K::set_slot_value:\t{slot_type.value}, {slot}, {pattern}')
+        # print(f'Adam5K::set_slot_value:\t{slot_type.value}, {slot}, {pattern}')
 
     def getValue(self, slot_type: SlotType, slot: int, channel: int):
         """ получение значения канала """
@@ -284,7 +282,7 @@ class Adam5K:
         """ поток чтения данных из устройства """
         print('Adam5K::\tзапущен таймер опроса устройства...')
         while self._states["is_reading"]:
-            sleep(self._interval)
+            sleep(self._states["interval"])
             if self._states["is_paused"]:
                 continue
             thr = Thread(
@@ -304,6 +302,7 @@ class Adam5K:
         # если нет - читать все значения
         else:
             self.__readAllValues_fromDevice()
+        self._callback()
 
     def __readAllValues_fromDevice(self, slot_type: SlotType = SlotType.ALL):
         """ чтение всех значений в слоте из устройства """
@@ -355,16 +354,6 @@ class Adam5K:
         if slot_type == SlotType.ANALOG:
             result.byteswap()
         return result
-
-    # def __clear_buffer(self):
-    #     """ очистка буффера сокета """
-    #     try:
-    #         self._sock.setblocking(False)
-    #         while self._sock.recv(1024):
-    #             pass
-    #         self._sock.setblocking(True)
-    #     except BlockingIOError as ex:
-    #         print(f'Adam5K::clear buffer: error {ex.strerror}')
 
 
 if __name__ == '__main__':

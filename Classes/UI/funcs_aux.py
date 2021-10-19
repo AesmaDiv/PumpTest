@@ -14,6 +14,21 @@ def parseFloat(text: str):
     return result
 
 
+def calculateLift(sensors: dict):
+    """ рассчёт потребляемой мощности """
+    psi_in = sensors.get('psi_in', 0)
+    psi_out = sensors.get('psi_out', 0)
+    lift = (psi_out - psi_in) / 0.433
+    return lift
+
+def calculatePower(sensors: dict):
+    """ рассчёт потребляемой мощности """
+    torque = sensors.get('torque', 0)
+    rpm = sensors.get('rpm', 0)
+    power = rpm * torque / 5252.0
+    return power
+
+
 def calculateEffs(flws: list, lfts: list, pwrs: list):
     """ расчёт точек КПД """
     result = []
@@ -25,9 +40,17 @@ def calculateEffs(flws: list, lfts: list, pwrs: list):
 
 
 def calculateEff(flw: float, lft: float, pwr: float):
-    """ вычисление КПД """
+    """ расчёт КПД """
     return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
         if flw and lft and pwr else 0
+
+def applySpeedFactor(flw: float, lft: float, pwr: float, rpm: float):
+    if rpm:
+        coeff = 2910 / rpm
+        flw *= coeff
+        lft *= coeff ** 2
+        pwr *= coeff ** 3
+    return flw, lft, pwr
 
 
 def setCurrentDate(window):

@@ -4,7 +4,7 @@
 import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, QMenu
+from PyQt5.QtWidgets import QMainWindow, QMenu, QSlider
 from PyQt5.QtGui import QCursor, QCloseEvent
 from Classes.Adam import adam_config as adam
 from Classes.UI import funcs_table, funcs_testlist, funcs_combo, funcs_group
@@ -24,13 +24,15 @@ class MainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
         self._is_ready = self._createGUI(paths['WND'])
         if self._is_ready:
+            self.adam_manager = AdamManager(
+                adam.IP, adam.PORT, adam.ADDRESS, self
+            )
             self._is_displaying = dict.fromkeys(
                 ['Producer','Type','Serial'], False
             )
             self._data_manager = DataManager(paths['DB'])
             self._testdata = self._data_manager.getTestdata()
             self._graph_manager = GraphManager(self._testdata)
-            self._adam_manager = AdamManager(adam.IP, adam.PORT, adam.ADDRESS)
             self._report = Report(
                 paths['TEMPLATE'], self._graph_manager, self._testdata
             )
@@ -42,13 +44,12 @@ class MainWindow(QMainWindow):
             self._prepare()
             super().show()
             self.move(1, 1)
-            funcs_test.switchRunningState(self, self._adam_manager, False)
+            funcs_test.switchRunningState(self, False)
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         """ погдотовка к закрытию приложения """
         if self._is_ready:
-            self._adam_manager.disconnect()
-        # print("main window prepared for closing")
+            self.adam_manager.setPollingState(False)
         return super().closeEvent(a0)
 
     @Journal.logged
@@ -81,6 +82,11 @@ class MainWindow(QMainWindow):
         self.setColorScheme()
         self._registerEvents()
         self._initMarkers()
+        self._initSlider(self.sliderFlow)
+        self._initSlider(self.sliderSpeed)
+        # ВРЕМЕННО
+        self._initSlider(self.sliderTorque)
+        self._initSlider(self.sliderPressure)
         funcs_group.groupLock(self.groupTestInfo, True)
         funcs_group.groupLock(self.groupPumpInfo, True)
 
@@ -112,33 +118,25 @@ class MainWindow(QMainWindow):
         self.btnGoTest.clicked.connect(self._onClicked_goTest)
         self.btnGoBack.clicked.connect(self._onClicked_goBack)
         #
-        self.txtFlow.textChanged.connect(self._onChanged_sensors)
-        self.txtLift.textChanged.connect(self._onChanged_sensors)
-        self.txtPower.textChanged.connect(self._onChanged_sensors)
-        #
         self.btnAddPoint.clicked.connect(self._onClicked_addPoint)
         self.btnRemovePoint.clicked.connect(self._onClicked_removePoint)
         self.btnClearCurve.clicked.connect(self._onClicked_clearCurve)
         self.btnSaveCharts.clicked.connect(self._onClickedTestResult_save)
         #
-        self.radioPointsReal.toggled.connect(self._onChanged_pointsMode)
-        # gvars.markers.eventMove.connect(self._on_markers_move)
-        self.txtFlow.wheelEvent = self._onMouseWheel_flow
-        self.txtLift.wheelEvent = self._onMouseWheel_lift
-        self.txtPower.wheelEvent = self._onMouseWheel_power
-        #
-        self.checkConnection.clicked.connect(self._onClicked_adamConnection)
-        self._adam_manager.dataReceived().connect(self._onAdam_dataReceived)
+        self.chkConnection.clicked.connect(self._onAdam_connection)
         self.radioFlow0.toggled.connect(self._onChanged_flowmeter)
         self.radioFlow1.toggled.connect(self._onChanged_flowmeter)
         self.radioFlow2.toggled.connect(self._onChanged_flowmeter)
         self.spinPointLines.valueChanged.connect(self._onChanged_pointsNum)
         self.btnEngine.clicked.connect(self._onClicked_engine)
-        self.sliderFlow.sliderReleased.connect(self._onChanged_flow)
-        self.sliderSpeed.sliderReleased.connect(self._onChanged_speed)
-        # ВРЕМЕННО
-        self.sliderTorque.sliderReleased.connect(self._onChanged_torque)
-        self.sliderPressure.sliderReleased.connect(self._onChanged_pressure)
+        self.txtFlow.textChanged.connect(self._onChanged_sensors)
+        self.txtLift.textChanged.connect(self._onChanged_sensors)
+        self.txtPower.textChanged.connect(self._onChanged_sensors)
+        self.radioPointsReal.toggled.connect(self._onChanged_pointsMode)
+        #
+        self.adam_manager.dataReceived.connect(
+            self._onAdam_dataReceived, no_receiver_check = True
+        )
 
     def _initMarkers(self):
         """ инициирует маркеры графика испытания """
@@ -147,6 +145,20 @@ class MainWindow(QMainWindow):
             'test_pwr': Qt.red
         }
         self._graph_manager.init_markers(params, self.gridGraphTest)
+
+    def _initSlider(self, slider: QSlider):
+        setattr(slider, "is_draging", False)
+        def onValueChanged(value):
+            if not getattr(slider, "is_draging"):
+                funcs_test.setAdamValue(slider, self.adam_manager, value)
+        def onPressed():
+            setattr(slider, "is_draging", True)
+        def onReleased():
+            setattr(slider, "is_draging", False)
+            funcs_test.setAdamValue(slider, self.adam_manager)
+        slider.sliderPressed.connect(onPressed)
+        slider.sliderReleased.connect(onReleased)
+        slider.valueChanged.connect(onValueChanged)
 
     def _onChangedTestlist(self):
         """ изменение выбора теста """
@@ -352,7 +364,7 @@ class MainWindow(QMainWindow):
         Journal.log_func(self._onClicked_engine)
         state = not funcs_test.states["is_running"]
         self._graph_manager.switch_charts_visibility(state)
-        funcs_test.switchRunningState(self, self._adam_manager, state)
+        funcs_test.switchRunningState(self, state)
 
     def _onClicked_addPoint(self):
         """ нажата кнопка добавления точки """
@@ -388,41 +400,30 @@ class MainWindow(QMainWindow):
         self._graph_manager.clear_points_from_charts()
         self._graph_manager.display_charts(self.frameGraphTest)
 
-    def _onClicked_adamConnection(self):
+    def _onAdam_connection(self):
         """ нажата кнопка подключения к ADAM5000TCP """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClicked_adamConnection)
-        state = self.checkConnection.isChecked()
-        state = funcs_test.switchConnection(self._adam_manager, state)
-        self.checkConnection.setChecked(state)
-        self.checkConnection.setText("подключено" if state else "отключено")
+        Journal.log_func(self._onAdam_connection)
+        state = self.chkConnection.isChecked()
+        state = self.adam_manager.setPollingState(state, 0.100)
+        self.chkConnection.setChecked(state)
+        self.chkConnection.setStyleSheet(
+            "QCheckBox { color: %s; }" % ("lime" if state else "red")
+        )
+        self.chkConnection.setText(
+            "контроллер %s" % ("подключен" if state else "отключен")
+        )
         funcs_group.groupClear(self.groupTestSensors)
 
-    def _onAdam_dataReceived(self, sensors: dict):
+    def _onAdam_dataReceived(self, args: dict):
         """ приход данных от ADAM5000TCP """
         # Journal.log_func(self._on_adam_data_received)
-        funcs_display.displaySensors(self, sensors)
+        funcs_display.displaySensors(self, args)
 
     def _onChanged_flowmeter(self):
         """ изменение текущего расходомера """
         # Journal.log_func(self._on_changed_flowmeter)
         funcs_test.switchActiveFlowmeter(self)
-
-    def _onChanged_flow(self):
-        """ изменение положение задвижки """
-        funcs_test.changeFlow(self, self._adam_manager)
-
-    def _onChanged_speed(self):
-        """ изменение скорости вращения двигателя """
-        funcs_test.changeSpeed(self, self._adam_manager)
-
-    def _onChanged_torque(self):
-        """ ВРЕМЕННО изменение крутящего момента """
-        funcs_test.changeTorque(self, self._adam_manager)
-
-    def _onChanged_pressure(self):
-        """ ВРЕМЕННО изменение давления на выходе """
-        funcs_test.changePressure(self, self._adam_manager)
 
     def _onChanged_pointsNum(self):
         """ изменение порядкового номера отбиваемой точки """
@@ -440,22 +441,3 @@ class MainWindow(QMainWindow):
             {'name': 'test_pwr', 'x': vals[0], 'y': vals[2]}
         ]
         self._graph_manager.markers_move(params)
-
-    def _onMarkers_move(self, point_data: dict):
-        """ изменения позиции маркеров """
-        funcs_display.displayMarkerValues(self, point_data)
-
-    def _onMouseWheel_flow(self, event):
-        """ изменяет значение расхода колесиком мышки """
-        funcs_aux.processMouseWheel(
-            self.txtFlow, event, 1)
-
-    def _onMouseWheel_lift(self, event):
-        """ изменяет значение напора колесиком мышки """
-        funcs_aux.processMouseWheel(
-            self.txtLift, event, 0.1)
-
-    def _onMouseWheel_power(self, event):
-        """ изменяет значение мощности колесиком мышки """
-        funcs_aux.processMouseWheel(
-            self.txtPower, event, 0.001)

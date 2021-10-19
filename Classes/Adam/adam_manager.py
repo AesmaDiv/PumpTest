@@ -6,43 +6,38 @@ from .adam_5k import Adam5K, Param, SlotType
 from . import adam_config as adam
 
 
-class AdamManager(Adam5K):
+class AdamManager(QObject):
     """ Класс для связи контроллера Adam5000TCP с интерфейсом программы """
-    class Broadcaster(QObject):
-        """ Класс вещателя события """
-        event = pyqtSignal(dict)
-
-    sensors = {
-        'rpm': 0.0,
-        'torque': 0.0,
-        'pressure_in': 0.0,
-        'pressure_out': 0.0,
-        'flw0': 0.0,
-        'flw1': 0.0,
-        'flw2': 0.0
+    _signal = pyqtSignal(dict, name="dataReceived")
+    _probes = 10
+    _sensors = {
+        'rpm': [0.0] * _probes,
+        'torque': [0.0] * _probes,
+        'psi_in': [0.0] * _probes,
+        'psi_out': [0.0] * _probes,
+        'flw0': [0.0] * _probes,
+        'flw1': [0.0] * _probes,
+        'flw2': [0.0] * _probes
     }
 
-    def __init__(self, host, port=502, address=1) -> None:
-        super().__init__(host=host, port=port, address=address)
-        self._broadcaster = AdamManager.Broadcaster()
-
-    def dataReceived(self):
-        """ ссылка на событие прибытие данных """
-        return self._broadcaster.event
+    def __init__(self, host, port=502, address=1, parent=None) -> None:
+        super().__init__(parent=parent)
+        self._adam = Adam5K(host, port, address)
+        self._adam.setCallback(self.__adamThreadTickCallback)
 
     def setPollingState(self, state: bool, interval=1):
         """ вкл/выкл опрос устройства """
-        if state and self.connect():
-            self.setInterval(interval)
-            return self.setReadingState(True)
-        self.setReadingState(False)
-        self.disconnect()
+        if state and self._adam.connect():
+            self._adam.setInterval(interval)
+            return self._adam.setReadingState(True)
+        self._adam.setReadingState(False)
+        self._adam.disconnect()
         return False
 
     def setValue(self, param: Param, value: int) -> bool:
         """ установка значения для канала """
         if self.checkParams(param, value):
-            self.setChannelValue(
+            self._adam.setChannelValue(
                 param.slot_type, param.slot, param.channel, value
             )
             return True
@@ -57,25 +52,26 @@ class AdamManager(Adam5K):
                     return True
         return False
 
-    def _threadTick(self):
+    def __adamThreadTickCallback(self):
         """ тик таймера опроса устройства """
-        super()._threadTick()
-        self.__readRegisters()
-        self.__calculateRealValues()
-        self.dataReceived().emit(self.sensors)
+        self.__updateSensors()
+        args = self.__createEventArgs()
+        self._signal.emit(args)
 
-    def __readRegisters(self):
-        """ чтение регистров """
-        for key in self.sensors:
-            self.sensors[key] = self.__readRegister(adam.params[key])
-
-    def __readRegister(self, param: Param):
-        """ чтение региста аналогового слота"""
-        return self.getValue(param.slot_type, param.slot, param.channel)
-
-    def __calculateRealValues(self):
-        """ расчёт значений """
-        for key, value in self.sensors.items():
+    def __updateSensors(self):
+        for key in self._sensors:
+            if not self._adam.isReading():
+                self._sensors[key] = [0.0] * self._probes
+                continue
             param = adam.params[key]
+            value = self._adam.getValue(
+                param.slot_type, param.slot, param.channel
+            )
             value = param.val_rng * (value - param.offset) / param.dig_max
-            self.sensors[key] = round(value, 2)
+            self._sensors[key].pop(0)
+            self._sensors[key].append(round(value, 2))
+
+    def __createEventArgs(self):
+        return {
+            key: sum(vals)/len(vals) for key, vals in self._sensors.items()
+        }

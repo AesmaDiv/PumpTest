@@ -13,13 +13,16 @@ params = {
     # данные
     "flw0":         Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
     "flw1":         Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
-    "flw2":         Param(SlotType.ANALOG, 2, 0,    1000, 0x0, 0x0FFF),
-    "rpm":          Param(SlotType.ANALOG, 2, 1,    1000, 0x0, 0x0FFF),
-    "torque":       Param(SlotType.ANALOG, 2, 2,    1000, 0x0, 0x0FFF),
-    "pressure_in":  Param(SlotType.ANALOG, 2, 3,    1000, 0x0, 0x0FFF),
-    "pressure_out": Param(SlotType.ANALOG, 2, 3,    1000, 0x0, 0x0FFF),
+    "flw2":         Param(SlotType.ANALOG, 2, 0,      80, 0x0, 0x0FFF),
+    "rpm":          Param(SlotType.ANALOG, 2, 1,    3000, 0x0, 0x0FFF),
+    "torque":       Param(SlotType.ANALOG, 2, 2,     0.2, 0x0, 0x0FFF),
+    "psi_in":       Param(SlotType.ANALOG, 2, 3,       0, 0x0, 0x0FFF),
+    "psi_out":      Param(SlotType.ANALOG, 2, 3,     3.5, 0x0, 0x0FFF),
     # управление
-    "engine":       Param(SlotType.DIGITAL, 0, 1,      0, 0x0, 0xFF00),
+    "engine_":      Param(SlotType.DIGITAL, 0, 0,      0, 0x0, 0xFF00),
+    "flw0_":        Param(SlotType.DIGITAL, 0, 1,      0, 0x0, 0xFF00),
+    "flw1_":        Param(SlotType.DIGITAL, 0, 2,      0, 0x0, 0xFF00),
+    "flw2_":        Param(SlotType.DIGITAL, 0, 3,      0, 0x0, 0xFF00),
     "valve":        Param(SlotType.ANALOG,  2, 0,      0, 0x0, 0x0FFF),
     "speed":        Param(SlotType.ANALOG,  2, 1,      0, 0x0, 0x0FFF),
     # ВРЕМЕННО
