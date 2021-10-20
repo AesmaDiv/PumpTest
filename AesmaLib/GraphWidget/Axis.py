@@ -1,64 +1,69 @@
+"""
 # AesmaDiv 02.2020
 # Класс для графиков. Параметры оси.
 # Расчёт максимального и минимального значений по оси,
 # количества делений и цены делений
+"""
 import math
 
 
 class Axis:
-    # конструктор с аргументами (миним. и максим. значения графика)
+    """ Класс оси """
     def __init__(self, axis_min: float = 0.0, axis_max: float = 0.0):
         keys = ['axis_min', 'axis_max', 'length', 'divs', 'price']
         self._params = dict.fromkeys(keys)
         self._divs_manually_set = False
         # если аргуметы переданы - расчет параметров оси
-        if axis_min != 0 or axis_max != 0:
+        if any((axis_min, axis_max)):
             self.calculate(axis_min, axis_max)
 
-    # минимальноый предел оси
     def setMinimum(self, axis_min: float):
+        """ установить минимальный предел оси """
         if self.getMaximum() > axis_min:
             self._params.update({'axis_min': axis_min})
             self.calculate(self.getMinimum(), self.getMaximum())
 
     def getMinimum(self):
+        """ минимальный предел оси """
         return self._params['axis_min']
 
-    # максмальный предел оси
     def setMaximum(self, axis_max: float):
+        """ установить максмальный предел оси """
         if self.getMinimum() < axis_max:
             self._params.update({'axis_max': axis_max})
             self.calculate(self.getMinimum(), self.getMaximum())
 
     def getMaximum(self):
+        """ максимальный предел оси """
         return self._params['axis_max']
 
-    # полная длина оси
     def getLength(self):
+        """ полная длина оси """
         return abs(self._params['axis_max'] - self._params['axis_min'])
 
-    # количество делений на оси
     def setDivs(self, divs: int):
+        """ задать количество делений на оси """
         divs = abs(divs) # должно быть положительное
         self._divs_manually_set = divs > 0
         self._params.update({'divs': divs})
         self.calculate(self.getMinimum(), self.getMaximum())
 
     def getDivs(self):
+        """ количество делений на оси """
         return int(self._params['divs'])
 
-    # цена деления
     def getPrice(self):
+        """ цена деления """
         return self._params['price']
 
-    # генератор значений делений
     def generateDivSteps(self):
+        """ генератор значений делений """
         for i in range(self.getDivs() + 1):
             result = float(i) * self._params['price'] + self._params['axis_min']
             yield i, result
 
-    # расчёт параматров
     def calculate(self, axis_min: float, axis_max: float):
+        """ расчёт параматров """
         params = dict()
         amin, amax = Axis._fixMinMax(axis_min, axis_max)
         Axis._getLongShortLengths(amin, amax, params)
@@ -76,21 +81,16 @@ class Axis:
         # print('finish short value ', params)
         self._assignParams(params)
 
-    def calculate_mpl(self, axis_min: float, axis_max: float):
-        from matplotlib import pyplot as plt
-        fig, hst = plt.subplots()
-
     @staticmethod
-    # приведение значений минимума и максимума к нужному виду
     def _fixMinMax(minimal, maximal):
-        # проверка на корректный порядок
+        """ приведение значений минимума и максимума к нужному порядку """
         if minimal > maximal:
             minimal, maximal = maximal, minimal
         return minimal, maximal
 
     @staticmethod
-    # получение исходных параметров
     def _getLongShortLengths(axis_min: float, axis_max: float, params):
+        """ получение исходных параметров """
         # является ли максимум длинным участком
         params['long_is_max'] = abs(axis_max) > abs(axis_min)
         # сохраняю знаки для мин. и макс. (положительное или отрицательное)
@@ -105,8 +105,8 @@ class Axis:
             params['len_short'] = abs(axis_max)
 
     @staticmethod
-    # подготовка длинного участка (ключевая функция)
     def _prepareLong(params):
+        """ подготовка длинного участка (ключевая функция) """
         # вне зависимости от величины, значимыми являются две первые цифры
         # (0.023 - 23 или 3145.2 - 31), поэтому приводим значение к этому
         # виду и запоминаем степень 10-ти, для возврата
@@ -125,8 +125,8 @@ class Axis:
         params['pwr_of_ten'] = pwr_of_ten
 
     @staticmethod
-    # поиск подходящего кол-ва делений для длинного участка
     def _applyDivider(params, divs=0):
+        """ поиск подходящего кол-ва делений для длинного участка """
         # исходя из заданного кол-ва делений,
         # находим ближайшее большее для длины оси
         # делящееся на кол-во делений без остатка:
