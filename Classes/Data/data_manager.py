@@ -89,10 +89,12 @@ class DataManager:
             result = session.query(*columns).all()
         return list(map(dict, result))
 
-    def checkExists_serial(self, serial):
+    def checkExists_serial(self, serial, type_id=0):
         """ возвращает ID записи с введенным серийным номером """
         with Session(self._engine) as session:
-            query = session.query(Pump).where(Pump.Serial == serial)
+            query = session.query(Pump).where(
+                Pump.Serial == serial
+            ).filter(Pump.Type == type_id)
             if query.count():
                 choice =  Message.ask(
                     "Внимание",

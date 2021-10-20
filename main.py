@@ -29,6 +29,7 @@ if __name__ == '__main__':
     Journal.log(__name__, '::\t', "*** Запуск приложения ***")
     faulthandler.enable() # вкл. обработчика ошибок
     app = QApplication(sys.argv)
+    app.setStyle("Breeze")
 
     MainWindow(PATHS).show()
 

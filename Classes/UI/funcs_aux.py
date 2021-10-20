@@ -45,6 +45,7 @@ def calculateEff(flw: float, lft: float, pwr: float):
         if flw and lft and pwr else 0
 
 def applySpeedFactor(flw: float, lft: float, pwr: float, rpm: float):
+    """ применение фактора скорости """
     if rpm:
         coeff = 2910 / rpm
         flw *= coeff
@@ -70,8 +71,11 @@ def processMouseWheel(obj, event, coef):
 
 def askPassword():
     """ проверка пароля """
-    return Message.password(
+    result = Message.password(
         'Внимание',
         'Необходимо подтверждение паролем:'
     ) == b'h\x87\x87\xd8\xff\x14LP,\x7f\\\xff\xaa\xfe,\xc5' \
          b'\x88\xd8`y\xf9\xde\x880L&\xb0\xcb\x99\xce\x91\xc6'
+    if not result:
+        Message.show("ОШИБКА", "Не верный пароль")
+    return result

@@ -84,7 +84,7 @@ class Chart:
                 return result[name]
         result = result.T
         return result.tolist()
-    
+
     def addPoint(self, x: float, y: float, do_regenerate_axes: bool = False):
         """ добавление точки """
         point = np.array([(x, y)], dtype=self._ptype)
@@ -107,7 +107,7 @@ class Chart:
     def clearPoints(self):
         """ удаление всех точек """
         self._points = self.createEmptyPoints()
-    
+
     def createEmptyPoints(self):
         """ создание пустого массива точек """
         return np.empty(0, dtype=self._ptype)
@@ -175,7 +175,7 @@ class Chart:
             result = self.transposePoints([result_x, result_y])
             return result
         return self.createEmptyPoints()
-    
+
     def transposePoints(self, points: list):
         if len(points) == 2 and len(points[0]):
             temp = np.array(points)
@@ -186,11 +186,11 @@ class Chart:
         else:
             print(__name__, 'Error:: массив координат имеет неверный формат')
             return self.createEmptyPoints()
-    
+
     def _sortPoints(self):
         if len(self._points) > 1:
             self._points = sorted(self._points, key=lambda p: p[0])
-    
+
     @staticmethod
     def _calculateAxies(axis_start, axis_end, ticks=10):
         """ расчёт удобного числа и значений делений оси """

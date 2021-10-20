@@ -44,6 +44,10 @@ class ListModel(TemplateTableModel):
         """ имплементация метода суперкласса (элементы отображения) """
         return self._display
 
+    def setDisplay(self, display: list):
+        """ задаёт список элементов (столбцов) для отображения """
+        self._display = display
+
     def getHeaders(self):
         """ имплементация метода суперкласса (заголовоки) """
         return self._headers
@@ -55,8 +59,7 @@ class ListModel(TemplateTableModel):
     def data(self, index: QModelIndex, role=Qt.DisplayRole):
         """ возвращает отображаемое значение """
         if index.isValid():
-            row = index.row()
-            col = index.column()
+            row, col = index.row(), index.column()
             data = self._data[row]
             if role == Qt.UserRole:
                 return QVariant(data)
@@ -91,7 +94,7 @@ class ListModel(TemplateTableModel):
         if found_num > 0:
             for index in matches:
                 data = index.data(Qt.UserRole)
-                # dtat = index.data(Qt.DisplayRole)
+                # data = index.data(Qt.DisplayRole)
                 result.append(data)
         return result
 
@@ -244,7 +247,7 @@ class ComboItemModel(FilterModel):
         return False
 
     def applyFilter(self, filters=None):
-        self.select(0)
+        # self.select(0)
         self._log(f"=-> {self.parent.objectName()}::\t",
                   "применяем новые фильтры:")
         self._log(f"=-> {self.parent.objectName()}::\t",

@@ -3,5 +3,5 @@ find . -type d -name __pycache__ -exec rm -rf {} \;
 git config --global user.name "AesmaDiv"
 git config --global user.email "jhwh.0001@gmail.com"
 git add .
-git commit -m "аппаратная готова"
+git commit -m "поправил поведение комбобоксов для насоса и переключателей отображения точек (реальные / на ступень)"
 git push origin main

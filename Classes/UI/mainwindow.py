@@ -1,7 +1,6 @@
 """
     Модуль содержит функции основного окна программы
 """
-import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QMenu, QSlider
@@ -170,7 +169,7 @@ class MainWindow(QMainWindow):
             Journal.log('***' * 25)
             Journal.log_func(self._onChangedTestlist, item['ID'])
             # очищаем фильтры, поля и информацию о записи
-            funcs_combo.filtersReset(self)
+            funcs_combo.resetFilters_pumpInfo(self)
             funcs_group.groupClear(self.groupTestInfo)
             funcs_group.groupClear(self.groupPumpInfo)
             self._data_manager.clearRecord()
@@ -200,10 +199,12 @@ class MainWindow(QMainWindow):
             if funcs_aux.askPassword():
                 self._data_manager.removeCurrentRecord()
                 funcs_testlist.refresh(self, self._data_manager)
+                Message.show("УСПЕХ", "Запись удалена")
         # обновление записи
         elif action == action_rewrite:
             if funcs_aux.askPassword():
                 self._data_manager.saveTestInfo()
+                Message.show("УСПЕХ", "Запись обновлена")
 
     def _onChangedCombo_producers(self, index):
         """ выбор производителя """
@@ -212,8 +213,7 @@ class MainWindow(QMainWindow):
             Journal.log_func(self._onChangedCombo_producers, item['Name'] if item else "None")
             # ↓ фильтрует типоразмеры для данного производителя
             condition = {'Producer': item['ID']} if index else None
-            if not self.cmbType.model().checkAlreadySelected(condition):
-                self.cmbType.model().applyFilter(condition)
+            funcs_combo.filterByCondition(self.cmbType, condition)
 
     def _onChangedCombo_types(self, index):
         """ выбор типоразмера """
@@ -221,13 +221,11 @@ class MainWindow(QMainWindow):
         Journal.log_func(self._onChangedCombo_types , "None" if not item else item['Name'])
         if item and all(item.values()):
             # ↑ выбирает производителя для данного типоразмера
-            condition = {'ID': item['Producer']} if index else None
-            if not self.cmbProducer.model().checkAlreadySelected(condition) and index:
-                self.cmbProducer.model().selectContains(condition)
+            condition = {'ID': item['Producer']}
+            funcs_combo.selectContains(self.cmbProducer, condition)
             # ↓ фильтрует серийники для данного типоразмера
-            condition = {'Type': item['ID']} if index else None
-            if not self.cmbSerial.model().checkAlreadySelected(condition):
-                self.cmbSerial.model().applyFilter(condition)
+            condition = {'Type': item['ID']}
+            funcs_combo.filterByCondition(self.cmbSerial, condition)
             # перерисовывает эталонный график
             self._data_manager.getTestdata().type_.read(item['ID'])
             self._graph_manager.draw_charts(self.frameGraphInfo)
@@ -235,10 +233,12 @@ class MainWindow(QMainWindow):
     def _onChangedCombo_serials(self, index):
         """ выбор заводского номера """
         item = self.cmbSerial.itemData(index, Qt.UserRole)
+        # ↑ выбирает типоразмер для данного серийника
         if item:
             Journal.log_func(self._onChangedCombo_serials, item['Serial'] if item else "None")
-            # ↑ выбирает типоразмер для данного серийника
-            funcs_combo.selectContains(self.cmbType, {'ID': item['Type']})
+            funcs_combo.resetFilter(self.cmbType)
+            condition = {'ID': item['Type']}
+            funcs_combo.selectContains(self.cmbType, condition)
             self._graph_manager.draw_charts(self.frameGraphInfo)
 
     def _onChangedFilter_apply(self, text: str):
@@ -266,9 +266,10 @@ class MainWindow(QMainWindow):
         """ нажата кнопка сохранения нового насоса """
         Journal.log('___' * 25)
         Journal.log_func(self._onClickedPumpInfo_save)
-        # проверяем есть ли такой серийник в базе
+        # # проверяем есть ли такой серийник в базе
         pump_id, do_select = self._data_manager.checkExists_serial(
-            self.cmbSerial.currentText()
+            self.cmbSerial.currentText(),
+            self._data_manager.getTestdata().type_.ID
         )
         # если есть - выбираем
         if pump_id and do_select:
@@ -287,7 +288,7 @@ class MainWindow(QMainWindow):
         """ нажата кнопка отмены добавления нового насоса """
         Journal.log('___' * 25)
         Journal.log_func(self._onClickedPumpInfo_cancel)
-        funcs_combo.filtersReset(self)
+        funcs_combo.resetFilters_pumpInfo(self)
         funcs_group.groupDisplay(self.groupPumpInfo, self._testdata.pump_)
         funcs_group.groupLock(self.groupPumpInfo, True)
 
@@ -318,6 +319,7 @@ class MainWindow(QMainWindow):
             funcs_group.groupSave(self.groupTestInfo, self._testdata.test_)
             funcs_group.groupLock(self.groupTestInfo, True)
             self._data_manager.saveTestInfo()
+            self._graph_manager.draw_charts(self.frameGraphInfo)
             funcs_testlist.refresh(self, self._data_manager)
 
     def _onClickedTestInfo_cancel(self):
@@ -371,7 +373,8 @@ class MainWindow(QMainWindow):
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_addPoint)
         current_vals = funcs_test.getCurrentVals(self)
-        funcs_table.addToTable_points(self, *current_vals)
+        stages_num = self._testdata.pump_.Stages
+        funcs_table.addToTable_points(self, *current_vals, stages_num)
         self._graph_manager.markers_add_knots()
         self._graph_manager.add_points_to_charts(*current_vals)
         self._graph_manager.display_charts(self.frameGraphTest)
@@ -389,7 +392,11 @@ class MainWindow(QMainWindow):
 
     def _onChanged_pointsMode(self):
         """ переключение значений точек реальные / на ступень """
-        funcs_test.switchPointsStagesReal(self, self._testdata)
+        display = ["flw", "lft", "pwr", "eff"]
+        if self.radioPointsReal.isChecked():
+            display[1] = "lft_real"
+            display[2] = "pwr_real"
+        funcs_table.setDisplay(self.tablePoints, display)
 
     def _onClicked_clearCurve(self):
         """ нажата кнопка удаления всех точек """

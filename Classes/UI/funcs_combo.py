@@ -86,13 +86,24 @@ def fillCombobox(combo, db_manager, table_class, fields):
     combo.setModel(model)
 
 
-def filtersReset(window):
+def resetFilters_pumpInfo(window):
     """ сбрасывает фильт для комбобоксов насоса """
-    window.cmbSerial.model().resetFilter()
-    window.cmbType.model().resetFilter()
+    resetFilter(window.cmbSerial)
+    resetFilter(window.cmbType)
+
+
+def resetFilter(combo):
+    """ сбрасывает фильт для комбобокса """
+    combo.model().resetFilter()
 
 
 def selectContains(combo, condition):
     """ выбор элемента, удовлетворяющего условию """
     if not combo.model().checkAlreadySelected(condition):
         combo.model().selectContains(condition)
+
+
+def filterByCondition(combo, condition):
+    """ фильтрация элементов, удовлетворяющих условию """
+    if not combo.model().checkAlreadySelected(condition):
+        combo.model().applyFilter(condition)

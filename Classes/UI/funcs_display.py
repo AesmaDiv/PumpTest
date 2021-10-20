@@ -30,10 +30,10 @@ def displaySensors(window, sensors: dict):
 def displayRecord(window, data_manager):
     """ отображает информацию о тесте """
     testdata = data_manager.getTestdata()
-    displayTest_points(window, testdata)
     funcs_group.groupDisplay(window.groupTestInfo, testdata.test_)
     funcs_group.groupLock(window.groupTestInfo, True)
     displayPumpInfo(window, testdata)
+    displayTest_points(window, testdata)
 
 
 def displayPumpInfo(window, testdata):
@@ -63,12 +63,13 @@ def displayMarkerValues(window, data: dict):
 def displayTest_points(window, testdata):
     """ отображение точек испытания в таблице """
     funcs_table.clear(window.tablePoints)
+    stg = testdata.pump_.Stages
     for i in range(testdata.test_.num_points()):
         flw = testdata.test_.values_flw[i]
         lft = testdata.test_.values_lft[i]
         pwr = testdata.test_.values_pwr[i]
         eff = calculateEff(flw, lft, pwr)
-        funcs_table.addToTable_points(window, flw, lft, pwr, eff)
+        funcs_table.addToTable_points(window, flw, lft, pwr, eff, stg)
     funcs_table.addToTable_vibrations(window, testdata.test_.values_vbr)
 
 

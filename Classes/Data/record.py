@@ -93,6 +93,7 @@ class Record():
             session.add(item)
             try:
                 session.commit()
+                self._props.update({'ID': item.ID })
             except sqlalchemy.exc.IntegrityError:
                 return False
             return item.ID > 0
@@ -100,14 +101,13 @@ class Record():
 
 class RecordType(Record):
     """ Класс информации о типоразмере """
+    values_vbr = []
+    values_flw = []
+    values_lft = []
+    values_pwr = []
+
     def __init__(self, db_manager, parent_class=Type, rec_id=0):
         super().__init__(db_manager, parent_class, rec_id)
-        self.values_vbr = []
-        self.values_flw = []
-        self.values_lft = []
-        self.values_pwr = []
-        if type(self) is RecordType:
-            self.ProducerName = ""
 
     def read(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
@@ -126,13 +126,13 @@ class RecordType(Record):
                         producer = session.query(Producer).get(self['Producer'])
                         self.ProducerName = producer.Name
             else:
-                self.values_flw = []
-                self.values_lft = []
-                self.values_pwr = []
-                self.values_eff = []
-                if type(self) is RecordType:
-                    self.ProducerName = ""
+                self._clear()
         return result
+
+    def clear(self):
+        """ полная очистка информации о типоразмере """
+        self._clear()
+        return super().clear()
 
     @staticmethod
     def calculate_effs(flws: list, lfts: list, pwrs: list):
@@ -158,6 +158,16 @@ class RecordType(Record):
             num_pwr = len(self.values_pwr)
             return min(num_flw, num_lft, num_pwr)
         return 0
+
+    def _clear(self):
+        """ очистка точек кривой и производителя"""
+        self.values_vbr = []
+        self.values_flw = []
+        self.values_lft = []
+        self.values_pwr = []
+        if type(self) is RecordType:
+            self.ProducerName = ""
+
 
 
 class RecordPump(Record):

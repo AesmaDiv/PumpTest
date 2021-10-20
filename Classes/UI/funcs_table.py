@@ -65,10 +65,7 @@ def create(table_view: QTableView, params: TableParams):
         params.filter_proxy = QSortFilterProxyModel()
     params.filter_proxy.setSourceModel(model)
     table_view.setModel(params.filter_proxy)
-    setHeaders(
-        table_view, len(params.display),
-        params.headers_sizes, params.headers_resizes
-    )
+    setHeaders(table_view, params.headers_sizes, params.headers_resizes)
 
 
 def getData(table_view: QTableView):
@@ -89,13 +86,27 @@ def setData(table_view: QTableView, data):
     table_view.setModel(proxy)
 
 
-def addToTable_points(window, flw, lft, pwr, eff):
+def addToTable_points(window, flw, lft, pwr, eff, stg = 1):
     """ добавление точки в таблицу """
-    data = {'flw': round(flw, 1),
-            'lft': round(lft, 2),
-            'pwr': round(pwr, 4),
-            'eff': round(eff, 1)}
+    data = {
+        'flw': round(flw, 1),
+        'lft': round(lft, 2),
+        'pwr': round(pwr, 4),
+        'eff': round(eff, 1)
+    }
+    data.update({
+        'lft_real': round(data['lft'] * stg, 2),
+        'pwr_real': round(data['pwr'] * stg, 2),
+    })
     addRow(window.tablePoints, data)
+
+
+def setDisplay(table_view: QTableView, display: list):
+    """ установка списка имён столбцов для отображения """
+    filter_proxy = table_view.model()
+    model = filter_proxy.sourceModel()
+    model.setDisplay(display)
+    table_view.viewport().update()
 
 
 def addToTable_vibrations(window, vibrations):
@@ -143,19 +154,16 @@ def getRow(table_view: QTableView):
         return None
 
 
-def setHeaders(table_view: QTableView, headers_count: int,
-                headers_sizes: list, headers_resizes: list):
+def setHeaders(table_view: QTableView, headers_sizes: list, headers_resizes: list):
     """ установка заголовков столбцов таблицы """
     header = table_view.verticalHeader()
     header.setSectionResizeMode(QHeaderView.Fixed)
     header.setDefaultSectionSize(20)
     header = table_view.horizontalHeader()
-    if headers_sizes and len(headers_sizes) == headers_count:
-        for i in range(headers_count):
-            table_view.setColumnWidth(i, headers_sizes[i])
-    if headers_resizes and len(headers_resizes) == headers_count:
-        for i in range(headers_count):
-            header.setSectionResizeMode(i, headers_resizes[i])
+    headers_count = min(len(headers_sizes), len(headers_sizes))
+    for i in range(headers_count):
+        table_view.setColumnWidth(i, headers_sizes[i])
+        header.setSectionResizeMode(i, headers_resizes[i])
 
 
 def selectRow(table_view: QTableView, row: int):
