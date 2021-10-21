@@ -108,6 +108,8 @@ class RecordType(Record):
 
     def __init__(self, db_manager, parent_class=Type, rec_id=0):
         super().__init__(db_manager, parent_class, rec_id)
+        if self.__class__ is RecordType:
+            self.ProducerName = ""
 
     def read(self, rec_id) -> bool:
         """ загружает запись из таблицы БД по ID
@@ -121,7 +123,7 @@ class RecordType(Record):
                 self.values_eff = RecordType.calculate_effs(
                     self.values_flw, self.values_lft, self.values_pwr
                 )
-                if type(self) is RecordType:
+                if self.__class__ is RecordType:
                     with self._db_manager.session() as session:
                         producer = session.query(Producer).get(self['Producer'])
                         self.ProducerName = producer.Name
@@ -165,7 +167,7 @@ class RecordType(Record):
         self.values_flw = []
         self.values_lft = []
         self.values_pwr = []
-        if type(self) is RecordType:
+        if self.__class__ is RecordType:
             self.ProducerName = ""
 
 

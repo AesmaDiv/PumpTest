@@ -48,6 +48,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, a0: QCloseEvent) -> None:
         """ погдотовка к закрытию приложения """
         if self._is_ready:
+            self.adam_manager.dataReceived.disconnect()
             self.adam_manager.setPollingState(False)
         return super().closeEvent(a0)
 
@@ -143,7 +144,7 @@ class MainWindow(QMainWindow):
             'test_lft': Qt.blue,
             'test_pwr': Qt.red
         }
-        self._graph_manager.init_markers(params, self.gridGraphTest)
+        self._graph_manager.initMarkers(params, self.gridGraphTest)
 
     def _initSlider(self, slider: QSlider):
         setattr(slider, "is_draging", False)
@@ -228,7 +229,7 @@ class MainWindow(QMainWindow):
             funcs_combo.filterByCondition(self.cmbSerial, condition)
             # перерисовывает эталонный график
             self._data_manager.getTestdata().type_.read(item['ID'])
-            self._graph_manager.draw_charts(self.frameGraphInfo)
+            self._graph_manager.drawCharts(self.frameGraphInfo)
 
     def _onChangedCombo_serials(self, index):
         """ выбор заводского номера """
@@ -239,7 +240,7 @@ class MainWindow(QMainWindow):
             funcs_combo.resetFilter(self.cmbType)
             condition = {'ID': item['Type']}
             funcs_combo.selectContains(self.cmbType, condition)
-            self._graph_manager.draw_charts(self.frameGraphInfo)
+            self._graph_manager.drawCharts(self.frameGraphInfo)
 
     def _onChangedFilter_apply(self, text: str):
         """ изменение значения фильтра списка тестов """
@@ -319,7 +320,7 @@ class MainWindow(QMainWindow):
             funcs_group.groupSave(self.groupTestInfo, self._testdata.test_)
             funcs_group.groupLock(self.groupTestInfo, True)
             self._data_manager.saveTestInfo()
-            self._graph_manager.draw_charts(self.frameGraphInfo)
+            self._graph_manager.drawCharts(self.frameGraphInfo)
             funcs_testlist.refresh(self, self._data_manager)
 
     def _onClickedTestInfo_cancel(self):
@@ -333,7 +334,7 @@ class MainWindow(QMainWindow):
         """ нажата кнопка сохранения результатов теста """
         Journal.log('___' * 25)
         Journal.log_func(self._onClickedTestResult_save)
-        self._graph_manager.save_testdata()
+        self._graph_manager.saveTestdata()
         result = self._testdata.test_.write()
         title = 'УСПЕХ' if result else 'ОШИБКА'
         message = 'Результаты сохранены' if result else 'Запись заблокирована'
@@ -348,16 +349,16 @@ class MainWindow(QMainWindow):
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_goTest)
         self.stackedWidget.setCurrentIndex(1)
-        self._graph_manager.display_charts(self.frameGraphTest)
-        self._graph_manager.markers_reposition()
-        self._graph_manager.set_point_lines_max()
+        self._graph_manager.displayCharts(self.frameGraphTest)
+        self._graph_manager.markersReposition()
+        self._graph_manager.setPointLines_max()
 
     def _onClicked_goBack(self):
         """ нажата кнопка возврата на основное окно """
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_goBack)
         self.stackedWidget.setCurrentIndex(0)
-        self._graph_manager.display_charts(self.frameGraphInfo)
+        self._graph_manager.displayCharts(self.frameGraphInfo)
         funcs_testlist.setCurrentTest(self, self._testdata.test_['ID'])
 
     def _onClicked_engine(self):
@@ -365,7 +366,7 @@ class MainWindow(QMainWindow):
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_engine)
         state = not funcs_test.states["is_running"]
-        self._graph_manager.switch_charts_visibility(state)
+        self._graph_manager.switchChartsVisibility(state)
         funcs_test.switchRunningState(self, state)
 
     def _onClicked_addPoint(self):
@@ -373,11 +374,11 @@ class MainWindow(QMainWindow):
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_addPoint)
         current_vals = funcs_test.getCurrentVals(self)
-        stages_num = self._testdata.pump_.Stages
-        funcs_table.addToTable_points(self, *current_vals, stages_num)
-        self._graph_manager.markers_add_knots()
-        self._graph_manager.add_points_to_charts(*current_vals)
-        self._graph_manager.display_charts(self.frameGraphTest)
+        self._graph_manager.markersAddKnots()
+        self._graph_manager.addPointsToCharts(*current_vals)
+        self._graph_manager.displayCharts(self.frameGraphTest)
+        current_vals.append(self._testdata.pump_.Stages)
+        funcs_table.addToTable_points(self.tablePoints, current_vals)
         self.spinPointLines.setValue(int(self.spinPointLines.value()) - 1)
 
     def _onClicked_removePoint(self):
@@ -385,9 +386,9 @@ class MainWindow(QMainWindow):
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_removePoint)
         funcs_table.removeLastRow(self.tablePoints)
-        self._graph_manager.markers_remove_knots()
-        self._graph_manager.remove_last_points_from_charts()
-        self._graph_manager.display_charts(self.frameGraphTest)
+        self._graph_manager.markersRemoveKnots()
+        self._graph_manager.removeLastPointsFromCharts()
+        self._graph_manager.displayCharts(self.frameGraphTest)
         self.spinPointLines.setValue(int(self.spinPointLines.value()) + 1)
 
     def _onChanged_pointsMode(self):
@@ -403,9 +404,9 @@ class MainWindow(QMainWindow):
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_clearCurve)
         funcs_table.clear(self.tablePoints)
-        self._graph_manager.markers_clear_knots()
-        self._graph_manager.clear_points_from_charts()
-        self._graph_manager.display_charts(self.frameGraphTest)
+        self._graph_manager.markersClearKnots()
+        self._graph_manager.clearPointsFromCharts()
+        self._graph_manager.displayCharts(self.frameGraphTest)
 
     def _onAdam_connection(self):
         """ нажата кнопка подключения к ADAM5000TCP """
@@ -421,6 +422,8 @@ class MainWindow(QMainWindow):
             "контроллер %s" % ("подключен" if state else "отключен")
         )
         funcs_group.groupClear(self.groupTestSensors)
+        if state:
+            funcs_test.setDefaultStates(self.adam_manager)
 
     def _onAdam_dataReceived(self, args: dict):
         """ приход данных от ADAM5000TCP """
@@ -430,15 +433,17 @@ class MainWindow(QMainWindow):
     def _onChanged_flowmeter(self):
         """ изменение текущего расходомера """
         # Journal.log_func(self._on_changed_flowmeter)
-        funcs_test.switchActiveFlowmeter(self)
+        sender = self.sender()
+        state = sender.isChecked()
+        funcs_test.switchActiveFlowmeter(self.adam_manager, sender, state)
 
     def _onChanged_pointsNum(self):
         """ изменение порядкового номера отбиваемой точки """
         num = int(self.spinPointLines.value())
         if self.spinPointLines.isEnabled():
-            self._graph_manager.set_point_lines_num(num)
+            self._graph_manager.setPointLines_num(num)
         else:
-            self._graph_manager.set_point_lines_cur(num)
+            self._graph_manager.setPointLines_cur(num)
 
     def _onChanged_sensors(self):
         """ изменения значений датчиков """
@@ -447,4 +452,4 @@ class MainWindow(QMainWindow):
             {'name': 'test_lft', 'x': vals[0], 'y': vals[1]},
             {'name': 'test_pwr', 'x': vals[0], 'y': vals[2]}
         ]
-        self._graph_manager.markers_move(params)
+        self._graph_manager.markersMove(params)

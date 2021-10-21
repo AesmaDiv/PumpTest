@@ -59,9 +59,9 @@ class Report:
     def __createGraphImage(self):
         """ сохранение графика испытания в jpg"""
         img_size = QSize(794, 450)
-        self._graph_manager.switch_palette('report')
-        self._graph_manager.render_to_image(img_size, self._path_to_img)
-        self._graph_manager.switch_palette('application')
+        self._graph_manager.switchPalette('report')
+        self._graph_manager.renderToImage(img_size, self._path_to_img)
+        self._graph_manager.switchPalette('application')
 
     def __deleteGraphImage(self):
         if os.path.exists(self._path_to_img):

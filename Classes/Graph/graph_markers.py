@@ -6,7 +6,7 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QEvent, QPoint, QPointF, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame
-from AesmaLib.GraphWidget import Chart
+from AesmaLib.GraphWidget.chart import Chart
 from Classes.Graph.pump_graph import PumpGraph
 
 
@@ -88,8 +88,8 @@ class Markers(QFrame):
 
     def repositionFor(self, graph: PumpGraph):
         """ перенос маркера на другой холст """
-        left, top, _, _ = graph.get_margins()
-        size = graph.get_draw_area()
+        left, top, _, _ = graph.getMargins()
+        size = graph.getDrawArea()
         self._area.setGeometry(left, top, size.width(), size.height())
 
     def addKnots(self):
@@ -200,7 +200,7 @@ class Markers(QFrame):
     def translatePositionToPoint(self, position: QPointF, name: str):
         """ пересчёт координат из значений в пиксели """
         result: QPoint = QPointF(0.0, 0.0)
-        etalon: Chart = self._graph.get_chart(name.replace('test_', ''))
+        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
         if etalon is not None:
             size = self._area.size()
             max_x = etalon.getAxis('x').getMaximum()
@@ -212,7 +212,7 @@ class Markers(QFrame):
     def translatePointToPosition(self, point: QPointF, name: str):
         """ пересчёт координат из пикселей в значения """
         result: QPoint = QPointF(0.0, 0.0)
-        etalon: Chart = self._graph.get_chart(name.replace('test_', ''))
+        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
         if etalon is not None:
             size = self._area.size()
             max_x = etalon.getAxis('x').getMaximum()

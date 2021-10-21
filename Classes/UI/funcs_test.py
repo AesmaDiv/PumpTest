@@ -1,7 +1,7 @@
 """
     Модуль содержит функции для процесса испытания
 """
-from PyQt5.QtWidgets import QMainWindow, QSlider
+from PyQt5.QtWidgets import QSlider
 from Classes.UI import funcs_table, funcs_aux
 from Classes.UI.funcs_aux import parseFloat, calculateEff
 from Classes.Adam.adam_manager import AdamManager
@@ -14,8 +14,8 @@ states = {
     "points_limit": 10
 }
 sliders = {
-    "sliderFlow": params["valve"],
-    "sliderSpeed": params["speed"],
+    "sliderFlow": params["valve_"],
+    "sliderSpeed": params["speed_"],
     # ВРЕМЕННО
     "sliderTorque": params["torque_"],
     "sliderPressure": params["pressure_"]
@@ -46,16 +46,15 @@ def switchRunningState(wnd, state: bool):
     wnd.adam_manager.setValue(params["engine_"], state)
 
 
-def switchActiveFlowmeter(wnd):
+def switchActiveFlowmeter(adam_manager, radio, state):
     """ переключение текущего расходомера """
-    wnd.adam_manager.setValue(params[states["active_flowmeter"]], False)
-    if wnd.radioFlow0.isChecked():
-        states["active_flowmeter"] = "flw0_"
-    elif wnd.radioFlow1.isChecked():
-        states["active_flowmeter"] = "flw1_"
-    else:
-        states["active_flowmeter"] = "flw2_"
-    wnd.adam_manager.setValue(params[states["active_flowmeter"]], True)
+    flowmeter = {
+        "radioFlow0": "flw0_",
+        "radioFlow1": "flw1_",
+        "radioFlow2": "flw2_"
+    }[radio.objectName()]
+    states["active_flowmeter"] = flowmeter if state else ""
+    adam_manager.setValue(params[flowmeter], state)
 
 
 def setAdamValue(slider: QSlider, adam_manager: AdamManager, value=-1):
@@ -70,7 +69,7 @@ def getCurrentVals(wnd):
     lft = parseFloat(wnd.txtLift.text())
     pwr = parseFloat(wnd.txtPower.text())
     eff = calculateEff(flw, lft, pwr)
-    return (flw, lft, pwr, eff)
+    return [flw, lft, pwr, eff]
 
 
 def getCalculatedVals(sensors: dict):
@@ -95,3 +94,12 @@ def switchPointsStagesReal(wnd, test_info):
             item['lft'] = round(func(item['lft']), 2)
             item['pwr'] = round(func(item['pwr']), 2)
         funcs_table.setData(wnd.tablePoints, data)
+
+
+def setDefaultStates(adam_manager):
+    """ установка оборудования в исходное состояние """
+    adam_manager.setValue(params["flw0_"], False)
+    adam_manager.setValue(params["flw1_"], False)
+    adam_manager.setValue(params["flw2_"], True)
+    adam_manager.setValue(params["valve_"], 0x0)
+    adam_manager.setValue(params["engine_"], False)

@@ -86,19 +86,18 @@ def setData(table_view: QTableView, data):
     table_view.setModel(proxy)
 
 
-def addToTable_points(window, flw, lft, pwr, eff, stg = 1):
+def addToTable_points(table_view, point_data: list):
     """ добавление точки в таблицу """
-    data = {
-        'flw': round(flw, 1),
-        'lft': round(lft, 2),
-        'pwr': round(pwr, 4),
-        'eff': round(eff, 1)
-    }
-    data.update({
-        'lft_real': round(data['lft'] * stg, 2),
-        'pwr_real': round(data['pwr'] * stg, 2),
-    })
-    addRow(window.tablePoints, data)
+    if len(point_data) == 5:
+        data = {
+            'flw': round(point_data[0], 1),
+            'lft': round(point_data[1], 2),
+            'pwr': round(point_data[2], 4),
+            'eff': round(point_data[3], 1),
+            'lft_real': round(point_data[1] * point_data[4], 2),
+            'pwr_real': round(point_data[2] * point_data[4], 2)
+        }
+        addRow(table_view, data)
 
 
 def setDisplay(table_view: QTableView, display: list):
@@ -109,14 +108,14 @@ def setDisplay(table_view: QTableView, display: list):
     table_view.viewport().update()
 
 
-def addToTable_vibrations(window, vibrations):
+def addToTable_vibrations(table_view, vibrations):
     """ добавление вибрации в таблицу """
     for i, vbr in enumerate(vibrations):
         data = {
             'num': i + 1,
             'vbr': round(vbr, 2)
         }
-        addRow(window.tableVibrations, data)
+        addRow(table_view, data)
 
 
 def addRow(table_view: QTableView, row):

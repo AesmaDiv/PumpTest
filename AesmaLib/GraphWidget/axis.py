@@ -64,7 +64,7 @@ class Axis:
 
     def calculate(self, axis_min: float, axis_max: float):
         """ расчёт параматров """
-        params = dict()
+        params = {}
         amin, amax = Axis._fixMinMax(axis_min, axis_max)
         Axis._getLongShortLengths(amin, amax, params)
         # print('get long and short ', params)
@@ -137,8 +137,8 @@ class Axis:
         params['divs'] = divs
 
     @staticmethod
-    # поиск подходящего кол-ва делений для длинного участка
     def _findDivider(params, divs=0):
+        """ поиск подходящего кол-ва делений для длинного участка """
         value: float = params['len_long']
         if 10 < value < 100:
             value *= 1.1
@@ -149,7 +149,6 @@ class Axis:
                 params['divs'] = val_min * 2.0 + 1
                 params['len_long'] = (val_min + 0.5) * 10.0
             else:
-            # if True:
                 params['divs'] = val_max
                 params['len_long'] = val_max * 10.0
             if params['divs'] < 5:
@@ -170,8 +169,8 @@ class Axis:
             params['len_long'] = value
 
     @staticmethod
-    # завершение расчёта для длинного участка
     def _finishLong(params):
+        """ завершение расчёта для длинного участка """
         # возвращаем значение к прежнему виду, округляем
         # и получаем цену деления
         value: float = params['len_long']
@@ -180,8 +179,8 @@ class Axis:
         params['price'] = value / params['divs']
 
     @staticmethod
-    # завершение расчёта для короткого участка
     def _finishShort(params):
+        """ завершение расчёта для короткого участка """
         # в зависимости от знака и длины (относительно цены деления)
         # правим длину короткого участка и общее кол-во делений
         value: float = params['len_short']
@@ -198,8 +197,8 @@ class Axis:
         params['divs'] += int(divs)
         params['len_short'] = round(value, abs(params['pwr_of_ten']))
 
-    # сохранение расчитанный параметров
     def _assignParams(self, params):
+        """ сохранение расчитанный параметров """
         if params['long_is_max']:
             self._params['axis_min'] = params['len_short']
             self._params['axis_max'] = params['len_long']

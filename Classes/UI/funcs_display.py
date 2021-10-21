@@ -60,22 +60,23 @@ def displayMarkerValues(window, data: dict):
         window.txtPower.setText('%.4f' % point.y())
 
 
-def displayTest_points(window, testdata):
+def displayTest_points(wnd, testdata):
     """ отображение точек испытания в таблице """
-    funcs_table.clear(window.tablePoints)
-    stg = testdata.pump_.Stages
+    funcs_table.clear(wnd.tablePoints)
+    test = testdata.test_
     for i in range(testdata.test_.num_points()):
-        flw = testdata.test_.values_flw[i]
-        lft = testdata.test_.values_lft[i]
-        pwr = testdata.test_.values_pwr[i]
+        flw = test.values_flw[i]
+        lft = test.values_lft[i]
+        pwr = test.values_pwr[i]
         eff = calculateEff(flw, lft, pwr)
-        funcs_table.addToTable_points(window, flw, lft, pwr, eff, stg)
-    funcs_table.addToTable_vibrations(window, testdata.test_.values_vbr)
+        point_data = (flw, lft, pwr, eff, testdata.pump_.Stages)
+        funcs_table.addToTable_points(wnd.tablePoints, point_data)
+    funcs_table.addToTable_vibrations(wnd.tableVibrations, test.values_vbr)
 
 
 def displayTest_deltas(window, graph_manager):
     """ отображение результата испытания """
-    test_result = graph_manager.generate_result_text()
+    test_result = graph_manager.generateResultText()
     window.lblTestResult.setText(test_result)
 
 

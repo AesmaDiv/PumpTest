@@ -1,6 +1,7 @@
 """
     Модуль классов связываемых с таблицами базы данных
 """
+from dataclasses import dataclass
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -8,7 +9,7 @@ from sqlalchemy.sql.sqltypes import FLOAT, INTEGER, VARCHAR, String
 
 
 Base = declarative_base()
-
+@dataclass
 class Assembly(Base):
     """ Класс сборки """
     __tablename__ = 'Assemblies'
@@ -16,6 +17,7 @@ class Assembly(Base):
     Name = Column('Name', VARCHAR)
 
 
+@dataclass
 class Customer(Base):
     """ Класс заказчика """
     __tablename__ = 'Customers'
@@ -23,6 +25,7 @@ class Customer(Base):
     Name = Column('Name', VARCHAR)
 
 
+@dataclass
 class Producer(Base):
     """ Класс производителя """
     __tablename__ = 'Producers'
@@ -30,6 +33,7 @@ class Producer(Base):
     Name = Column('Name', VARCHAR)
 
 
+@dataclass
 class Type(Base):
     """ Класс типоразмера """
     __tablename__ = 'Types'
@@ -46,6 +50,7 @@ class Type(Base):
     Powers = Column('Powers', VARCHAR)
 
 
+@dataclass
 class Pump(Base):
     """ Класс насоса """
     __tablename__ = 'Pumps'
@@ -58,6 +63,7 @@ class Pump(Base):
     Test = relationship("Test")
 
 
+@dataclass
 class Test(Base):
     """ Класс испытания """
     __tablename__ = 'Tests'

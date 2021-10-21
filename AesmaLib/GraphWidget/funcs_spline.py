@@ -1,7 +1,10 @@
-from scipy import interpolate
-from scipy.interpolate import make_interp_spline
-import numpy as np
+"""
+    Модуль содержит функции для расчёта интерполируемого
+    кубического сплайна
+"""
 import math
+import numpy as np
+from scipy.interpolate import make_interp_spline, splrep, splev
 import matplotlib.pyplot as plt
 
 
@@ -34,39 +37,39 @@ def bezierCurveRange(n, points):
 
 
 def getCurvePoints(x, y, is_bezier=False):
-    tck = interpolate.splrep(x, y)
+    """ получение точек кривой """
+    tck = splrep(x, y)
     x2 = np.linspace(0, max(x), 200)
-    y2 = interpolate.splev(x2, tck)
+    y2 = splev(x2, tck)
     if is_bezier:
-        knots = np.array([x[1]])  # not working with above line and just seeing what this line does
+        knots = np.array([x[1]])
         weights = np.concatenate(([1], np.ones(len(x) - 2) * .01, [1]))
-        tck = interpolate.splrep(x, y, t=knots, w=weights)
+        tck = splrep(x, y, t=knots, w=weights)
         x3 = np.linspace(0, max(x), 200)
-        y3 = interpolate.splev(x2, tck)
+        y3 = splev(x2, tck)
         return x3, y3
     return x2, y2
 
 
 def plotSplinePoints(points_x, points_y):
-    tck = interpolate.splrep(points_x, points_y)
+    """ построение графика по точкам """
+    tck = splrep(points_x, points_y)
     x2 = np.linspace(0, max(points_x), 200)
-    y2 = interpolate.splev(x2, tck)
-    knots = np.array([points_x[1]])  # not working with above line and just seeing what this line does
+    y2 = splev(x2, tck)
+    knots = np.array([points_x[1]])
     weights = np.concatenate(([1], np.ones(len(points_x)-2)*.01, [1]))
-    tck = interpolate.splrep(points_x, points_y, t=knots, w=weights)
+    tck = splrep(points_x, points_y, t=knots, w=weights)
     x3 = np.linspace(0, max(points_x), 200)
-    y3 = interpolate.splev(x3, tck)
+    y3 = splev(x3, tck)
     plt.plot(points_x, points_y, 'go', x2, y2, 'b', x3, y3, 'r')
     plt.show()
 
 
 def getBSplinePoints(points_x, points_y):
+    """ получение сплайна из точек """
     np_x = np.array(points_x)
     np_y = np.array(points_y)
     new_x = np.linspace(np_x.min(), np_x.max(), 100)
     spline = make_interp_spline(np_x, np_y, k=2)
     new_y = spline(new_x)
     return new_x.tolist(), new_y.tolist()
-
-def getCubicSpline(points_x, points_y):
-    pass
