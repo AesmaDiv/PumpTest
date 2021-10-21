@@ -93,10 +93,7 @@ class PumpGraph(Graph):
             if IS_LOGGED:
                 Journal.log(__name__, "\tотрисовка сетки ->")
             self._calculateMargins()
-
-            step_x = self.getDrawArea().width() / self._divs_x
-            step_y = self.getDrawArea().height() / self._divs_y
-
+            step_x, step_y = super()._getSteps()
             pen = painter.pen()
             painter.setPen(self._style['grid']['pen'])
             self._drawGridBackground(painter)

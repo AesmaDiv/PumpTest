@@ -2,8 +2,8 @@
     Модуль содержит классы для работы с Advantech ADAM 5000 TCP
 """
 from PyQt5.QtCore import pyqtSignal, QObject
-from .adam_5k import Adam5K, Param, SlotType
-from . import adam_config as adam
+from Classes.Adam.adam_5k import Adam5K, Param, SlotType
+from Classes.Adam import adam_config as adam
 
 
 class AdamManager(QObject):

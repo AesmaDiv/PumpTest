@@ -104,9 +104,7 @@ class Graph(QWidget):
         if len(self._charts):
             if is_logged:
                 Journal.log(__name__, "\tdrawGrid ->")
-            step_x = self.getDrawArea().width() / self._divs_x
-            step_y = self.getDrawArea().height() / self._divs_y
-
+            step_x, step_y = self._getSteps()
             pen = painter.pen()
             painter.setPen(self._style['grid']['pen'])
             self._drawGridBackground(painter)
@@ -220,15 +218,6 @@ class Graph(QWidget):
                             0, 1, 0,
                             0, 0, 1)
 
-    def _setTransform(self, painter: QPainter, transform: QTransform):
-        transform.scale(1, -1)
-        transform.translate(
-            self._margins[0],
-            -self.getDrawArea().height() - self._margins[1]
-        )
-        painter.setTransform(transform)
-
-
     def _drawChart(self, painter: QPainter, chart: Chart, _flag=''):
         """ отрисовка кривой """
         if is_logged:
@@ -303,3 +292,16 @@ class Graph(QWidget):
     def packToPoints(coords_x: list, coords_y: list):
         """ запаковка списков координат в список точек """
         return [coords_x, coords_y]
+
+    def _setTransform(self, painter: QPainter, transform: QTransform):
+        transform.scale(1, -1)
+        transform.translate(
+            self._margins[0],
+            -self.getDrawArea().height() - self._margins[1]
+        )
+        painter.setTransform(transform)
+
+    def _getSteps(self):
+        step_x = self.getDrawArea().width() / self._divs_x
+        step_y = self.getDrawArea().height() / self._divs_y
+        return step_x, step_y
