@@ -37,6 +37,7 @@ def switchRunningState(wnd, state: bool):
     states["is_running"] = state
     msg = {False: 'ЗАПУСК ДВИГАТЕЛЯ', True: 'ОСТАНОВКА ДВИГАТЕЛЯ'}
     wnd.btnEngine.setText(msg[state])
+    wnd.btnSaveCharts.setEnabled(not state)
     wnd.btnGoBack.setEnabled(not state)
     wnd.spinPointLines.setEnabled(not state)
     wnd.spinPointLines.setMaximum(
@@ -96,10 +97,25 @@ def switchPointsStagesReal(wnd, test_info):
         funcs_table.setData(wnd.tablePoints, data)
 
 
-def setDefaultStates(adam_manager):
+def setControlsDefaults(wnd):
+    """ установка слайдеров в исходное положение """
+    for name in sliders:
+        slider = getattr(wnd, name)
+        slider.setValue(0)
+        slider.setEnabled(True)
+
+
+def setAdamDefaults(adam_manager):
     """ установка оборудования в исходное состояние """
-    adam_manager.setValue(params["flw0_"], False)
-    adam_manager.setValue(params["flw1_"], False)
-    adam_manager.setValue(params["flw2_"], True)
-    adam_manager.setValue(params["valve_"], 0x0)
+    adam_manager.setValue(params["flw0_"],   False)
+    adam_manager.setValue(params["flw1_"],   False)
+    adam_manager.setValue(params["flw2_"],   True)
     adam_manager.setValue(params["engine_"], False)
+    adam_manager.setValue(params["valve_"],  0x0)
+    adam_manager.setValue(params["flw0"],    0x0)
+    adam_manager.setValue(params["flw1"],    0x0)
+    adam_manager.setValue(params["flw2"],    0x0)
+    adam_manager.setValue(params["rpm"],     0x0)
+    adam_manager.setValue(params["torque"],  0x0)
+    adam_manager.setValue(params["psi_in"],  0x0)
+    adam_manager.setValue(params["psi_out"], 0x0)

@@ -3425,7 +3425,10 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="page">
+       <widget class="QWidget" name="pageTestControl">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -3739,13 +3742,13 @@
          </property>
         </widget>
        </widget>
-       <widget class="QWidget" name="page_2">
+       <widget class="QWidget" name="pageTestPoints">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3843,13 +3846,13 @@
          </widget>
         </widget>
        </widget>
-       <widget class="QWidget" name="page_3">
+       <widget class="QWidget" name="pageTestVibrations">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3917,7 +3920,7 @@
      <x>0</x>
      <y>0</y>
      <width>1366</width>
-     <height>23</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPump_main_window">

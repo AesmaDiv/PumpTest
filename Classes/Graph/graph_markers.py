@@ -51,7 +51,7 @@ class Markers(QFrame):
         """ установка видимости для линий отбивания точки """
         self._point_lines['vis'] = value
 
-    def setPointLinesMax(self, value: int):
+    def setPointLinesMax(self, value: float):
         """ установка максимального значения расхода для текущего типоразмера """
         pos = self.translatePointToPosition(QPointF(value, 0), "lft")
         self._point_lines['max'] = pos.x()

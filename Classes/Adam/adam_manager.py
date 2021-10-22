@@ -2,6 +2,7 @@
     Модуль содержит классы для работы с Advantech ADAM 5000 TCP
 """
 from PyQt5.QtCore import pyqtSignal, QObject
+from AesmaLib.journal import Journal
 from Classes.Adam.adam_5k import Adam5K, Param, SlotType
 from Classes.Adam import adam_config as adam
 
@@ -56,7 +57,11 @@ class AdamManager(QObject):
         """ тик таймера опроса устройства """
         self.__updateSensors()
         args = self.__createEventArgs()
-        self._signal.emit(args)
+        try:
+            self._signal.emit(args)
+        except RuntimeError as err:
+            self._adam.disconnect()
+            Journal.log(err.args)
 
     def __updateSensors(self):
         for key in self._sensors:

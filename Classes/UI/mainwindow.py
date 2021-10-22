@@ -2,7 +2,7 @@
     Модуль содержит функции основного окна программы
 """
 from PyQt5 import uic
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QMenu, QSlider
 from PyQt5.QtGui import QCursor, QCloseEvent
 from Classes.Adam import adam_config as adam
@@ -24,8 +24,9 @@ class MainWindow(QMainWindow):
         self._is_ready = self._createGUI(paths['WND'])
         if self._is_ready:
             self.adam_manager = AdamManager(
-                adam.IP, adam.PORT, adam.ADDRESS, self
+                adam.IP, adam.PORT, adam.ADDRESS
             )
+            # self.adam_manager.callback.append(self._onAdam_dataReceived)
             self._is_displaying = dict.fromkeys(
                 ['Producer','Type','Serial'], False
             )
@@ -320,6 +321,7 @@ class MainWindow(QMainWindow):
             funcs_group.groupSave(self.groupTestInfo, self._testdata.test_)
             funcs_group.groupLock(self.groupTestInfo, True)
             self._data_manager.saveTestInfo()
+            self._graph_manager.markersClearKnots()
             self._graph_manager.drawCharts(self.frameGraphInfo)
             funcs_testlist.refresh(self, self._data_manager)
 
@@ -351,7 +353,7 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentIndex(1)
         self._graph_manager.displayCharts(self.frameGraphTest)
         self._graph_manager.markersReposition()
-        self._graph_manager.setPointLines_max()
+        self._graph_manager.switchChartsVisibility(True)
 
     def _onClicked_goBack(self):
         """ нажата кнопка возврата на основное окно """
@@ -365,21 +367,24 @@ class MainWindow(QMainWindow):
         """ нажата кнопка начала/остановки испытания """
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_engine)
-        state = not funcs_test.states["is_running"]
+        state = funcs_test.states["is_running"]
         self._graph_manager.switchChartsVisibility(state)
-        funcs_test.switchRunningState(self, state)
+        funcs_test.switchRunningState(self, not state)
 
     def _onClicked_addPoint(self):
         """ нажата кнопка добавления точки """
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_addPoint)
         current_vals = funcs_test.getCurrentVals(self)
+        spin = self.spinPointLines
+        if spin.value() == spin.maximum():
+            self._graph_manager.setPointLines_max(current_vals[0])
         self._graph_manager.markersAddKnots()
         self._graph_manager.addPointsToCharts(*current_vals)
         self._graph_manager.displayCharts(self.frameGraphTest)
         current_vals.append(self._testdata.pump_.Stages)
         funcs_table.addToTable_points(self.tablePoints, current_vals)
-        self.spinPointLines.setValue(int(self.spinPointLines.value()) - 1)
+        spin.setValue(int(spin.value()) - 1)
 
     def _onClicked_removePoint(self):
         """ нажата кнопка удаления точки """
@@ -414,6 +419,7 @@ class MainWindow(QMainWindow):
         Journal.log_func(self._onAdam_connection)
         state = self.chkConnection.isChecked()
         state = self.adam_manager.setPollingState(state, 0.100)
+        self.pageTestControl.setEnabled(state)
         self.chkConnection.setChecked(state)
         self.chkConnection.setStyleSheet(
             "QCheckBox { color: %s; }" % ("lime" if state else "red")
@@ -423,8 +429,10 @@ class MainWindow(QMainWindow):
         )
         funcs_group.groupClear(self.groupTestSensors)
         if state:
-            funcs_test.setDefaultStates(self.adam_manager)
+            funcs_test.setControlsDefaults(self)
+            funcs_test.setAdamDefaults(self.adam_manager)
 
+    @pyqtSlot(dict)
     def _onAdam_dataReceived(self, args: dict):
         """ приход данных от ADAM5000TCP """
         # Journal.log_func(self._on_adam_data_received)

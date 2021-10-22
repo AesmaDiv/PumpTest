@@ -31,7 +31,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Breeze")
 
-    MainWindow(PATHS).show()
+    wnd = MainWindow(PATHS)
+    wnd.show()
 
     app.exec_()
     faulthandler.disable() # выкл. обработчика ошибок

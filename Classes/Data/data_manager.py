@@ -3,8 +3,9 @@
     и класс по управлению этой информацией
 """
 from dataclasses import dataclass, field
+from PyQt5.QtCore import reset
 from sqlalchemy import create_engine, MetaData
-from sqlalchemy.orm.session import Session
+from sqlalchemy.orm.session import sessionmaker
 from Classes.Data.alchemy_tables import Pump, Test
 from Classes.Data.record import RecordType, RecordPump, RecordTest
 from AesmaLib.message import Message
@@ -24,13 +25,21 @@ class TestData:
 class DataManager:
     """ Класс менеджера базы данных """
     def __init__(self, path_to_db) -> None:
+        self._path_to_db = path_to_db
         self._engine = create_engine(f'sqlite:///{path_to_db}')
         self._meta = MetaData(self._engine)
         self._testdata = TestData(self)
 
-    def session(self):
-        """ создаёт новую сессию для запросов """
-        return Session(self._engine)
+    def execute(self, func, *args, **kwargs):
+        """ выполнение запросов к БД и очистка """
+        engine = create_engine(f'sqlite:///{self._path_to_db}')
+        Session = sessionmaker(engine)
+        with Session() as session:
+            kwargs.update({'session': session})
+            result = func(*args, **kwargs)
+            session.close()
+        engine.dispose()
+        return result
 
     def getTestdata(self):
         """ возвращает ссылку на информацию об записи """
@@ -54,11 +63,14 @@ class DataManager:
         """ удаляет текущую запись из БД"""
         test_id = self._testdata.test_['ID']
         if test_id:
-            with self.session() as session:
-                query = session.query(Test).where(Test.ID == test_id)
+            session = sessionmaker(self._engine)
+            with session() as session_:
+                query = session_.query(Test).where(Test.ID == test_id)
                 if query.count():
-                    session.delete(query.one())
-                    session.commit()
+                    session_.delete(query.one())
+                    session_.commit()
+                session_.close()
+                self._engine.dispose()
 
     def clearTypeInfo(self):
         """ очистка информации о типоразмере """
@@ -74,25 +86,28 @@ class DataManager:
 
     def getTestsList(self):
         """ получает список тестов """
-        result = []
-        with Session(self._engine) as session:
-            result = session.query(
-                Test.ID, Test.DateTime, Test.OrderNum, Pump.Serial
-            ).filter(Test.Pump == Pump.ID).order_by(Test.ID.desc()).all()
+        def func(**kwargs):
+            session_ = kwargs['session']
+            result = session_.query(
+                    Test.ID, Test.DateTime, Test.OrderNum, Pump.Serial
+                ).filter(Test.Pump == Pump.ID).order_by(Test.ID.desc()).all()
+            return result
+        result = self.execute(func)
         return list(map(dict, result))
 
     def getListFor(self, table_class, fields):
         """ получает список элементов из таблицы """
-        result = []
-        with Session(self._engine) as session:
+        def func(**kwargs):
             columns = [getattr(table_class, field) for field in fields]
-            result = session.query(*columns).all()
+            result = kwargs['session'].query(*columns).all()
+            return result
+        result = self.execute(func)
         return list(map(dict, result))
 
     def checkExists_serial(self, serial, type_id=0):
         """ возвращает ID записи с введенным серийным номером """
-        with Session(self._engine) as session:
-            query = session.query(Pump).where(
+        def func(**kwargs):
+            query = kwargs['session'].query(Pump).where(
                 Pump.Serial == serial
             ).filter(Pump.Type == type_id)
             if query.count():
@@ -104,12 +119,16 @@ class DataManager:
                     "Выбрать", "Отмена"
                 )
                 return query.one().ID, choice
-        return 0, False
+            return 0, False
+        result_id, result_state = self.execute(func)
+        return result_id, result_state
 
     def checkExists_ordernum(self, order_num, with_select=False):
         """ возвращает ID записи с введенным номером наряд-заказа """
-        with Session(self._engine) as session:
-            query = session.query(Test).where(Test.OrderNum == order_num)
+        def func(**kwargs):
+            query = kwargs['session'].query(Test).where(
+                Test.OrderNum == order_num
+            )
             if query.count():
                 if with_select:
                     choice =  Message.choice(
@@ -120,7 +139,8 @@ class DataManager:
                         ("Выбрать", "Создать", "Отмена")
                     )
                 return query.one().ID, choice
-        return 0, -1
+            return 0, -1
+        return self.execute(func)
 
     @Journal.logged
     def saveTestInfo(self):

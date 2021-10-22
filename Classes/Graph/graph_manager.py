@@ -157,11 +157,9 @@ class GraphManager(PumpGraph):
         """ очистка узлов (всех точек) """
         self._markers.clearAllKnots()
 
-    def setPointLines_max(self):
+    def setPointLines_max(self, value):
         """ установка макс.значения расхода для линий отбивания точек """
-        self._markers.setPointLinesMax(
-            max(self._charts['lft'].getPoints(), key=lambda item: item[0])[0]
-        )
+        self._markers.setPointLinesMax(value)
 
     def setPointLines_num(self, value):
         """ установка кол-ва линий для отбивания точек """
@@ -239,7 +237,7 @@ class GraphManager(PumpGraph):
     def switchChartsVisibility(self, state):
         """ переключение видимости для кривых """
         self.setVisibleCharts(['lft', 'pwr', 'test_lft', 'test_pwr']
-                                            if state else 'all')
+                                            if not state else 'all')
         self._markers.setPointLinesVis(state)
         self.displayCharts(self._markers)
 
@@ -247,9 +245,9 @@ class GraphManager(PumpGraph):
         """ генерирует миниотчёт об испытании """
         self._testdata.dlts_.clear()
         result_lines = []
-        if self._testdata.test_['Flows']:
-            self._generateDeltasReport(result_lines)
-            self._generateEffsReport(result_lines)
+        # if self._testdata.test_['Flows']:
+        self._generateDeltasReport(result_lines)
+        self._generateDeltaEffsReport(result_lines)
         return '\n'.join(result_lines)
 
     def _generateDeltasReport(self, lines: list):
@@ -257,21 +255,26 @@ class GraphManager(PumpGraph):
         for name, title in zip(('lft', 'pwr'),('Напор', 'Мощность')):
             self._calculateDeltasFor(name)
             string = f'\u0394 {title}, %\t'
-            string += '\t{:>10.2f}\t{:>10.2f}\t{:>10.2f}'.format(*self._testdata.dlts_[name])
+            for val in self._testdata.dlts_[name]:
+                frmt = '{:>10.2f}' if val else '-.--'
+                string += f'\t{frmt}'.format(val)
             lines.append(string)
 
-    def _generateEffsReport(self, lines: list):
+    def _generateDeltaEffsReport(self, lines: list):
         """ расчитывает отклонения для кпд """
+        result = None
         chart = self.getChart('test_eff')
         spline = chart.getSpline()
-        curve = chart.regenerateCurve()
-        nom = self._testdata.type_['Nom']
-        eff_nom = float(spline(nom))
-        eff_max = float(max(curve['y']))
-        eff_dlt = abs(eff_max - eff_nom)
-        string = 'Отклонение КПД от номинального, %\t{:>10.2f}'.format(eff_dlt)
+        if spline:
+            curve = chart.regenerateCurve()
+            nom = self._testdata.type_['Nom']
+            eff_nom = float(spline(nom))
+            eff_max = float(max(curve['y']))
+            result = abs(eff_max - eff_nom)
+        frmt = '{:>10.2f}' if result else '-.--'
+        string = f'Отклонение КПД от номинального, %\t{frmt}'.format(result)
         lines.append(string)
-        self._testdata.dlts_['eff'] = eff_dlt
+        self._testdata.dlts_['eff'] = result
 
     def _calculateDeltasFor(self, chart_name: str):
         """ расчитывает отклонения для указанной характеристики """
@@ -279,9 +282,11 @@ class GraphManager(PumpGraph):
         ranges = ('Min', 'Nom', 'Max')
         get_val = lambda spl, rng: float(spl(self._testdata.type_[rng]))
         get_dlt = lambda tst, etl: round((tst / etl * 100 - 100), 2)
-        vals = []
+        vals, result = [], [None] * 3
         for name in names:
             spln = self.getChart(f'{name}').getSpline()
-            vals.append([get_val(spln, rng) for rng in ranges])
-        result = [get_dlt(x, y) for x, y in zip(vals[0], vals[1])]
+            if spln:
+                vals.append([get_val(spln, rng) for rng in ranges])
+        if len(vals) > 1:
+            result = [get_dlt(x, y) for x, y in zip(vals[0], vals[1])]
         self._testdata.dlts_[name] = result

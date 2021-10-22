@@ -7,9 +7,9 @@ from Classes.Data.alchemy_tables import Producer, Type, Pump, Test
 
 class Record():
     """ Класс-шаблон описания записи таблицы БД """
-    def __init__(self, db_manager, parent_class: str, rec_id=0):
+    def __init__(self, db_manager, super_class: str, rec_id=0):
         self._db_manager = db_manager
-        self._parent_class = parent_class
+        self._super_class = super_class
         self._props = {}
         _ = self.read(rec_id) if rec_id else self.create()
 
@@ -44,12 +44,17 @@ class Record():
         """ загружает запись из таблицы БД по ID
         -> возвращает успех """
         self.clear()
-        query = self._db_manager.session().query(
-            self._parent_class
-        ).where(self._parent_class.ID == rec_id)
-        if query.count():
+        def func(**kwargs):
+            query = kwargs['session'].query(
+                self._super_class
+            ).where(self._super_class.ID == rec_id)
+            if query.count():
+                return query.one().__dict__
+            return None
+        result = self._db_manager.execute(func)
+        if result:
             self._props = {
-                k: query.one().__dict__[k] for k in self._props.keys()
+                k: result[k] for k in self._props.keys()
             }
             return True
         return False
@@ -57,8 +62,8 @@ class Record():
     def create(self) -> bool:
         """ создаёт пустую запись для таблицы БД
         -> возвращает успех """
-        self._current = self._parent_class()
-        table_columns = self._parent_class.__table__.columns.keys()
+        self._current = self._super_class()
+        table_columns = self._super_class.__table__.columns.keys()
         if table_columns:
             self._props = dict.fromkeys(table_columns)
             return True
@@ -72,7 +77,12 @@ class Record():
         """ проверяет, существует ли запись с такими условиями """
         if not conditions:
             conditions = [{'ID': self._props['ID']}]
-        items = self._db_manager.select(self._parent_class, ['ID'], conditions)
+        def func(**kwargs):
+            result = kwargs['session'].select(
+                self._super_class, ['ID'], conditions
+            )
+            return result
+        items = self._db_manager.execute(func)
         if items:
             return items[0]['ID']
         return 0
@@ -81,22 +91,23 @@ class Record():
         """ сохраняет запись в таблицу БД:
         добавляет новую и сохраняет ID или обновляет существующую
         -> возвращает успех """
-        with self._db_manager.session() as session:
+        def func(**kwargs):
             data = self._props.copy()
             id_ = data.pop('ID')
             if id_:
-                item = session.query(self._parent_class).get(id_)
+                item = kwargs['session'].query(self._super_class).get(id_)
             else:
-                item = self._parent_class()
+                item = self._super_class()
             for k in data.keys():
                 setattr(item, k, data[k])
-            session.add(item)
+            kwargs['session'].add(item)
             try:
-                session.commit()
+                kwargs['session'].commit()
                 self._props.update({'ID': item.ID })
             except sqlalchemy.exc.IntegrityError:
                 return False
             return item.ID > 0
+        return self._db_manager.execute(func)
 
 
 class RecordType(Record):
@@ -106,8 +117,8 @@ class RecordType(Record):
     values_lft = []
     values_pwr = []
 
-    def __init__(self, db_manager, parent_class=Type, rec_id=0):
-        super().__init__(db_manager, parent_class, rec_id)
+    def __init__(self, db_manager, super_class=Type, rec_id=0):
+        super().__init__(db_manager, super_class, rec_id)
         if self.__class__ is RecordType:
             self.ProducerName = ""
 
@@ -124,9 +135,10 @@ class RecordType(Record):
                     self.values_flw, self.values_lft, self.values_pwr
                 )
                 if self.__class__ is RecordType:
-                    with self._db_manager.session() as session:
-                        producer = session.query(Producer).get(self['Producer'])
+                    def func(**kwargs):
+                        producer = kwargs['session'].query(Producer).get(self['Producer'])
                         self.ProducerName = producer.Name
+                    self._db_manager.execute(func)
             else:
                 self._clear()
         return result
@@ -174,14 +186,14 @@ class RecordType(Record):
 
 class RecordPump(Record):
     """ Класс информации о насосе """
-    def __init__(self, db_manager, parent_class=Pump, rec_id=0):
-        super().__init__(db_manager, parent_class, rec_id)
+    def __init__(self, db_manager, super_class=Pump, rec_id=0):
+        super().__init__(db_manager, super_class, rec_id)
 
 
 class RecordTest(RecordType):
     """ Класс информации об испытании """
-    def __init__(self, db_manager, parent_class=Test, rec_id=0):
-        RecordType.__init__(self, db_manager, parent_class, rec_id)
+    def __init__(self, db_manager, super_class=Test, rec_id=0):
+        RecordType.__init__(self, db_manager, super_class, rec_id)
         self.values_vbr = []
 
     def read(self, rec_id) -> bool:
