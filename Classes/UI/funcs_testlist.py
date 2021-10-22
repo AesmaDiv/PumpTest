@@ -80,6 +80,9 @@ def filterSwitch(window):
 
 def setCurrentTest(window, test_id: int):
     """ выбирает в списке тестов запись и указаным ID """
-    model = window.tableTests.model().sourceModel()
-    index = model.getRowContains(0, test_id)
-    window.tableTests.selectRow(index.row())
+    row = 0
+    if test_id:
+        model = window.tableTests.model().sourceModel()
+        index = model.getRowContains(0, test_id)
+        row = index.row()
+    window.tableTests.selectRow(row)
