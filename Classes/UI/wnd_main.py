@@ -57,15 +57,6 @@ class MainWindow(QMainWindow):
             self.adam_manager.setPollingState(False)
         return super().closeEvent(a0)
 
-    @Journal.logged
-    def setColorScheme(self):
-        """ устанавливает цветовую схему """
-        # gvars.wnd_main.stackedWidget.setStyleSheet("QStackedWidget { background: #404040; }")
-        # style: str = "QComboBox { color: #ffffff; }" \
-        #              "QComboBox:!editable { color: #dddddd; }"
-        # gvars.wnd_main.groupTestInfo.setStyleSheet(style)
-        # gvars.wnd_main.groupPumpInfo.setStyleSheet(style)
-
     def _createGUI(self, path_to_ui):
         """ загружает файл графического интерфейса """
         try:
@@ -84,14 +75,14 @@ class MainWindow(QMainWindow):
         funcs_test.prepareSlidersRange(self)
         funcs_table.initTable_points(self)
         funcs_table.initTable_vibrations(self)
-        self.setColorScheme()
         self._registerEvents()
         self._initMarkers()
         self._initSlider(self.sliderFlow)
         self._initSlider(self.sliderSpeed)
-        # ВРЕМЕННО
+        # ВРЕМЕННО ->
         self._initSlider(self.sliderTorque)
         self._initSlider(self.sliderPressure)
+        # <- ВРЕМЕННО
         funcs_group.groupLock(self.groupTestInfo, True)
         funcs_group.groupLock(self.groupPumpInfo, True)
 
