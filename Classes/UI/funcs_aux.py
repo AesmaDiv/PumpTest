@@ -21,6 +21,7 @@ def calculateLift(sensors: dict):
     lift = (psi_out - psi_in) / 0.433
     return lift
 
+
 def calculatePower(sensors: dict):
     """ рассчёт потребляемой мощности """
     torque = sensors.get('torque', 0)
@@ -43,6 +44,7 @@ def calculateEff(flw: float, lft: float, pwr: float):
     """ расчёт КПД """
     return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
         if flw and lft and pwr else 0
+
 
 def applySpeedFactor(flw: float, lft: float, pwr: float, rpm: float):
     """ применение фактора скорости """

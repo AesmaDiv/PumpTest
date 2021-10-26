@@ -91,7 +91,7 @@
             <span class="test-table label">Напор, м</span>
             <span class="test-table label">Мощность, кВт</span>
             {% for i in range(test_info.num_points()) %}
-                <span class="test-table value">{{i}}</span>
+                <span class="test-table value">{{i + 1}}</span>
                 <span class="test-table value">{{test_info.values_flw[i]|round(1)}}</span>
                 <span class="test-table value">{{test_info.values_lft[i]|round(1)}}</span>
                 <span class="test-table value">{{test_info.values_pwr[i]|round(3)}}</span>

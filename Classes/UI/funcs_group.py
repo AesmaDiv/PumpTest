@@ -32,7 +32,9 @@ def groupSave(group: QGroupBox, record, log=False):
         item = group.findChildren(QWidget, QRegExp(name))
         if item:
             if isinstance(item[0], QLineEdit):
-                record[name] = item[0].text()
+                record[name] = int(item[0].text()) \
+                    if name in ('Stages', "DaysRun") \
+                    else item[0].text()
             elif isinstance(item[0], QComboBox):
                 record[name] = item[0].currentData()['ID'] \
                     if name in ('Type', 'Producer', 'Customer', 'Assembly') \

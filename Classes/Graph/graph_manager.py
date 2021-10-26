@@ -171,6 +171,12 @@ class GraphManager(PumpGraph):
         self._markers.setPointLinesCurrent(value)
         self._markers.repaint()
 
+    def checkPointExists(self, flw) -> bool:
+        """ проверка есть ли точка с таким значением по Х """
+        chart: Chart = super().getChart('test_lft')
+        points = chart.getPoints('x')
+        return flw in points
+
     def addPointsToCharts(self, flw, lft, pwr, eff):
         """ добавление точек напора и мощности на график """
         self._addPointToChart('test_lft', flw, lft)
@@ -195,7 +201,7 @@ class GraphManager(PumpGraph):
             else:
                 print(__name__, '\tError: не найден эталон для', chart_name)
 
-    def getChart(self, name: str):
+    def _getChart(self, name: str):
         """ получение ссылки на кривую по имени """
         chart_name = name
         chart: Chart = super().getChart(chart_name)
@@ -236,9 +242,13 @@ class GraphManager(PumpGraph):
 
     def switchChartsVisibility(self, state):
         """ переключение видимости для кривых """
+        # если включено - показывать все графики
+        # если выключено - только тестовые (напор / мощность)
         self.setVisibleCharts(['lft', 'pwr', 'test_lft', 'test_pwr']
                                             if not state else 'all')
-        self._markers.setPointLinesVis(state)
+        # переключение видимости линий для отбивания точек
+        # если выключена видимость всех - показывается линии
+        self._markers.setPointLinesVis(not state)
         self.displayCharts(self._markers)
 
     def generateResultText(self):
@@ -263,7 +273,7 @@ class GraphManager(PumpGraph):
     def _generateDeltaEffsReport(self, lines: list):
         """ расчитывает отклонения для кпд """
         result = None
-        chart = self.getChart('test_eff')
+        chart = self._getChart('test_eff')
         spline = chart.getSpline()
         if spline:
             curve = chart.regenerateCurve()
@@ -284,7 +294,7 @@ class GraphManager(PumpGraph):
         get_dlt = lambda tst, etl: round((tst / etl * 100 - 100), 2)
         vals, result = [], [None] * 3
         for name in names:
-            spln = self.getChart(f'{name}').getSpline()
+            spln = self._getChart(f'{name}').getSpline()
             if spln:
                 vals.append([get_val(spln, rng) for rng in ranges])
         if len(vals) > 1:

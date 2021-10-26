@@ -8,7 +8,7 @@ import os
 import sys
 import faulthandler
 from PyQt5.QtWidgets import QApplication
-from Classes.UI.mainwindow import MainWindow
+from Classes.UI.wnd_main import MainWindow
 # from AesmaLib.Hardware.Adam5k import Adam5K
 
 
@@ -22,6 +22,7 @@ ROOT = os.path.dirname(__file__)
 PATHS = {
     'DB': os.path.join(ROOT, 'Files/pump.sqlite'),  # путь к файлу базы данных
     'WND': os.path.join(ROOT, 'Files/mainwindow.ui'),  # путь к файлу GUI
+    'TYPE': os.path.join(ROOT, 'Files/pumpwindow.ui'),  # путь к файлу GUI
     'TEMPLATE': os.path.join(ROOT, 'Files/report')  # путь к шаблону протокола
 }
 

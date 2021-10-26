@@ -168,11 +168,12 @@ class Markers(QFrame):
     def _drawPointLine(self, painter):
         """ отрисовка линий, для отбивания точек """
         if self._point_lines['vis'] and self._point_lines['num'] > 2:
-            step = self._point_lines['max'] / (self._point_lines['num'])
+            step = (self._point_lines['max']) / (self._point_lines['num'] - 1)
             pen = painter.pen()
             painter.setPen(self._point_lines['pen'])
-            painter.drawLine(QPointF(self._point_lines['cur'] * step, 0.0),
-                             QPointF(self._point_lines['cur'] * step, self._area.height()))
+            pos_x = (self._point_lines['cur'] - 1) * step
+            painter.drawLine(QPointF(pos_x, 0.0),
+                             QPointF(pos_x, self._area.height()))
             painter.setPen(pen)
 
     def _drawMarkers(self, painter):

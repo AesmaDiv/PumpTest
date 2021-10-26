@@ -8,6 +8,7 @@ from PyQt5.QtGui import QCursor, QCloseEvent
 from Classes.Adam import adam_config as adam
 from Classes.UI import funcs_table, funcs_testlist, funcs_combo, funcs_group
 from Classes.UI import funcs_aux, funcs_test, funcs_display
+from Classes.UI.wnd_type import TypeWindow
 from Classes.Data.report import Report
 from Classes.Data.data_manager import DataManager
 from Classes.Graph.graph_manager import GraphManager
@@ -33,6 +34,9 @@ class MainWindow(QMainWindow):
             self._data_manager = DataManager(paths['DB'])
             self._testdata = self._data_manager.getTestdata()
             self._graph_manager = GraphManager(self._testdata)
+            self._type_window = TypeWindow(
+                self, self._data_manager, paths['TYPE']
+            )
             self._report = Report(
                 paths['TEMPLATE'], self._graph_manager, self._testdata
             )
@@ -177,8 +181,10 @@ class MainWindow(QMainWindow):
             self._data_manager.clearRecord()
             # загружаем и отображаем информацию о выбранной записи
             if self._data_manager.loadRecord(item['ID']):
+                self._graph_manager.clearCharts()
+                self._graph_manager.markersClearKnots()
                 funcs_display.displayRecord(self, self._data_manager)
-                funcs_display.displayTest_deltas(self, self._graph_manager)
+            funcs_display.displayTest_deltas(self, self._graph_manager)
             Journal.log('===' * 25)
 
     def _onChangedTestlist_column(self):
@@ -285,6 +291,10 @@ class MainWindow(QMainWindow):
             if self._data_manager.savePumpInfo():
                 funcs_combo.fillCombos_pump(self, self._data_manager)
                 self.cmbSerial.model().selectContains(pump_info.ID)
+        # если поля не заполнены, возможно добавление нового типа
+        elif Message.ask("Внимание", "Добавить новый типоразмер"):
+            if self._type_window.addType():
+                funcs_combo.fillCombos_pump(self, self._data_manager)
 
     def _onClickedPumpInfo_cancel(self):
         """ нажата кнопка отмены добавления нового насоса """
@@ -367,24 +377,29 @@ class MainWindow(QMainWindow):
         """ нажата кнопка начала/остановки испытания """
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_engine)
-        state = funcs_test.states["is_running"]
-        self._graph_manager.switchChartsVisibility(state)
-        funcs_test.switchRunningState(self, not state)
+        state = not funcs_test.states["is_running"]
+        self._graph_manager.switchChartsVisibility(not state)
+        funcs_test.switchControlsAccessible(self, state)
+        funcs_test.switchRunningState(self, state)
 
     def _onClicked_addPoint(self):
         """ нажата кнопка добавления точки """
         Journal.log('___' * 25)
         Journal.log_func(self._onClicked_addPoint)
-        current_vals = funcs_test.getCurrentVals(self)
         spin = self.spinPointLines
+        if spin.value() == 0:
+            Message.show("Внимание:", "Достигнуто максимальное кол-во точек.")
+            return
+        current_vals = funcs_test.getCurrentVals(self)
         if spin.value() == spin.maximum():
             self._graph_manager.setPointLines_max(current_vals[0])
-        self._graph_manager.markersAddKnots()
-        self._graph_manager.addPointsToCharts(*current_vals)
-        self._graph_manager.displayCharts(self.frameGraphTest)
-        current_vals.append(self._testdata.pump_.Stages)
-        funcs_table.addToTable_points(self.tablePoints, current_vals)
-        spin.setValue(int(spin.value()) - 1)
+        if not self._graph_manager.checkPointExists(current_vals[0]):
+            self._graph_manager.markersAddKnots()
+            self._graph_manager.addPointsToCharts(*current_vals)
+            self._graph_manager.displayCharts(self.frameGraphTest)
+            current_vals.append(self._testdata.pump_.Stages)
+            funcs_table.addToTable_points(self.tablePoints, current_vals)
+            spin.setValue(int(spin.value()) - 1)
 
     def _onClicked_removePoint(self):
         """ нажата кнопка удаления точки """
@@ -419,7 +434,7 @@ class MainWindow(QMainWindow):
         Journal.log_func(self._onAdam_connection)
         state = self.chkConnection.isChecked()
         state = self.adam_manager.setPollingState(state, 0.100)
-        self.pageTestControl.setEnabled(state)
+        funcs_test.switchControlsAccessible(self, False)
         self.chkConnection.setChecked(state)
         self.chkConnection.setStyleSheet(
             "QCheckBox { color: %s; }" % ("lime" if state else "red")
@@ -427,6 +442,7 @@ class MainWindow(QMainWindow):
         self.chkConnection.setText(
             "контроллер %s" % ("подключен" if state else "отключен")
         )
+        self.pageTestControl.setEnabled(state)
         funcs_group.groupClear(self.groupTestSensors)
         if state:
             funcs_test.setControlsDefaults(self)

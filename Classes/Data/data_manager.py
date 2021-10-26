@@ -3,11 +3,10 @@
     и класс по управлению этой информацией
 """
 from dataclasses import dataclass, field
-from PyQt5.QtCore import reset
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm.session import sessionmaker
-from Classes.Data.alchemy_tables import Pump, Test
-from Classes.Data.record import RecordType, RecordPump, RecordTest
+from Classes.Data.alchemy_tables import Pump, Test, Type, Producer
+from Classes.Data.record import Record, RecordType, RecordPump, RecordTest
 from AesmaLib.message import Message
 from AesmaLib.journal import Journal
 
@@ -44,6 +43,14 @@ class DataManager:
     def getTestdata(self):
         """ возвращает ссылку на информацию об записи """
         return self._testdata
+
+    def createRecord(self, super_class, data: dict):
+        """ создать новую запись """
+        record = Record(self, super_class)
+        for key, val in data.items():
+            record[key] = val
+        record.write()
+        return record.ID
 
     @Journal.logged
     def clearRecord(self):

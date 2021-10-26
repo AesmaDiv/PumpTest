@@ -21,6 +21,7 @@ sliders = {
     "sliderPressure": params["pressure_"]
 }
 
+
 def prepareSlidersRange(wnd):
     """ установка диапазона слайдеров """
     wnd.radioFlow2.setChecked(True)
@@ -28,6 +29,19 @@ def prepareSlidersRange(wnd):
         item = wnd.findChild(QSlider, key)
         if item:
             item.setMaximum(param.dig_max)
+
+
+def switchControlsAccessible(wnd, state: bool):
+    """ переключение доступности кнопок добавления / удаления точек """
+    wnd.btnAddPoint.setEnabled(state)
+    wnd.btnRemovePoint.setEnabled(state)
+    wnd.btnClearCurve.setEnabled(state)
+    wnd.btnSaveCharts.setEnabled(not state)
+    wnd.spinPointLines.setEnabled(not state)
+    wnd.spinPointLines.setMaximum(
+        int(wnd.spinPointLines.value()) if state else states["points_limit"]
+    )
+    wnd.spinPointLines.setValue(wnd.spinPointLines.maximum())
 
 
 def switchRunningState(wnd, state: bool):
@@ -39,11 +53,6 @@ def switchRunningState(wnd, state: bool):
     wnd.btnEngine.setText(msg[state])
     wnd.btnSaveCharts.setEnabled(not state)
     wnd.btnGoBack.setEnabled(not state)
-    wnd.spinPointLines.setEnabled(not state)
-    wnd.spinPointLines.setMaximum(
-        int(wnd.spinPointLines.value()) if state else states["points_limit"]
-    )
-    wnd.spinPointLines.setValue(wnd.spinPointLines.maximum())
     wnd.adam_manager.setValue(params["engine_"], state)
 
 
