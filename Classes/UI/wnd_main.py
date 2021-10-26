@@ -292,7 +292,7 @@ class MainWindow(QMainWindow):
                 funcs_combo.fillCombos_pump(self, self._data_manager)
                 self.cmbSerial.model().selectContains(pump_info.ID)
         # если поля не заполнены, возможно добавление нового типа
-        elif Message.ask("Внимание", "Добавить новый типоразмер"):
+        elif Message.ask("Внимание", "Добавить новый типоразмер?"):
             if self._type_window.addType():
                 funcs_combo.fillCombos_pump(self, self._data_manager)
 

@@ -3,8 +3,8 @@
 """
 from PyQt5 import uic
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit
-from Classes.Data.alchemy_tables import Producer, Type
 from Classes.UI import funcs_combo
+from Classes.Data.alchemy_tables import Producer, Type
 from AesmaLib.journal import Journal
 from AesmaLib.message import Message
 
@@ -29,17 +29,21 @@ class TypeWindow(QDialog):
     def saveType(self, type_data: dict) -> bool:
         """ сохраняет информацию о типоразмере """
         if self._is_ready:
+            # если производитель не выбран, но указано его имя
+            # добавляем нового и выбираем
             if not type_data['Producer'] and type_data['ProducerName']:
                 type_data['Producer'] = self._data_manager.createRecord(
                     Producer,
                     {'Name': type_data.pop('ProducerName')}
                 )
+            # если производитель выбран
+            # добавляем новый типоразмер
             if type_data['Producer']:
                 result = self._data_manager.createRecord(Type, type_data)
                 Message.show(
                     "УСПЕХ" if result else "ОШИБКА",
-                    f"Новый типоразмер {type_data['Name']} добавлен" if result \
-                    else "Ошибка добавление нового типоразмера"
+                    f"Новый типоразмер '{type_data['Name']}' добавлен" \
+                        if result else "Ошибка добавление нового типоразмера"
                 )
                 return result
         return False
@@ -57,16 +61,20 @@ class TypeWindow(QDialog):
         self._clearFields()
         funcs_combo.fillCombo_producers(self, self._data_manager)
         self.cmbProducer.lineEdit().setObjectName("txtProducerName")
+        # выбор производителя как в основном окне
         condition = {'ID': self.parent().cmbProducer.currentData()['ID']}
         funcs_combo.selectContains(self.cmbProducer, condition)
+        # перенос имени типоразмера из основного окна
         self.txtName.setText(self.parent().cmbType.currentText())
 
     def _getFieldsData(self) -> dict:
         """ получение значений из полей """
+        # производитель из комбобокса
         result = {'Producer': self.cmbProducer.currentData()['ID']}
+        # остальные из текстовых полей
         result.update({
-            item.objectName().replace("txt", ""): item.text() \
-            for item in self.findChildren(QLineEdit)
+            item.objectName().replace("txt", ""): \
+                item.text() for item in self.findChildren(QLineEdit)
         })
         return result
 
@@ -84,15 +92,18 @@ class TypeWindow(QDialog):
 
     def _checkAllFilled(self, data: dict) -> bool:
         """ проверка на заполнение всех полей """
+        # список пустых полей
         empty = [key for key, val in data.items() if not val]
-        labels = []
         if empty:
+            # список соответствующих полям заголовков
+            titles = []
             for name in empty:
-                item = self.findChild(QLabel, f"lbl{name}")
-                if item:
-                    labels.append(f"\n  {item.text()}")
-            msg = (",").join(labels)
-            msg = f"Заполните следующие поля:{msg}"
+                lbl = self.findChild(QLabel, f"lbl{name}")
+                if lbl:
+                    titles.append(f"\n->  {lbl.text()}")
+            # создание списка для отображения
+            msg = ("").join(titles)
+            msg = f"Необходимо заполнить следующие поля:\n{msg}"
             Message.show("Внимание", msg)
             return False
         return True
@@ -118,7 +129,7 @@ class TypeWindow(QDialog):
 
     @staticmethod
     def _checkPoints(data: dict) -> bool:
-        """ проверка корректности строк значений для точек """
+        """ проверка корректности и длины массивов точек """
         try:
             vals_flw = list(map(float, data['Flows'].split(',')))
             vals_lft = list(map(float, data['Lifts'].split(',')))

@@ -56,6 +56,9 @@
         <height>23</height>
        </size>
       </property>
+      <property name="whatsThis">
+       <string extracomment="Типоразмер"/>
+      </property>
       <property name="placeholderText">
        <string>имя</string>
       </property>
@@ -74,6 +77,9 @@
         <width>180</width>
         <height>23</height>
        </size>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Базовая скорость"/>
       </property>
       <property name="placeholderText">
        <string>об/мин</string>
@@ -119,6 +125,9 @@
         <height>23</height>
        </size>
       </property>
+      <property name="whatsThis">
+       <string extracomment="Номинал"/>
+      </property>
       <property name="placeholderText">
        <string>м³/сутки</string>
       </property>
@@ -162,6 +171,9 @@
         <width>180</width>
         <height>23</height>
        </size>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Минимум"/>
       </property>
       <property name="placeholderText">
        <string>м³/сутки</string>
@@ -257,13 +269,16 @@
         <height>23</height>
        </size>
       </property>
+      <property name="whatsThis">
+       <string extracomment="Производитель"/>
+      </property>
       <property name="editable">
        <bool>true</bool>
       </property>
      </widget>
     </item>
     <item row="1" column="0">
-     <widget class="QLabel" name="lblType">
+     <widget class="QLabel" name="lblName">
       <property name="minimumSize">
        <size>
         <width>120</width>
@@ -354,6 +369,9 @@
         <height>23</height>
        </size>
       </property>
+      <property name="whatsThis">
+       <string extracomment="Дата введения"/>
+      </property>
       <property name="placeholderText">
        <string>год[.месяц]</string>
       </property>
@@ -372,6 +390,9 @@
         <width>180</width>
         <height>23</height>
        </size>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Максимум"/>
       </property>
       <property name="placeholderText">
        <string>м³/сутки</string>
@@ -442,6 +463,9 @@
         <height>23</height>
        </size>
       </property>
+      <property name="whatsThis">
+       <string extracomment="Расход"/>
+      </property>
       <property name="placeholderText">
        <string>N чисел, разделённых запятой (м³/сутки)</string>
       </property>
@@ -461,6 +485,9 @@
         <height>23</height>
        </size>
       </property>
+      <property name="whatsThis">
+       <string extracomment="Напор"/>
+      </property>
       <property name="placeholderText">
        <string>N чисел, разделённых запятой (м)</string>
       </property>
@@ -479,6 +506,9 @@
         <width>800</width>
         <height>23</height>
        </size>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Мощность"/>
       </property>
       <property name="placeholderText">
        <string>N чисел, разделённых запятой (кВт)</string>
