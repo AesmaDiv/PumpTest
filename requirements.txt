@@ -1,7 +1,8 @@
-# requirements for Pump project
-PyQt5>=5.15.1
-matplotlib>=3.3.2
-scipy>=1.5.3
-Jinja2>=3.0.1
-bitarray>=2.3.4
-bitstring>=3.1.9
+Jinja2==3.0.3
+matplotlib==3.5.0
+numpy==1.21.4
+pylint==2.11.1
+PyQt5==5.15.6
+PyQtWebEngine==5.15.5
+scipy==1.7.2
+SQLAlchemy==1.4.27

@@ -8,8 +8,6 @@ from threading import Thread
 from dataclasses import dataclass
 from enum import Enum
 from array import array
-from bitstring import BitArray
-from bitarray import bitarray
 
 
 class CommandType(Enum):
@@ -88,9 +86,9 @@ class CommandBuilder:
         result = bytearray([self._address, 0xf])
         result.extend(address.to_bytes(2, 'big'))
         if slot_type == SlotType.DIGITAL:
-            bits = bitarray(pattern)
-            bits.reverse()
-            values = bits.tobytes()
+            bits = "".join(['1' if x else '0' for x in pattern])
+            bits = bits[::-1]
+            values = int(bits, 2).to_bytes(4, 'big')
             result.extend((len(bits) * 2).to_bytes(2, 'big'))
             result.extend((len(values) * 2).to_bytes(1, 'big'))
             for value in values:
@@ -244,7 +242,7 @@ class Adam5K:
         result = 0
         if 0 <= slot < 8 and 0 <= channel < 8:
             if slot_type == SlotType.DIGITAL:
-                if len(self._data[slot_type]) == 16:
+                if len(self._data[slot_type]) == 8:
                     value = self._data[SlotType.DIGITAL][slot]
                     bits = self.__toBits(value)
                     result = bits[channel] == '1'
@@ -302,7 +300,9 @@ class Adam5K:
         # если нет - читать все значения
         else:
             self.__readAllValues_fromDevice()
-        self._callback()
+        # транслировать событие, если есть обработчик
+        if self._callback:
+            self._callback()
 
     def __readAllValues_fromDevice(self, slot_type: SlotType = SlotType.ALL):
         """ чтение всех значений в слоте из устройства """
@@ -340,8 +340,8 @@ class Adam5K:
     @staticmethod
     def __toBits(value: int):
         """ конвертирование значения в биты """
-        bits = list(BitArray(uint=value, length=8).bin)
-        bits.reverse()
+        bits = f"{0:08b}".format(value)
+        bits = bits[::-1]
         return bits
 
     @staticmethod
@@ -360,8 +360,9 @@ if __name__ == '__main__':
     adam = Adam5K('10.10.10.11', 502, 1)
     if adam.connect():
         adam.setReadingState(True)
-        # adam.set_slot_values(SlotType.DIGITAL, 0, [False] * 8 * 4)
+        adam.setSlotValues(SlotType.DIGITAL, 0, [True, False] * 4 * 4)
         adam.setChannelValue(SlotType.ANALOG, 2, 0, 1222)
+        val = adam.getValue(SlotType.DIGITAL, 0, 1)
         # adam.set_slot_values(SlotType.DIGITAL, 3, [True] * 8 * 4)
         while adam.isBusy():
             sleep(1.5)
