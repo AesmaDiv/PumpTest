@@ -200,7 +200,8 @@ class Graph(QWidget):
         painter.setPen(self._style['grid']['border'])
         painter.drawRect(0, 0,
                          self.getDrawArea().width(),
-                         self.getDrawArea().height())
+                         self.getDrawArea().height()
+        )
         painter.setPen(pen)
 
     def _drawCharts(self, painter: QPainter):

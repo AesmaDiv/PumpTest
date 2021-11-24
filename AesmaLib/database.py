@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import sqlite3
 from os import path
 from AesmaLib.decorators import Singleton
+from AesmaLib.journal import Journal
 
 
 def connectExecuteDisconnect(func):
@@ -154,10 +155,10 @@ class SqliteDB(Database):
             self._connection.commit()
             return True
         except sqlite3.OperationalError as error:
-            print(__name__, f"\tError:: {str(error)}")
+            Journal.log(__name__, f"\tError:: {str(error)}")
             return False
         except sqlite3.IntegrityError as error:
-            print(__name__, f"\tError:: {str(error)}")
+            Journal.log(__name__, f"\tError:: {str(error)}")
             return False
 
     def _checkDbPath(self, db_path: str) -> bool:
@@ -165,7 +166,7 @@ class SqliteDB(Database):
         if db_path:
             self._db_path = db_path
         if not path.exists(self._db_path):
-            print(__name__, f"\tError:: wrong database file {self._db_path}")
+            Journal.log(__name__, f"\tError:: wrong database file {self._db_path}")
             return False
         return True
 

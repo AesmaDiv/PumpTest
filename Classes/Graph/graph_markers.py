@@ -6,8 +6,9 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QEvent, QPoint, QPointF, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame
-from AesmaLib.GraphWidget.chart import Chart
 from Classes.Graph.pump_graph import PumpGraph
+from AesmaLib.GraphWidget.chart import Chart
+from AesmaLib.journal import Journal
 
 
 class Markers(QFrame):
@@ -69,7 +70,7 @@ class Markers(QFrame):
         """ получение координат маркера """
         if name in self._markers:
             return self._markers[name]['pos']
-        print(__name__, 'Error = no such marker')
+        Journal.log(__name__, 'Error = no such marker')
         return QPointF(0, 0)
 
     def setMarkerPosition(self, name: str, pos: QPointF):
@@ -77,14 +78,14 @@ class Markers(QFrame):
         if name in self._markers:
             self._markers[name].update({'pos': pos})
         else:
-            print(__name__, 'Error = no such marker')
+            Journal.log(__name__, 'Error = no such marker')
 
     def setMarkerColor(self, name: str, color):
         """ установка цвета маркера """
         if name in self._markers:
             self._markers[name].update({'color': color})
         else:
-            print(__name__, 'Error = no such marker')
+            Journal.log(__name__, 'Error = no such marker')
 
     def repositionFor(self, graph: PumpGraph):
         """ перенос маркера на другой холст """

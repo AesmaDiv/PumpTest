@@ -8,6 +8,7 @@ from Classes.Graph.pump_graph import PumpGraph
 from Classes.Graph.graph_markers import Markers
 from Classes.UI.funcs_aux import calculateEffs
 from AesmaLib.GraphWidget.chart import Chart
+from AesmaLib.journal import Journal
 
 
 class GraphManager(PumpGraph):
@@ -187,10 +188,10 @@ class GraphManager(PumpGraph):
         """ добавление точки на график """
         chart: Chart = super().getChart(chart_name)
         if chart is not None:
-            print(__name__, '\tдобавление точки к графику', value_x, value_y)
+            Journal.log(__name__, '\tдобавление точки к графику', value_x, value_y)
             chart.addPoint(value_x, value_y)
         else:
-            print(__name__, '\tError: нет такой кривой', chart_name)
+            Journal.log(__name__, '\tError: нет такой кривой', chart_name)
             etalon: Chart = super().getChart(chart_name.replace('test_', ''))
             if etalon is not None:
                 chart: Chart = Chart(name=chart_name)
@@ -199,7 +200,7 @@ class GraphManager(PumpGraph):
                 self.addChart(chart, chart_name)
                 self._addPointToChart(chart_name, value_x, value_y)
             else:
-                print(__name__, '\tError: не найден эталон для', chart_name)
+                Journal.log(__name__, '\tError: не найден эталон для', chart_name)
 
     def _getChart(self, name: str):
         """ получение ссылки на кривую по имени """
@@ -213,7 +214,7 @@ class GraphManager(PumpGraph):
                 chart.setPen(QPen(etalon.getPen().color(), 2, Qt.SolidLine))
                 self.addChart(chart, chart_name)
             else:
-                print(__name__, 'Error: не найден эталон для', chart_name)
+                Journal.log(__name__, 'Error: не найден эталон для', chart_name)
         return chart
 
     def clearPointsFromCharts(self):

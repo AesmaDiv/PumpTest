@@ -27,14 +27,15 @@ PATHS = {
 }
 
 if __name__ == '__main__':
+    Journal.LOGGED = True
     Journal.log(__name__, '::\t', "*** Запуск приложения ***")
     faulthandler.enable() # вкл. обработчика ошибок
+    
     app = QApplication(sys.argv)
-    app.setStyle("Breeze")
-
+    app.setStyle("Fusion")
     wnd = MainWindow(PATHS)
-    wnd.show()
+    if wnd.show():
+        app.exec_()
 
-    app.exec_()
     faulthandler.disable() # выкл. обработчика ошибок
     Journal.log(__name__, '::\t', "*** Завершение приложения ***")

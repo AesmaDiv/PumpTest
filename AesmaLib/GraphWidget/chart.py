@@ -11,6 +11,7 @@ from scipy.interpolate import make_interp_spline
 from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtCore import Qt
 from AesmaLib.GraphWidget.axis import Axis
+from AesmaLib.journal import Journal
 
 
 class ChartMeta:
@@ -111,7 +112,7 @@ class Chart(ChartMeta):
             if do_regenerate_axies:
                 self._regenerateAxies()
         else:
-            print(__name__, 'Error:: индекс вне диапазона')
+            Journal.log(__name__, 'Error:: индекс вне диапазона')
 
     def clearPoints(self):
         """ удаление всех точек """
@@ -151,7 +152,7 @@ class Chart(ChartMeta):
                 coef = self._axes[name].getLength() / length
                 value = self._axes[name].getMinimum() + value * coef
             return value
-        print(__name__, "Error:: неверное имя оси")
+        Journal.log(__name__, "Error:: неверное имя оси")
         return 0
 
     def _regenerateAxies(self):
@@ -191,7 +192,7 @@ class Chart(ChartMeta):
             pnts = list(map(tuple, temp))
             result = np.array(pnts, dtype=self._ptype)
             return result
-        print(__name__, 'Error:: массив координат имеет неверный формат')
+        Journal.log(__name__, 'Error:: массив координат имеет неверный формат')
         return self.createEmptyPoints()
 
     def _sortPoints(self):

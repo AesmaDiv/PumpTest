@@ -89,7 +89,6 @@ def setData(table_view: QTableView, data):
 def addToTable_points(table_view, point_data: list):
     """ добавление точки в таблицу """
     if len(point_data) == 5:
-        print(point_data)
         data = {
             'flw': round(point_data[0], 1),
             'lft': round(point_data[1], 2),

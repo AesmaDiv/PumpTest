@@ -42,13 +42,15 @@ class MainWindow(QMainWindow):
             )
 
     @Journal.logged
-    def show(self):
+    def show(self) -> bool:
         """ отображает главное окно """
         if self._is_ready:
             self._prepare()
             super().show()
             self.move(1, 1)
             funcs_test.switchRunningState(self, False)
+            return True
+        return False
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         """ погдотовка к закрытию приложения """

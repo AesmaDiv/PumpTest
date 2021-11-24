@@ -8,6 +8,7 @@ from threading import Thread
 from dataclasses import dataclass
 from enum import Enum
 from array import array
+from AesmaLib.journal import Journal
 
 
 class CommandType(Enum):
@@ -77,7 +78,6 @@ class CommandBuilder:
             result[10:] = value.to_bytes(length=2, byteorder='big')
         else:
             result[10:] = b'\xff\00' if value else b'\x00\00'
-        # print('build_register cmd =', result)
         return result
 
     def buildCommand_slot(self, slot_type: SlotType, slot: int, pattern: list):
@@ -98,7 +98,6 @@ class CommandBuilder:
             result.extend(pattern)
         prefix = bytearray(len(result).to_bytes(6, 'big'))
         result[0:0] = prefix
-        # print('build_slot cmd =', result)
         return result
 
 
@@ -126,7 +125,7 @@ class Adam5K:
 
     def __del__(self):
         self.disconnect()
-        print('Adam5K:', '\tdestroyed')
+        Journal.log('Adam5K:', '\tdestroyed')
 
     def setCallback(self, callback):
         """ привязка callback функции """
@@ -139,13 +138,15 @@ class Adam5K:
         else:
             try:
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self._sock.settimeout(0.5)
                 self._sock.connect(self._conn)
+                self._sock.settimeout(None)
                 self._states["is_connected"] = True
                 self._states["is_reading"] = False
                 msg = 'socket connected'
             except socket.error as ex:
                 msg = 'error', self._conn, ex.strerror
-        print(f'Adam5K::connect:\t{msg}')
+        Journal.log(f'Adam5K::connect:\t{msg}')
         return self._states["is_connected"]
 
     def disconnect(self):
@@ -160,7 +161,7 @@ class Adam5K:
             self._sock = None
             self._states["is_connected"] = False
             msg = 'socket disconnected'
-        print(f'Adam5K::disconnect:\t{msg}')
+        Journal.log(f'Adam5K::disconnect:\t{msg}')
 
     def isConnected(self) -> bool:
         """ возвращает статус подключения """
@@ -194,15 +195,15 @@ class Adam5K:
         """ вкл/выкл режима чтения """
         # проверка подключения
         if not self.isConnected():
-            print('Adam5K::setReadingState:\tnot connected')
+            Journal.log('Adam5K::setReadingState:\tnot connected')
             return False
         # проверака текущего статуса потока опроса
         if self.isReading() == state:
-            print(f'Adam5K::setReadingState:\treading state already {state}')
+            Journal.log(f'Adam5K::setReadingState:\treading state already {state}')
             return False
         # запуск или остановка потока таймера опроса
         _ = self._startThread() if state else self._stopThread()
-        print(f'Adam5K::setReadingState:\tresult {self._states["is_reading"]}')
+        Journal.log(f'Adam5K::setReadingState:\tresult {self._states["is_reading"]}')
         return True
 
     def setChannelValue(self, slot_type: SlotType, slot: int, channel: int, value):
@@ -211,13 +212,11 @@ class Adam5K:
             CommandType.WRITE, Param(slot_type, slot, channel), value
         )
         self.sendCommand(command)
-        # print(f'Adam5K::set_channel_value:\t{slot_type.value}, {slot}, {channel}, {value}')
 
     def setSlotValues(self, slot_type: SlotType, slot: int, pattern: list):
         """ установка значений для слота """
         command = self._builder.buildCommand_slot(slot_type, slot, pattern)
         self.sendCommand(command)
-        # print(f'Adam5K::set_slot_value:\t{slot_type.value}, {slot}, {pattern}')
 
     def getValue(self, slot_type: SlotType, slot: int, channel: int):
         """ получение значения канала """
@@ -259,7 +258,7 @@ class Adam5K:
             else:
                 _ = self.__execute(command)
         else:
-            print('Adam5K::send command:\t not connected')
+            Journal.log('Adam5K::send command:\t not connected')
 
     def _startThread(self):
         """ запуск потока опроса """
@@ -278,7 +277,7 @@ class Adam5K:
 
     def _threadPolling(self):
         """ поток чтения данных из устройства """
-        print('Adam5K::\tзапущен таймер опроса устройства...')
+        Journal.log('Adam5K::\tзапущен таймер опроса устройства...')
         while self._states["is_reading"]:
             sleep(self._states["interval"])
             if self._states["is_paused"]:
@@ -289,7 +288,7 @@ class Adam5K:
             )
             thr.start()
             thr.join()
-        print('Adam5K::\tтаймер опроса устройства остановлен')
+        Journal.log('Adam5K::\tтаймер опроса устройства остановлен')
 
     def _threadTick(self):
         """ тик таймера отправки команд в устройство """

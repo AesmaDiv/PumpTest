@@ -67,18 +67,13 @@ class Axis:
         params = {}
         amin, amax = Axis._fixMinMax(axis_min, axis_max)
         Axis._getLongShortLengths(amin, amax, params)
-        # print('get long and short ', params)
         Axis._prepareLong(params)
-        # print('prepare long value ', params)
         if self._divs_manually_set:
             Axis._applyDivider(params, self._params['divs'])
         else:
             Axis._findDivider(params, self._params['divs'])
-        # print('find long divider  ', params)
         Axis._finishLong(params)
-        # print('finish long value  ', params)
         Axis._finishShort(params)
-        # print('finish short value ', params)
         self._assignParams(params)
 
     @staticmethod
