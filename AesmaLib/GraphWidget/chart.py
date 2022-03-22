@@ -19,6 +19,7 @@ class ChartMeta:
     def __init__(self, name: str = '', color: QColor = Qt.white,) -> None:
         self.name = name
         self.visibility = True
+        self._scale_coefs = (1.1, 1.1)
         self._pen = QPen(color, 1, style=Qt.SolidLine)
         self._axes = {}
 
@@ -54,7 +55,7 @@ class Chart(ChartMeta):
     def __init__(self, points: list = None, name: str = '',
                  color: QColor = Qt.white, options: str = ''):
         super().__init__(name=name, color=color)
-        self._coefs = [1, 1]
+        self._lim_coefs = [1, 1]
         self._options = options
         self._ptype = np.dtype([('x', 'f4'),('y', 'f4')])
         self._points = self.createEmptyPoints()
@@ -64,13 +65,13 @@ class Chart(ChartMeta):
             self._regenerateAxies()
 
 
-    def setCoefs(self, coef_min: float, coef_max: float):
+    def setLimitCoefs(self, lim_coef_min: float, lim_coef_max: float):
         """ задание коэфициентов """
-        self._coefs = [coef_min, coef_max]
+        self._lim_coefs = [lim_coef_min, lim_coef_max]
 
-    def getCoefs(self):
+    def getLimitCoefs(self):
         """ получение коэфициентов """
-        return self._coefs
+        return self._lim_coefs
 
     def setOptions(self, options: str):
         """ задание опций """
@@ -160,8 +161,9 @@ class Chart(ChartMeta):
         if self._points.size > 1:
             for name in ('x', 'y'):
                 min_, max_ = min(self._points[name]), max(self._points[name])
-                min_, max_, _ = Chart._calculateAxies(min_, max_)
-                axis = Axis(min_ * 1.0, max_ * 1.0)
+                scl_min, scl_max = self._scale_coefs
+                # min_, max_, _ = Chart._calculateAxies(min_, max_)
+                axis = Axis(min_ * scl_min, max_ * scl_max)
                 self._axes.update({name: axis})
         self._regenerateSpline()
 

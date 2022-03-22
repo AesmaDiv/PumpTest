@@ -2,29 +2,39 @@
     Модуль содержит класс, для расчёта параметров оси:
     мин.значение, макс.значение, кол-во делений, цена деления, общая длина
 """
+LOG = True
+def log(string):
+    """ логирование в консоль """
+    if LOG:
+        print(string)
+
+
 class AxisParams:
     """ Класс расчёта параметров оси """
-    DIVIDERS = (10,8,7,6,5,4)   # допустимые делители
+    DIVISIONS = (3,4,5,6,7,8,9,10)# приемлимое кол-во делений
+    PRICES = (10.0,5.0,4.0,2.0) # допустимые делители
     _params = {                 # параметры оси
         'min': 0.0,             # мин.значение
         'max': 1.0,             # макс.значение
-        'div': 1,               # кол-во делений
+        'div': 0,               # кол-во делений
         'prc': 1.0,             # цена деления
         'len': 1                # общая длина
     }
 
     @staticmethod
-    def calculate(v0: float, v1: float):
+    def calculate(vmin: float, vmax: float, divs=0):
         """ расчёт параметров оси """
         params = AxisParams._params
         # расчет длины строкового представления числа, для длины округления
-        params['len'] = max(map(len, (str(v0), str(v1))))
+        params['len'] = max(map(len, (str(vmin), str(vmax))))
         # определение большой и малой полуосей
-        params['min'] = v0 if abs(v0) < abs(v1) else v1
-        params['max'] = v0 if abs(v0) > abs(v1) else v1
+        params['min'] = vmin if abs(vmin) < abs(vmax) else vmax
+        params['max'] = vmin if abs(vmin) > abs(vmax) else vmax
+        params['div'] = divs
         # расчёт
+        log(f"Расчёт для {params['max']}")
         AxisParams._calculateMax()
-        if all((v0, v1)):
+        if all((vmin, vmax)):
             AxisParams._calculateMin()
         AxisParams._normalize()
         return params
@@ -40,16 +50,56 @@ class AxisParams:
         sval = "{0:.1e}".format(params['max'])
         val, exp = list(map(float, sval.split('e')))
         val, exp = val * 10, exp - 1
-        # ищем подходящий делитель
-        divider = 0
-        while not divider:
-            val += -1 * (val < 0) + (val > 0)
-            divider = next(filter(lambda x: val % x == 0, AxisParams.DIVIDERS), 0)
+        divs, price = params['div'], 0
+        # ищем подходящее кол-во делений
+        if not divs:
+            val, price, divs = AxisParams._findPriceAndDivisions(val)
+        else:
+            val, price = AxisParams._findPrice(val, divs)
         # когда делитель найден, сохраняем параметры
-        if divider:
+        if divs:
             params['max'] = round(val * 10 ** exp, params['len'])
-            params['div'] = int(divider)
-            params['prc'] = abs(round(params['max'] / divider, params['len']))
+            params['div'] = int(divs)
+            params['prc'] = round(price * 10 ** exp, params['len'])
+
+    @staticmethod
+    def _findPriceAndDivisions(value):
+        """ расчёт новой длинны, цены деления и кол-ва делений """
+        result = {'val': value, 'prc': value, 'div': 1.0}
+        options = []    # найденные варианты
+        val, limit = value, abs(value * 1.5) # текущее макс.значение и предел
+        while abs(val) < limit:
+            # цена деления должна быть кратна одному из допустимых значений
+            val += -1 * (val < 0) + (val > 0)
+            price = next(filter(lambda x: val % x == 0, AxisParams.PRICES), 0.0)
+            if not price:
+                continue
+            # количество делений оси должно быть равно одному из допустимых
+            divisions = abs(round(val / price, AxisParams._params['len']))
+            if divisions in AxisParams.DIVISIONS:
+                # добавляем найденный вариант в список
+                result = {'val': val, 'prc': price, 'div': divisions}
+                options.append(result)
+        if options:
+            # выбираем вариант с наименьшим макс.значением
+            result = min(options, key=lambda x: abs(x['val']))
+            # если кол-во делений меньше или равно 5
+            # удваиваем кол-во делений и уменьшаем вдвое цену деления
+            if result['div'] <= 5:
+                result['div'] *= 2
+                result['prc'] /= 2
+        log(result)
+        return result.values()
+
+    @staticmethod
+    def _findPrice(value, divisions):
+        """ расчёт новой длины и цены деления для заданного кол-ва делений """
+        while True:
+            value += -1 * (value < 0) + (value > 0)
+            price = abs(round(value / divisions, AxisParams._params['len']))
+            if next(filter(lambda x: price % x == 0, AxisParams.PRICES), 0):
+                break
+        return value, price
 
     @staticmethod
     def _calculateMin():

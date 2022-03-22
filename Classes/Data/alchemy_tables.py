@@ -9,6 +9,7 @@ from sqlalchemy.sql.sqltypes import FLOAT, INTEGER, VARCHAR, String
 
 
 Base = declarative_base()
+
 @dataclass
 class Assembly(Base):
     """ Класс сборки """

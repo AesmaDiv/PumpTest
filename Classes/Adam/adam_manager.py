@@ -5,6 +5,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from AesmaLib.journal import Journal
 from Classes.Adam.adam_5k import Adam5K, Param, SlotType
 from Classes.Adam import adam_config as adam
+from Classes.UI.funcs_aux import setCurrentDate
 
 
 class AdamManager(QObject):
@@ -44,13 +45,13 @@ class AdamManager(QObject):
             return True
         return False
 
-    @staticmethod
-    def checkParams(params: Param, value) -> bool:
+    def checkParams(self, params: Param, value) -> bool:
         """ проверка параметров """
-        if params.slot_type in (SlotType.ANALOG, SlotType.DIGITAL):
-            if 0 <= params.slot < 8 and 0 <= params.channel < 8:
-                if 0 <= value <= params.dig_max:
-                    return True
+        if self._adam.isConnected():
+            if params.slot_type in (SlotType.ANALOG, SlotType.DIGITAL):
+                if 0 <= params.slot < 8 and 0 <= params.channel < 8:
+                    if 0 <= value <= params.dig_max:
+                        return True
         return False
 
     def __adamThreadTickCallback(self):

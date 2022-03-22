@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QGroupBox, QWidget
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QComboBox
 from PyQt5.QtCore import QRegExp
 from AesmaLib.journal import Journal
+from AesmaLib.message import Message
 
 
 def groupDisplay(group: QGroupBox, record, log=False):
@@ -48,13 +49,17 @@ def groupCheck(group: QGroupBox, log=True):
     Journal.log(f"{__name__}::\t проверяет заполнение",
                 f"всех полей группы {group.objectName()}")
     items = group.findChildren(QLineEdit) + group.findChildren(QComboBox)
-    for item in items:
+    empty_fields = [
+        item.toolTip() for item in items
         if (item.objectName().startswith('txt') and not item.text()) or \
-        (item.objectName().startswith('cmb') and not item.currentText()):
-            if log:
-                Journal.log(f"{__name__}::\t ошибка:: {item.objectName()} "
-                            f"не содержит значения")
-            return False
+        (item.objectName().startswith('cmb') and not item.currentText())
+    ]
+    if empty_fields:
+        Message.show(
+            "ВНИМАНИЕ",
+            "Необходимо заполнить поля:\n->  " + "\n->  ".join(empty_fields)
+        )
+        return False
     return True
 
 

@@ -5,10 +5,10 @@
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor, QBrush
 from PyQt5.QtGui import QFont, QFontMetricsF, QTransform
-from PyQt5.QtCore import QPointF, Qt, QRectF, QSizeF
+from PyQt5.QtCore import QPointF, Qt, QRectF, QSizeF, QRect
 from AesmaLib.GraphWidget.axis import Axis
 from AesmaLib.GraphWidget.chart import Chart
-from AesmaLib.GraphWidget import funcs_spline as SplineFuncs
+# from AesmaLib.GraphWidget import funcs_spline as SplineFuncs
 from AesmaLib.journal import Journal
 
 is_logged = True
@@ -49,7 +49,8 @@ class Graph(QWidget):
 
     def getDrawArea(self):
         """ получение размеров области отрисовки графиков """
-        return QRectF(self._margins[0], self._margins[1],
+        return QRectF(self._margins[0],
+                      self._margins[1],
                       self.width() - self._margins[0] - self._margins[2],
                       self.height() - self._margins[1] - self._margins[3])
 
@@ -198,10 +199,7 @@ class Graph(QWidget):
             Journal.log(__name__, "\tdrawing border")
         pen = painter.pen()
         painter.setPen(self._style['grid']['border'])
-        painter.drawRect(0, 0,
-                         self.getDrawArea().width(),
-                         self.getDrawArea().height()
-        )
+        painter.drawRect(QRectF(0, 0, self.getDrawArea().width(), self.getDrawArea().height()))
         painter.setPen(pen)
 
     def _drawCharts(self, painter: QPainter):
@@ -258,31 +256,31 @@ class Graph(QWidget):
         painter.setPen(pen)
         Graph.drawLines(painter, points)
 
-    @staticmethod
-    def drawBezier(painter: QPainter, points: list):
-        """ отрисовка кривой Безье по точкам """
-        steps = 500
-        control_points = [[p.x(), p.y()] for p in points]
-        old_point = control_points[0]
-        for point in SplineFuncs.bezierCurveRange(steps, control_points):
-            painter.drawLine(old_point[0], old_point[1], point[0], point[1])
-            old_point = point
+    # @staticmethod
+    # def drawBezier(painter: QPainter, points: list):
+    #     """ отрисовка кривой Безье по точкам """
+    #     steps = 500
+    #     control_points = [[p.x(), p.y()] for p in points]
+    #     old_point = control_points[0]
+    #     for point in SplineFuncs.bezierCurveRange(steps, control_points):
+    #         painter.drawLine(old_point[0], old_point[1], point[0], point[1])
+    #         old_point = point
 
-    @staticmethod
-    def getSpline(points: list):
-        """ создание кривой по точкам """
-        coords_x, coords_y = Graph.unpackToCoords(points)
-        coords_x, coords_y = SplineFuncs.getCurvePoints(coords_x, coords_y)
-        result = Graph.packToPoints(coords_x, coords_y)
-        return result
+    # @staticmethod
+    # def getSpline(points: list):
+    #     """ создание кривой по точкам """
+    #     coords_x, coords_y = Graph.unpackToCoords(points)
+    #     coords_x, coords_y = SplineFuncs.getCurvePoints(coords_x, coords_y)
+    #     result = Graph.packToPoints(coords_x, coords_y)
+    #     return result
 
-    @staticmethod
-    def getBSpline(points: list):
-        """ создание кубической кривой по точкам """
-        coords_x, coords_y = Graph.unpackToCoords(points)
-        coords_x, coords_y = SplineFuncs.getBSplinePoints(coords_x, coords_y)
-        result = Graph.packToPoints(coords_x, coords_y)
-        return result
+    # @staticmethod
+    # def getBSpline(points: list):
+    #     """ создание кубической кривой по точкам """
+    #     coords_x, coords_y = Graph.unpackToCoords(points)
+    #     coords_x, coords_y = SplineFuncs.getBSplinePoints(coords_x, coords_y)
+    #     result = Graph.packToPoints(coords_x, coords_y)
+    #     return result
 
     @staticmethod
     def unpackToCoords(points: list):

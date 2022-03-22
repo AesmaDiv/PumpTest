@@ -4,7 +4,6 @@
 # Расчёт максимального и минимального значений по оси,
 # количества делений и цены делений
 """
-import math
 from AesmaLib.GraphWidget.axis_params import AxisParams
 
 
@@ -20,7 +19,7 @@ class Axis:
 
     def setMinimum(self, axis_min: float):
         """ установить минимальный предел оси """
-        if self.getMaximum() > axis_min:
+        if self.getMinimum() != axis_min and self.getMaximum() > axis_min:
             self._params.update({'axis_min': axis_min})
             self.calculate(self.getMinimum(), self.getMaximum())
 
@@ -30,7 +29,7 @@ class Axis:
 
     def setMaximum(self, axis_max: float):
         """ установить максмальный предел оси """
-        if self.getMinimum() < axis_max:
+        if self.getMaximum != axis_max and self.getMinimum() < axis_max:
             self._params.update({'axis_max': axis_max})
             self.calculate(self.getMinimum(), self.getMaximum())
 
@@ -45,9 +44,10 @@ class Axis:
     def setDivs(self, divs: int):
         """ задать количество делений на оси """
         divs = abs(divs) # должно быть положительное
-        self._divs_manually_set = divs > 0
-        self._params.update({'divs': divs})
-        self.calculate(self.getMinimum(), self.getMaximum())
+        if self.getDivs() != divs:
+            self._divs_manually_set = divs > 0
+            self._params.update({'divs': divs})
+            self.calculate(self.getMinimum(), self.getMaximum(), divs)
 
     def getDivs(self):
         """ количество делений на оси """
@@ -63,9 +63,9 @@ class Axis:
             result = float(i) * self._params['price'] + self._params['axis_min']
             yield i, result
 
-    def calculate(self, axis_min: float, axis_max: float):
+    def calculate(self, axis_min: float, axis_max: float, divs=0):
         """ расчёт параматров """
-        params = AxisParams.calculate(axis_min, axis_max)
+        params = AxisParams.calculate(axis_min, axis_max, divs)
         self._params['axis_min'] = params['min']
         self._params['axis_max'] = params['max']
         self._params['length'] = params['len']

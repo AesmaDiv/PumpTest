@@ -5,7 +5,7 @@
 from dataclasses import dataclass, field
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm.session import sessionmaker
-from Classes.Data.alchemy_tables import Pump, Test, Type, Producer
+from Classes.Data.alchemy_tables import Pump, Test
 from Classes.Data.record import Record, RecordType, RecordPump, RecordTest
 from AesmaLib.message import Message
 from AesmaLib.journal import Journal
@@ -147,6 +147,14 @@ class DataManager:
                     )
                 return query.one().ID, choice
             return 0, -1
+        return self.execute(func)
+
+    def findRecord_ordernum(self, order_num):
+        def func(**kwargs):
+            query = kwargs['session'].query(Test).where(
+                Test.OrderNum == order_num
+            )
+            return query.one().ID if query.count() else 0
         return self.execute(func)
 
     @Journal.logged

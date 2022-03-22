@@ -1320,6 +1320,9 @@
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
+          <property name="toolTip">
+           <string>Кол-во ступеней</string>
+          </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
           </property>
@@ -1491,6 +1494,9 @@
             <height>23</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Типоразмер</string>
+          </property>
           <property name="editable">
            <bool>true</bool>
           </property>
@@ -1518,6 +1524,9 @@
             <width>181</width>
             <height>23</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Производитель</string>
           </property>
          </widget>
         </item>
@@ -1571,6 +1580,9 @@
             <width>180</width>
             <height>23</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Заводской номер</string>
           </property>
           <property name="editable">
            <bool>true</bool>
@@ -1656,6 +1668,9 @@
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
+          <property name="toolTip">
+           <string>Вылет вала</string>
+          </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
           </property>
@@ -1714,6 +1729,9 @@
           </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>Длина</string>
           </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
@@ -1786,6 +1804,9 @@
             <height>23</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Заказчик</string>
+          </property>
           <property name="editable">
            <bool>true</bool>
           </property>
@@ -1841,6 +1862,9 @@
           </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>Скважина</string>
           </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
@@ -2035,6 +2059,9 @@
             <height>23</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Сборка</string>
+          </property>
          </widget>
         </item>
         <item row="0" column="1">
@@ -2059,6 +2086,9 @@
           </property>
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>Дата теста</string>
           </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
@@ -2090,6 +2120,9 @@
           </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>Куст</string>
           </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
@@ -2209,6 +2242,9 @@
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
+          <property name="toolTip">
+           <string>Наряд-заказ</string>
+          </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
           </property>
@@ -2268,6 +2304,9 @@
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
+          <property name="toolTip">
+           <string>Месторождение</string>
+          </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>
           </property>
@@ -2326,6 +2365,9 @@
           </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>Суткопробег</string>
           </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>

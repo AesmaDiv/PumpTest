@@ -33,7 +33,7 @@ class Report:
         self._base_url = QUrl.fromLocalFile(self._template_folder + os.path.sep)
 
     @Journal.logged
-    def generate(self):
+    def print(self):
         """ Генерирование протокола """
         if not self._webview:
             self.initPrinter()

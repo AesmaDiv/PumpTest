@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['..\\PumpTest\\main.py'],
-             pathex=['..\\PumpTest\\wenv.3.9\\Lib\\site-packages\\'],
+             pathex=['..\\..\\_venvs\\wenv.3.10\\Lib\\site-packages\\'],
              binaries=[],
              datas=[('..\\PumpTest\\Files\\*.*', 'Files\\'),],
              hiddenimports=[],

@@ -1,9 +1,10 @@
 """
     Модуль описывает класс маркеров для графика
 """
+from math import ceil
 from operator import itemgetter
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QEvent, QPoint, QPointF, pyqtSignal
+from PyQt5.QtCore import Qt, QEvent, QPointF, QLineF, QRectF, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame
 from Classes.Graph.pump_graph import PumpGraph
@@ -54,7 +55,7 @@ class Markers(QFrame):
 
     def setPointLinesMax(self, value: float):
         """ установка максимального значения расхода для текущего типоразмера """
-        pos = self.translatePointToPosition(QPointF(value, 0), "lft")
+        pos = self.translateValueToPixel(QPointF(value, 0), "lft")
         self._point_lines['max'] = pos.x()
 
     def setPointLinesNumber(self, value: int):
@@ -71,7 +72,7 @@ class Markers(QFrame):
         if name in self._markers:
             return self._markers[name]['pos']
         Journal.log(__name__, 'Error = no such marker')
-        return QPointF(0, 0)
+        return QPointF(0.0, 0.0)
 
     def setMarkerPosition(self, name: str, pos: QPointF):
         """ установка координат маркера """
@@ -91,7 +92,7 @@ class Markers(QFrame):
         """ перенос маркера на другой холст """
         left, top, _, _ = graph.getMargins()
         size = graph.getDrawArea()
-        self._area.setGeometry(left, top, size.width(), size.height())
+        self._area.setGeometry(left, top, int(size.width()), int(size.height()))
 
     def addKnots(self):
         """ добавление узлов """
@@ -127,7 +128,7 @@ class Markers(QFrame):
 
     def moveMarker(self, point, name: str):
         """ перемещение маркера  по имени """
-        pos = self.translatePointToPosition(point, name)
+        pos = self.translateValueToPixel(point, name)
         self._markers[name]['pos'] = pos
         # self.eventMove.emit({name: self.translatePositionToPoint(name)})
         self._area.repaint()
@@ -186,10 +187,10 @@ class Markers(QFrame):
     def _drawMarker(self, painter, name: str):
         """ отрисовка маркера по имени """
         pos = self._markers[name]['pos']
-        painter.drawLine(pos.x() - 5, pos.y(),
-                         pos.x() + 5, pos.y())
-        painter.drawLine(pos.x(), pos.y() - 5,
-                         pos.x(), pos.y() + 5)
+        painter.drawLine(QLineF(pos.x() - 5, pos.y(),
+                                pos.x() + 5, pos.y()))
+        painter.drawLine(QLineF(pos.x(), pos.y() - 5,
+                                pos.x(), pos.y() + 5))
 
     def _drawKnots(self, painter):
         """ отрисовка узлов """
@@ -197,11 +198,11 @@ class Markers(QFrame):
             painter.setPen(QtGui.QPen(self._markers[name]['color'], 1))
             painter.setBrush(QtGui.QBrush(self._markers[name]['color']))
             for point in self._markers[name]['knots']:
-                painter.drawEllipse(point.x() - 2, point.y() - 2, 4, 4)
+                painter.drawEllipse(QRectF(point.x() - 2, point.y() - 2, 4, 4))
 
-    def translatePositionToPoint(self, position: QPointF, name: str):
+    def translatePixelToValue(self, position: QPointF, name: str):
         """ пересчёт координат из значений в пиксели """
-        result: QPoint = QPointF(0.0, 0.0)
+        result: QPointF = QPointF(0.0, 0.0)
         etalon: Chart = self._graph.getChart(name.replace('test_', ''))
         if etalon is not None:
             size = self._area.size()
@@ -211,9 +212,9 @@ class Markers(QFrame):
             result.setY(max_y * (size.height() - position.y()) / size.height())
         return result
 
-    def translatePointToPosition(self, point: QPointF, name: str):
+    def translateValueToPixel(self, point: QPointF, name: str):
         """ пересчёт координат из пикселей в значения """
-        result: QPoint = QPointF(0.0, 0.0)
+        result: QPointF = QPointF(0.0, 0.0)
         etalon: Chart = self._graph.getChart(name.replace('test_', ''))
         if etalon is not None:
             size = self._area.size()

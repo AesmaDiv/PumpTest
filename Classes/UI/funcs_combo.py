@@ -1,9 +1,9 @@
 """
     Модуль содержит функции для работы с комбобоксами главного окна
 """
-from AesmaLib.journal import Journal
 from Classes.UI import models
 from Classes.Data.alchemy_tables import Assembly, Customer, Producer, Type, Pump
+from AesmaLib.journal import Journal
 
 
 @Journal.logged

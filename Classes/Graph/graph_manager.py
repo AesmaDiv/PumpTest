@@ -11,8 +11,16 @@ from AesmaLib.GraphWidget.chart import Chart
 from AesmaLib.journal import Journal
 
 
+LOG = True
+def log(string):
+    """ логирование в консоль """
+    if LOG:
+        print(string)
+
+
 class GraphManager(PumpGraph):
     """ Менеджер графиков """
+    COUNT = 1
     def __init__(self, testdata) -> None:
         super().__init__(100, 100, parent=None)
         self._testdata = testdata
@@ -34,8 +42,8 @@ class GraphManager(PumpGraph):
             for chart in charts.values():
                 self.addChart(chart, chart.name)
             self.setLimits(self._testdata.type_['Min'],
-                            self._testdata.type_['Nom'],
-                            self._testdata.type_['Max'])
+                           self._testdata.type_['Nom'],
+                           self._testdata.type_['Max'])
         self.displayCharts(frame)
 
     def displayCharts(self, frame: QFrame):
@@ -49,6 +57,7 @@ class GraphManager(PumpGraph):
     def _loadCharts(self):
         """ загрузка данных о точках """
         points = self._getPoints('etalon')
+        print(f"{self.COUNT} " + ("/" * 50)); self.COUNT += 1;
         result = self.createCharts_etalon(points)
         if self._testdata.test_:
             points = self._getPoints('test')
@@ -81,7 +90,7 @@ class GraphManager(PumpGraph):
             ch_eff.setPen(QPen(QColor(0, 255, 0), 1), Qt.DashLine)
             self._scaleChart(ch_lft, (0.95, 1.1), 0, 0)
             self._scaleChart(ch_pwr, (0.95, 1.1), 0, ch_lft.getAxis('y').getDivs())
-            self._scaleChart(ch_eff, (1.0, 1.0),  0, ch_lft.getAxis('y').getDivs())
+            self._scaleChart(ch_eff, (1.0, 1.0), 0, ch_lft.getAxis('y').getDivs())
             result.update({'lft': ch_lft,
                         'pwr': ch_pwr,
                         'eff': ch_eff})
@@ -110,19 +119,23 @@ class GraphManager(PumpGraph):
         """ создание и настройка экземпляра класса кривой """
         # points = [QPointF(x, y) for x, y in zip(coords_x, coords_y)]
         # result = Chart(points, name, options=options)
+        log(f"****** Создание графика для {name}")
         result = Chart([coords_x.copy(), coords_y.copy()], name, options=options)
+        log('*' * 50)
         return result
 
     @staticmethod
-    def _scaleChart(chart: Chart, coefs=(1.0, 1.0), ymin=0, yticks=0, axes=None):
+    def _scaleChart(chart: Chart, lim_coefs=(1.0, 1.0), ymin=0, yticks=0, axes=None):
         """ установка размерности для осей и области допуска """
-        chart.setCoefs(*coefs)
+        log(f"------ Скалирование графика для {chart.name}")
+        chart.setLimitCoefs(*lim_coefs)
         if axes:
             chart.setAxes(axes)
         else:
             chart.getAxis('y').setMinimum(ymin)
             if yticks:
                 chart.getAxis('y').setDivs(yticks)
+        log('-' * 50)
 
     def saveTestdata(self):
         """ сохранение данных из таблицы в запись испытания """

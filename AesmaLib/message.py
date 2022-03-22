@@ -11,6 +11,11 @@ class Message:
     def ask(title: str, text: str, accept: str = "Да", reject: str = "Нет"):
         """ вывод окна с запросом типа да/нет """
         msg: QMessageBox = QMessageBox()
+        msg.setStyleSheet("""
+        QMessageBox QLabel {
+            padding: 10px;
+        }
+        """)
         msg.setWindowTitle(title)
         msg.setText(text)
         is_ok = msg.addButton(accept, QMessageBox.AcceptRole)
@@ -22,6 +27,11 @@ class Message:
     def get(title: str, text: str, accept: str = "Добавить", reject: str = "Отмена"):
         """ вывод окна с запросом типа добавить/отмена """
         msg: QMessageBox = QMessageBox()
+        msg.setStyleSheet("""
+        QMessageBox QLabel {
+            padding: 10px;
+        }
+        """)
         msg.setWindowTitle(title)
         msg.setText(text)
         msg.setTextInteractionFlags(Qt.TextEditable)
@@ -34,6 +44,11 @@ class Message:
     def choice(title: str, text: str, choices: list):
         """ вывод окна с выбором из нескольких вариантов """
         msg: QMessageBox = QMessageBox()
+        msg.setStyleSheet("""
+        QMessageBox QLabel {
+            padding: 10px;
+        }
+        """)
         msg.setWindowTitle(title)
         msg.setText(text)
         msg.setTextInteractionFlags(Qt.TextEditable)
@@ -55,6 +70,11 @@ class Message:
     def show(title: str, *messages):
         """ вывод окна с сообщением """
         msg: QMessageBox = QMessageBox()
+        msg.setStyleSheet("""
+        QMessageBox QLabel {
+            padding: 10px;
+        }
+        """)
         msg.setWindowTitle(title)
         message = " ".join([str(item) for item in messages])
         msg.setText(message)

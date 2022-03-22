@@ -5,7 +5,9 @@
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QFontMetricsF
 from PyQt5.QtGui import QTransform, QPixmap, QPolygonF, QPainterPath
 from PyQt5.QtCore import QPointF, Qt, QSize
-from AesmaLib.GraphWidget.graph import Graph, Chart, Axis
+from AesmaLib.GraphWidget.graph import Graph
+from AesmaLib.GraphWidget.graph import Chart
+from AesmaLib.GraphWidget.graph import Axis
 from AesmaLib.journal import Journal
 
 
@@ -111,13 +113,13 @@ class PumpGraph(Graph):
         """ отрисовка области рабочего диапазона """
         if IS_LOGGED:
             Journal.log(__name__, "\tотрисовка области раб.диапазона")
-        self._calculateLimits()
+        self._calculateRanges()
         # расчёт раб.диапазона
-        x_0 = self._margins[0] + self._range_pixels[0]
-        x_1 = self._margins[0] + self._range_pixels[1]
-        x_2 = self._margins[0] + self._range_pixels[2]
-        y_0 = self._margins[1]
-        y_1 = self.getDrawArea().height() + y_0
+        x_0 =int(self._margins[0] + self._range_pixels[0])
+        x_1 =int(self._margins[0] + self._range_pixels[1])
+        x_2 =int(self._margins[0] + self._range_pixels[2])
+        y_0 =int(self._margins[1])
+        y_1 =int(self.getDrawArea().height() + y_0)
         # отрисовка раб.диапазона
         pen = painter.pen()
         painter.setPen(self._style['grid']['border'])
@@ -321,7 +323,7 @@ class PumpGraph(Graph):
                                self._grid_divs['y2'].width + 40
             self._margins[3] = self._grid_divs['x0'].height + 30
 
-    def _calculateLimits(self):
+    def _calculateRanges(self):
         """ расчёт рабочего диапазона """
         chart: Chart = self._charts[self._base_chart]
         for i in range(3):
@@ -389,7 +391,7 @@ class PumpGraph(Graph):
                 Journal.log(__name__, "\t-> получение пределов допуска для",
                             chart.name)
             ranges = self._range_pixels
-            coeffs = chart.getCoefs()
+            coeffs = chart.getLimitCoefs()
             result = self._sliceCurveToRange(curve, ranges)
             result = self._calculateLimitCoords(chart, result, coeffs)
         return result
