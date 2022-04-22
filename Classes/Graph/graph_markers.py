@@ -203,7 +203,7 @@ class Markers(QFrame):
     def translatePixelToValue(self, position: QPointF, name: str):
         """ пересчёт координат из значений в пиксели """
         result: QPointF = QPointF(0.0, 0.0)
-        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
+        etalon: Chart = self._graph.getChart(name.replace('tst_', ''))
         if etalon is not None:
             size = self._area.size()
             max_x = etalon.getAxis('x').getMaximum()
@@ -215,7 +215,7 @@ class Markers(QFrame):
     def translateValueToPixel(self, point: QPointF, name: str):
         """ пересчёт координат из пикселей в значения """
         result: QPointF = QPointF(0.0, 0.0)
-        etalon: Chart = self._graph.getChart(name.replace('test_', ''))
+        etalon: Chart = self._graph.getChart(name.replace('tst_', ''))
         if etalon is not None:
             size = self._area.size()
             max_x = etalon.getAxis('x').getMaximum()

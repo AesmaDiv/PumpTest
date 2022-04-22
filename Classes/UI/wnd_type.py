@@ -2,9 +2,10 @@
     Модуль описывает класс окна информации о типоразмере
 """
 from PyQt5 import uic
-from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit
+from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QComboBox
 from Classes.UI import funcs_combo
-from Classes.Data.alchemy_tables import Producer, Type
+from Classes.Data.data_manager import DataManager
+from Classes.Data.alchemy_tables import Producer, Type, Efficiency
 from AesmaLib.journal import Journal
 from AesmaLib.message import Message
 
@@ -13,17 +14,18 @@ class TypeWindow(QDialog):
     """ Класс окна типоразмера """
     def __init__(self, parent, data_manager, path_to_ui):
         super().__init__(parent=parent)
-        self._data_manager = data_manager
+        self._data_manager: DataManager = data_manager
         self._is_ready = self._createGUI(path_to_ui)
 
-    def addType(self) -> bool:
+    def showDialog(self) -> bool:
         """ вызов диалога создания нового типоразмера """
         if self._is_ready:
             self._prepareFields()
             while self.exec_() == QDialog.Accepted:
-                data = self._getFieldsData()
-                if self._checkFieldsData(data):
-                    return self.saveType(data)
+                if self._checkAllFilled():
+                    data = self._getFieldsData()
+                    if self._checkFieldsData(data):
+                        return self.saveType(data)
         return False
 
     def saveType(self, type_data: dict) -> bool:
@@ -59,7 +61,10 @@ class TypeWindow(QDialog):
     def _prepareFields(self):
         """ подготовка списка производителей и типоразмера """
         self._clearFields()
-        funcs_combo.fillCombo_producers(self, self._data_manager)
+        funcs_combo.fillComboBox(self.cmbProducer, self._data_manager,
+                                 Producer, 'Name', ['ID', 'Name'])
+        funcs_combo.fillComboBox(self.cmbEfficiency, self._data_manager,
+                                 Efficiency, 'Name', ['ID', 'Name'])
         self.cmbProducer.lineEdit().setObjectName("txtProducerName")
         # выбор производителя как в основном окне
         condition = {'ID': self.parent().cmbProducer.currentData()['ID']}
@@ -67,10 +72,38 @@ class TypeWindow(QDialog):
         # перенос имени типоразмера из основного окна
         self.txtName.setText(self.parent().cmbType.currentText())
 
+    def _clearFields(self):
+        """ очистка полей """
+        self.cmbProducer.clear()
+        self.cmbEfficiency.clear()
+        for item in self.findChildren(QLineEdit):
+            item.setText("")
+
+    def _checkAllFilled(self) -> bool:
+        """ проверка на заполнение всех полей """
+        # список пустых полей
+        empty = []
+        for item in self.findChildren((QLineEdit, QComboBox)):
+            if isinstance(item, QLineEdit) and item.text():
+                continue
+            if isinstance(item, QComboBox) and item.currentText():
+                continue
+            empty.append(item.toolTip())
+        # отображение списка пустых полей
+        if empty:
+            msg = ("\n->").join(empty)
+            msg = f"Необходимо заполнить следующие поля:\n{msg}"
+            Message.show("Внимание", msg)
+            return False
+        return True
+
     def _getFieldsData(self) -> dict:
         """ получение значений из полей """
-        # производитель из комбобокса
-        result = {'Producer': self.cmbProducer.currentData()['ID']}
+        # производитель и энергоэффективность из комбобоксов
+        result = {
+            'Producer': self.cmbProducer.currentData()['ID'],
+            'Efficiency': self.cmbEfficiency.currentData()['ID']
+        }
         # остальные из текстовых полей
         result.update({
             item.objectName().replace("txt", ""): \
@@ -80,31 +113,11 @@ class TypeWindow(QDialog):
 
     def _checkFieldsData(self, data: dict) -> bool:
         """ проверка значений """
-        if not self._checkAllFilled(data):
-            return False
         if not self._checkProducer(data):
             return False
         if not self._checkNumeric(data):
             return False
         if not self._checkPoints(data):
-            return False
-        return True
-
-    def _checkAllFilled(self, data: dict) -> bool:
-        """ проверка на заполнение всех полей """
-        # список пустых полей
-        empty = [key for key, val in data.items() if not val]
-        if empty:
-            # список соответствующих полям заголовков
-            titles = []
-            for name in empty:
-                lbl = self.findChild(QLabel, f"lbl{name}")
-                if lbl:
-                    titles.append(f"\n->  {lbl.text()}")
-            # создание списка для отображения
-            msg = ("").join(titles)
-            msg = f"Необходимо заполнить следующие поля:\n{msg}"
-            Message.show("Внимание", msg)
             return False
         return True
 
@@ -141,9 +154,3 @@ class TypeWindow(QDialog):
             Message.show('ОШИБКА', 'Неверный формат в полях точек')
             return False
         return True
-
-    def _clearFields(self):
-        """ очистка полей """
-        self.cmbProducer.clear()
-        for item in self.findChildren(QLineEdit):
-            item.setText("")

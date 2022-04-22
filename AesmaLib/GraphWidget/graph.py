@@ -227,7 +227,7 @@ class Graph(QWidget):
                 self.getDrawArea().height()
             ])
             points = chart.apply_spline(points)
-            Graph.drawCurve(painter, points, chart.getPen())
+            Graph.drawCurve(painter, points, chart.pen())
         else:
             Journal.log(__name__, "\tchart", chart.name, "is empty")
 

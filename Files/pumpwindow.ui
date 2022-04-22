@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>661</width>
-    <height>232</height>
+    <width>721</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,56 +16,18 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>210</y>
-     <width>661</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>9</x>
      <y>10</y>
-     <width>660</width>
-     <height>199</height>
+     <width>701</width>
+     <height>224</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="txtName">
-      <property name="minimumSize">
-       <size>
-        <width>180</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>180</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="whatsThis">
-       <string extracomment="Типоразмер"/>
-      </property>
-      <property name="placeholderText">
-       <string>имя</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="txtRpm">
+    <item row="4" column="1" colspan="3">
+     <widget class="QLineEdit" name="txtFlows">
       <property name="minimumSize">
        <size>
         <width>100</width>
@@ -74,259 +36,18 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>180</width>
+        <width>800</width>
         <height>23</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>Расход</string>
+      </property>
       <property name="whatsThis">
-       <string extracomment="Базовая скорость"/>
+       <string extracomment="Расход"/>
       </property>
       <property name="placeholderText">
-       <string>об/мин</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="lblRpm">
-      <property name="minimumSize">
-       <size>
-        <width>120</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Базовая скорость</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="indent">
-       <number>5</number>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="3">
-     <widget class="QLineEdit" name="txtNom">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>180</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="whatsThis">
-       <string extracomment="Номинал"/>
-      </property>
-      <property name="placeholderText">
-       <string>м³/сутки</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="minimumSize">
-       <size>
-        <width>120</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Дата введения</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="indent">
-       <number>5</number>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="3">
-     <widget class="QLineEdit" name="txtMin">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>180</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="whatsThis">
-       <string extracomment="Минимум"/>
-      </property>
-      <property name="placeholderText">
-       <string>м³/сутки</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="lblProducer">
-      <property name="minimumSize">
-       <size>
-        <width>120</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Производитель</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="indent">
-       <number>5</number>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QLabel" name="lblNom">
-      <property name="minimumSize">
-       <size>
-        <width>120</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Номинал</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="indent">
-       <number>5</number>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="lblLifts">
-      <property name="minimumSize">
-       <size>
-        <width>120</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Напор</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="indent">
-       <number>5</number>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QComboBox" name="cmbProducer">
-      <property name="minimumSize">
-       <size>
-        <width>180</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>180</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="whatsThis">
-       <string extracomment="Производитель"/>
-      </property>
-      <property name="editable">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="lblName">
-      <property name="minimumSize">
-       <size>
-        <width>120</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Типоразмер</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="indent">
-       <number>5</number>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="2">
-     <widget class="QLabel" name="lblMax">
-      <property name="minimumSize">
-       <size>
-        <width>120</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Максимум</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="margin">
-       <number>0</number>
-      </property>
-      <property name="indent">
-       <number>5</number>
+       <string>N чисел, разделённых запятой (м³/сутки)</string>
       </property>
      </widget>
     </item>
@@ -355,52 +76,8 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="txtDate">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>180</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="whatsThis">
-       <string extracomment="Дата введения"/>
-      </property>
-      <property name="placeholderText">
-       <string>год[.месяц]</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
-     <widget class="QLineEdit" name="txtMax">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>180</width>
-        <height>23</height>
-       </size>
-      </property>
-      <property name="whatsThis">
-       <string extracomment="Максимум"/>
-      </property>
-      <property name="placeholderText">
-       <string>м³/сутки</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="lblFlows">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
       <property name="minimumSize">
        <size>
         <width>120</width>
@@ -414,7 +91,7 @@
        </size>
       </property>
       <property name="text">
-       <string>Расход</string>
+       <string>Дата ввода</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -449,25 +126,103 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="1" colspan="3">
-     <widget class="QLineEdit" name="txtFlows">
+    <item row="4" column="0">
+     <widget class="QLabel" name="lblFlows">
       <property name="minimumSize">
        <size>
-        <width>100</width>
+        <width>120</width>
         <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>800</width>
+        <width>200</width>
         <height>23</height>
        </size>
       </property>
+      <property name="text">
+       <string>Расход</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="txtName">
+      <property name="minimumSize">
+       <size>
+        <width>180</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Типоразмер</string>
+      </property>
       <property name="whatsThis">
-       <string extracomment="Расход"/>
+       <string extracomment="Типоразмер"/>
       </property>
       <property name="placeholderText">
-       <string>N чисел, разделённых запятой (м³/сутки)</string>
+       <string>имя</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="lblRpm">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Базовая скорость</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="lblProducer">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Производитель</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="indent">
+       <number>5</number>
       </property>
      </widget>
     </item>
@@ -485,11 +240,267 @@
         <height>23</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>Напор</string>
+      </property>
       <property name="whatsThis">
        <string extracomment="Напор"/>
       </property>
       <property name="placeholderText">
        <string>N чисел, разделённых запятой (м)</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QLabel" name="lblMax">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Максимум</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QLabel" name="lblNom">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Номинал</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QLineEdit" name="txtNom">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Номинал</string>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Номинал"/>
+      </property>
+      <property name="placeholderText">
+       <string>м³/сутки</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QLineEdit" name="txtMin">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Минимум</string>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Минимум"/>
+      </property>
+      <property name="placeholderText">
+       <string>м³/сутки</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="lblName">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Типоразмер</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="txtRpm">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Базовая скорость</string>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Базовая скорость"/>
+      </property>
+      <property name="placeholderText">
+       <string>об/мин</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="lblLifts">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Напор</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="txtDate">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Дата ввода</string>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Дата введения"/>
+      </property>
+      <property name="placeholderText">
+       <string>год[.месяц]</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="3">
+     <widget class="QLineEdit" name="txtMax">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Максимум</string>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Максимум"/>
+      </property>
+      <property name="placeholderText">
+       <string>м³/сутки</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QComboBox" name="cmbProducer">
+      <property name="minimumSize">
+       <size>
+        <width>180</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Производитель</string>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Производитель"/>
+      </property>
+      <property name="editable">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -507,11 +518,83 @@
         <height>23</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>Мощность</string>
+      </property>
       <property name="whatsThis">
        <string extracomment="Мощность"/>
       </property>
       <property name="placeholderText">
        <string>N чисел, разделённых запятой (кВт)</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="3">
+     <widget class="QDialogButtonBox" name="buttonBox">
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      </property>
+      <property name="centerButtons">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLabel" name="lblEfficiency">
+      <property name="minimumSize">
+       <size>
+        <width>120</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Энергоэффективность</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QComboBox" name="cmbEfficiency">
+      <property name="minimumSize">
+       <size>
+        <width>180</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>23</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Эффективность</string>
+      </property>
+      <property name="whatsThis">
+       <string extracomment="Производитель"/>
+      </property>
+      <property name="editable">
+       <bool>false</bool>
       </property>
      </widget>
     </item>

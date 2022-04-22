@@ -1,88 +1,49 @@
 """
     Модуль содержит функции для работы с комбобоксами главного окна
 """
-from Classes.UI import models
-from Classes.Data.alchemy_tables import Assembly, Customer, Producer, Type, Pump
+from PyQt5.QtWidgets import QComboBox
+from Classes.UI.models import ComboItemModel
+from Classes.Data.alchemy_tables import (Customer, Producer, Type, Pump, Owner,
+    Material, Size, SectionStatus, SectionType, Group, Connection)
 from AesmaLib.journal import Journal
 
 
 @Journal.logged
 def fillCombos(window, db_manager):
     """ инициализирует комбобоксы --> """
-    fillCombos_test(window, db_manager)
-    fillCombos_pump(window, db_manager)
+    fillCombos_Pump(window, db_manager, initial=True)
+    fillCombos_Test(window, db_manager)
 
 
-def fillCombos_test(window, db_manager):
-    """ инициализирует комбобоксы для теста --> """
-    fillCombo_customers(window, db_manager)
-    fillCombo_assembly(window, db_manager)
-
-
-def fillCombos_pump(window, db_manager):
+def fillCombos_Pump(window, db_manager, initial=False):
     """ инициализирует комбобоксы для насоса --> """
-    fillCombo_producers(window, db_manager)
-    fillCombo_types(window, db_manager)
-    fillCombo_serials(window, db_manager)
+    default_params = ('Name', ['ID', 'Name'])
+    fillComboBox(window.cmbProducer, db_manager, Producer, *default_params)
+    fillComboBox(window.cmbType, db_manager, Type, 'Name', ['ID', 'Name', 'Producer'])
+    fillComboBox(window.cmbSerial, db_manager, Pump, 'Serial', ['ID', 'Serial', 'Type'])
+    if initial:
+        fillComboBox(window.cmbGroup, db_manager, Group, *default_params)
+        fillComboBox(window.cmbMaterial, db_manager, Material, *default_params)
+        fillComboBox(window.cmbSize, db_manager, Size, *default_params)
+        fillComboBox(window.cmbConnection, db_manager, Connection, *default_params)
 
 
-@Journal.logged
-def fillCombo_customers(window, db_manager):
-    """ --> заполняет заказчик (cmbCustomer) """
-    # qp = QueryParams('Customers', ['ID', 'Name'])
-    # fill_combo(window.cmbCustomer, db_manager, qp)
-    fillCombobox(window.cmbCustomer, db_manager, Customer, ['ID', 'Name'])
+def fillCombos_Test(window, db_manager):
+    """ инициализирует комбобоксы для теста --> """
+    default_params = ('Name', ['ID', 'Name'])
+    fillComboBox(window.cmbCustomer, db_manager, Customer, *default_params)
+    fillComboBox(window.cmbOwner, db_manager, Owner, *default_params)
+    fillComboBox(window.cmbSectionStatus, db_manager, SectionStatus, *default_params)
+    fillComboBox(window.cmbSectionType, db_manager, SectionType, *default_params)
 
 
-@Journal.logged
-def fillCombo_assembly(window, db_manager):
-    """ --> заполняет сборка (cmbAssembly) """
-    # qp = QueryParams('Assemblies', ['ID', 'Name'])
-    # fill_combo(window.cmbAssembly, db_manager, qp)
-    fillCombobox(window.cmbAssembly, db_manager, Assembly, ['ID', 'Name'])
-
-
-@Journal.logged
-def fillCombo_producers(window, db_manager):
-    """ --> заполняет производитель (cmbProducer) """
-    # qp = QueryParams('Producers', ['ID', 'Name'])
-    # fill_combo(window.cmbProducer, db_manager, qp)
-    fillCombobox(window.cmbProducer, db_manager, Producer, ['ID', 'Name'])
-
-
-@Journal.logged
-def fillCombo_types(window, db_manager):
-    """ --> заполняет типоразмер (cmbType) """
-    # qp = QueryParams('Types', ['ID', 'Name', 'Producer'])
-    # fill_combo(window.cmbType, db_manager, qp)
-    fillCombobox(window.cmbType, db_manager, Type, ['ID', 'Name', 'Producer'])
-
-
-@Journal.logged
-def fillCombo_serials(window, db_manager):
-    """ --> заполняет зав.номер (cmbSerial) """
-    # qp = QueryParams('Pumps', ['ID', 'Serial', 'Type'])
-    # fill_combo(window.cmbSerial, db_manager, qp)
-    fillCombobox(window.cmbSerial, db_manager, Pump, ['ID', 'Serial', 'Type'])
-
-
-def fillCombo(combo, db_manager, query_params):
+def fillComboBox(combo, db_manager, table_class, display_key, keys):
     """ инициализирует фильтр и заполняет комбобокс """
-    model = models.ComboItemModel(combo)
-    display = query_params.columns[1]
-    data = None
-    data = db_manager.getRecords(query_params)
-    data.insert(0, {key: None for key in query_params.columns})
-    model.fill(data, display)
-    combo.setModel(model)
-
-
-def fillCombobox(combo, db_manager, table_class, fields):
-    """ инициализирует фильтр и заполняет комбобокс """
-    model = models.ComboItemModel(combo)
-    data = db_manager.getListFor(table_class, fields)
-    data.insert(0, {key: None for key in fields})
-    model.fill(data, fields[1])
+    model = ComboItemModel(combo)
+    setattr(model, 'TableClass', table_class)
+    data = db_manager.getListFor(table_class, keys)
+    data.insert(0, {key: None for key in keys})
+    model.fill(data, display_key)
     combo.setModel(model)
 
 
@@ -97,13 +58,46 @@ def resetFilter(combo):
     combo.model().resetFilter()
 
 
+def filterByCondition(combo, condition):
+    """ фильтрация элементов, удовлетворяющих условию """
+    if not combo.model().checkAlreadySelected(condition):
+        combo.model().applyFilter(condition)
+
+
 def selectContains(combo, condition):
     """ выбор элемента, удовлетворяющего условию """
     if not combo.model().checkAlreadySelected(condition):
         combo.model().selectContains(condition)
 
 
-def filterByCondition(combo, condition):
-    """ фильтрация элементов, удовлетворяющих условию """
-    if not combo.model().checkAlreadySelected(condition):
-        combo.model().applyFilter(condition)
+def findItem(combo: QComboBox, value: str) -> int:
+    """ поиск элемента, содержащего значение """
+    index = combo.findText(value)
+    return index
+
+
+def checkExists(combo: QComboBox, value: str) -> bool:
+    """ проверка на наличие элемента, содержащего значение """
+    return findItem(combo, value) >= 0
+
+
+def addItem(combo: QComboBox, db_manager, data: dict, check=False) -> int:
+    """ добавление элемента """
+    display_key = combo.model().display
+    if check:
+        index = findItem(combo, data[display_key])
+        if index >= 0:
+            return index
+    table_class = getattr(combo.model(), 'TableClass')
+    new_id = db_manager.createRecord(table_class, data)
+    data.update({'ID': new_id})
+    combo.addItem(data[display_key], data)
+    return combo.count() - 1
+
+def checkAddAndSelect(combo: QComboBox, db_manager):
+    """ проверка присутствия (добавление) и выбор элемента """
+    value = combo.currentText()
+    index = findItem(combo, value)
+    if index == -1:
+        index = addItem(combo, db_manager, {'Name': value})
+    combo.setCurrentIndex(index)

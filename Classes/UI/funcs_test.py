@@ -53,7 +53,7 @@ def switchRunningState(wnd, state: bool):
     wnd.btnEngine.setText(msg[state])
     wnd.btnSaveCharts.setEnabled(not state)
     wnd.btnGoBack.setEnabled(not state)
-    wnd.adam_manager().setValue(params["engine_"], state)
+    wnd.adam_manager.setValue(params["engine_"], state)
 
 
 def switchActiveFlowmeter(adam_manager, radio, state):

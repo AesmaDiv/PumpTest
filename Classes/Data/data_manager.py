@@ -40,13 +40,14 @@ class DataManager:
         engine.dispose()
         return result
 
-    def getTestdata(self):
+    @property
+    def testdata(self):
         """ возвращает ссылку на информацию об записи """
         return self._testdata
 
-    def createRecord(self, super_class, data: dict):
+    def createRecord(self, table_class, data: dict):
         """ создать новую запись """
-        record = Record(self, super_class)
+        record = Record(self, table_class)
         for key, val in data.items():
             record[key] = val
         record.write()
@@ -55,9 +56,9 @@ class DataManager:
     @Journal.logged
     def clearRecord(self):
         """ очищает информацию о записи """
-        self.clearTypeInfo()
-        self.clearPumpInfo()
-        self.clearTestInfo()
+        self.clearInfo_Type()
+        self.clearInfo_Pump()
+        self.clearInfo_Test()
         self._testdata.dlts_ = {}
 
     def loadRecord(self, test_id: int) -> bool:
@@ -79,15 +80,15 @@ class DataManager:
                 session_.close()
                 self._engine.dispose()
 
-    def clearTypeInfo(self):
+    def clearInfo_Type(self):
         """ очистка информации о типоразмере """
         self._testdata.type_.clear()
 
-    def clearPumpInfo(self):
+    def clearInfo_Pump(self):
         """ очистка информации о насосе """
         self._testdata.pump_.clear()
 
-    def clearTestInfo(self):
+    def clearInfo_Test(self):
         """ очистка информации о тесте """
         self._testdata.test_.clear()
 
@@ -111,7 +112,7 @@ class DataManager:
         result = self.execute(func)
         return list(map(dict, result))
 
-    def checkExists_serial(self, serial, type_id=0):
+    def checkExists_Serial(self, serial, type_id=0):
         """ возвращает ID записи с введенным серийным номером """
         def func(**kwargs):
             query = kwargs['session'].query(Pump).where(
@@ -130,26 +131,24 @@ class DataManager:
         result_id, result_state = self.execute(func)
         return result_id, result_state
 
-    def checkExists_ordernum(self, order_num, with_select=False):
+    def checkExists_OrderNum(self, order_num):
         """ возвращает ID записи с введенным номером наряд-заказа """
         def func(**kwargs):
-            query = kwargs['session'].query(Test).where(
-                Test.OrderNum == order_num
-            )
+            query = kwargs['session'].query(Test).where(Test.OrderNum == order_num)
             if query.count():
-                if with_select:
-                    choice =  Message.choice(
-                        "Внимание",
-                        "Запись с таким наряд-заказом "
-                        "уже присутствует в базе данных.\n"
-                        "Хотите выбрать её или создать новую?",
-                        ("Выбрать", "Создать", "Отмена")
-                    )
+                choice =  Message.ask(
+                    "Внимание",
+                    "Запись с таким наряд-заказом "
+                    "уже присутствует в базе данных.\n"
+                    "Хотите выбрать её или создать новую?",
+                    "Выбрать", "Отмена"
+                )
                 return query.one().ID, choice
-            return 0, -1
+            return 0, False
         return self.execute(func)
 
-    def findRecord_ordernum(self, order_num):
+    def findRecord_Ordernum(self, order_num):
+        """ поиск записи по номеру наряд-заказа """
         def func(**kwargs):
             query = kwargs['session'].query(Test).where(
                 Test.OrderNum == order_num
@@ -158,12 +157,12 @@ class DataManager:
         return self.execute(func)
 
     @Journal.logged
-    def saveTestInfo(self):
-        """ сохраняет информацию о тесте """
-        self._testdata.test_['Pump'] = self._testdata.pump_['ID']
-        self._testdata.test_.write()
-
-    @Journal.logged
-    def savePumpInfo(self) -> bool:
+    def saveInfo_Pump(self) -> bool:
         """ сохраняет информацию о насосе """
         return self._testdata.pump_.write()
+
+    @Journal.logged
+    def saveInfo_Test(self) -> bool:
+        """ сохраняет информацию о тесте """
+        self._testdata.test_['Pump'] = self._testdata.pump_['ID']
+        return self._testdata.test_.write()

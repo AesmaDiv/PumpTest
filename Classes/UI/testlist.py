@@ -11,7 +11,7 @@ from AesmaLib.journal import Journal
 class TestList(QObject):
     """ Класс списка тестов """
     _signalSelection = pyqtSignal(dict, name="selectionChanged")
-    _signalMenu = pyqtSignal(int, name="menuSelected")
+    _signalMenu = pyqtSignal(str, name="menuSelected")
 
     @Journal.logged
     def __init__(self, parent, db_manager) -> None:
@@ -85,7 +85,8 @@ class TestList(QObject):
 
     def _onSelectionChanged(self):
         item = funcs_table.getRow(self._table)
-        self._signalSelection.emit(item)
+        if item:
+            self._signalSelection.emit(item)
 
     def _onMenuSelected(self):
         """ создание контекстрого меню и обработка """

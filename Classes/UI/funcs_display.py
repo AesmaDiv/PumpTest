@@ -29,7 +29,7 @@ def displaySensors(window, sensors: dict):
 @Journal.logged
 def displayRecord(window, data_manager):
     """ отображает информацию о тесте """
-    testdata = data_manager.getTestdata()
+    testdata = data_manager.testdata
     funcs_group.groupDisplay(window.groupTestInfo, testdata.test_)
     funcs_group.groupLock(window.groupTestInfo, True)
     displayPumpInfo(window, testdata)
@@ -46,6 +46,7 @@ def displayPumpInfo(window, testdata):
         if testdata.type_.read(type_id):
             funcs_group.groupDisplay(window.groupPumpInfo, testdata.pump_)
             funcs_group.groupLock(window.groupPumpInfo, True)
+            # window.lblPumpInfo.setText(testdata.type_.Name)
             window.groupTestFrame.setTitle(testdata.type_.Name)
 
 
@@ -53,10 +54,10 @@ def displayMarkerValues(window, data: dict):
     """ отображение текущих значений маркера в соотв.полях """
     name = list(data.keys())[0]
     point = list(data.values())[0]
-    if name == 'test_lft':
+    if name == 'tst_lft':
         window.txtFlow.setText('%.4f' % point.x())
         window.txtLift.setText('%.4f' % point.y())
-    elif name == 'test_pwr':
+    elif name == 'tst_pwr':
         window.txtPower.setText('%.4f' % point.y())
 
 
@@ -64,12 +65,8 @@ def displayTest_points(wnd, testdata):
     """ отображение точек испытания в таблице """
     funcs_table.clear(wnd.tablePoints)
     test = testdata.test_
-    for i in range(testdata.test_.num_points()):
-        flw = test.values_flw[i]
-        lft = test.values_lft[i]
-        pwr = test.values_pwr[i]
-        eff = calculateEff(flw, lft, pwr)
-        point_data = (flw, lft, pwr, eff, testdata.pump_.Stages)
+    for p in testdata.test_.points:
+        point_data = (p.Flw, p.Lft, p.Pwr, p.Eff, testdata.pump_.Stages)
         funcs_table.addToTable_points(wnd.tablePoints, point_data)
     funcs_table.addToTable_vibrations(wnd.tableVibrations, test.values_vbr)
 

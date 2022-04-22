@@ -4,6 +4,7 @@
     AesmaDiv 2021
     Программа для стенда испытания ЭЦН
 """
+from enum import Flag, auto
 import os
 import sys
 import faulthandler
@@ -24,6 +25,7 @@ PATHS = {
     'TYPE': os.path.join(ROOT, 'Files/pumpwindow.ui'),  # путь к файлу GUI
     'TEMPLATE': os.path.join(ROOT, 'Files/report')  # путь к шаблону протокола
 }
+
 
 if __name__ == '__main__':
     Journal.LOGGED = False#True

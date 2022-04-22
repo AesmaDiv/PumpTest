@@ -1,8 +1,18 @@
 """
     Модуль описывающий классы для Испытания, Насоса и Типоразмера
 """
-import sqlalchemy
+from dataclasses import dataclass
+import sqlalchemy as sql
+import numpy as np
 from Classes.Data.alchemy_tables import Producer, Type, Pump, Test
+
+
+@dataclass
+class Point:
+    Flw: float
+    Lft: float
+    Pwr: float
+    Eff: float
 
 
 class Record():
@@ -104,7 +114,7 @@ class Record():
             try:
                 kwargs['session'].commit()
                 self._props.update({'ID': item.ID })
-            except sqlalchemy.exc.IntegrityError:
+            except sql.exc.IntegrityError:
                 return False
             return item.ID > 0
         return self._db_manager.execute(func)
@@ -113,9 +123,7 @@ class Record():
 class RecordType(Record):
     """ Класс информации о типоразмере """
     values_vbr = []
-    values_flw = []
-    values_lft = []
-    values_pwr = []
+    points = []
 
     def __init__(self, db_manager, super_class=Type, rec_id=0):
         super().__init__(db_manager, super_class, rec_id)
@@ -128,17 +136,25 @@ class RecordType(Record):
         result = super().read(rec_id)
         if result:
             if self.Flows and self.Lifts and self.Powers:
-                self.values_flw = list(map(float, self.Flows.split(',')))
-                self.values_lft = list(map(float, self.Lifts.split(',')))
-                self.values_pwr = list(map(float, self.Powers.split(',')))
-                self.values_eff = RecordType.calculate_effs(
-                    self.values_flw, self.values_lft, self.values_pwr
-                )
-                if self.__class__ is RecordType:
-                    def func(**kwargs):
-                        producer = kwargs['session'].query(Producer).get(self['Producer'])
-                        self.ProducerName = producer.Name
-                    self._db_manager.execute(func)
+                # парсим строки значений в массивы и приводим к общей длинне
+                points = {
+                    'flws': list(map(float, self.Flows.split(','))),
+                    'lfts': list(map(float, self.Lifts.split(','))),
+                    'pwrs': list(map(float, self.Powers.split(',')))
+                }
+                RecordType._normalize(points)
+                # транспонируем и рассчитываем КПД
+                points = np.array(list(points.values())).T
+                points = sorted(points, key=lambda x: x[0])
+                points = np.column_stack((points, RecordType.calculate_effs(points)))
+                # создаем данные о точках
+                self.points = [Point(p[0], p[1], p[2], p[3]) for p in points]
+                # если это класс типа, то добавляем информацию об имени производителя
+                # if self.__class__ is RecordType:
+                #     def func(**kwargs):
+                #         producer = kwargs['session'].query(Producer).get(self['Producer'])
+                #         self.ProducerName = producer.Name
+                #     self._db_manager.execute(func)
             else:
                 self._clear()
         return result
@@ -149,39 +165,25 @@ class RecordType(Record):
         return super().clear()
 
     @staticmethod
-    def calculate_effs(flws: list, lfts: list, pwrs: list):
+    def calculate_effs(points: np.ndarray):
         """ расчёт точек КПД """
-        result = []
-        count = len(flws)
-        if count == len(lfts) and count == len(pwrs):
-            result = [RecordType.calculate_eff(flws[i], lfts[i], pwrs[i]) \
-                    for i in range(count)]
+        def func(f, l, p):
+            return 9.81 * l * f / (24 * 3600 * p) * 100 if f and l and p else 0
+        result = [func(flw, lft, pwr) for flw, lft, pwr in points]
         return result
 
     @staticmethod
-    def calculate_eff(flw: float, lft: float, pwr: float):
-        """ вычисление КПД """
-        return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
-            if flw and lft and pwr else 0
-
-    def num_points(self) -> int:
-        """ проверяет есть ли точки и возвращает их количество (наименьшее) """
-        if all([self.values_flw, self.values_lft, self.values_pwr]):
-            num_flw = len(self.values_flw)
-            num_lft = len(self.values_lft)
-            num_pwr = len(self.values_pwr)
-            return min(num_flw, num_lft, num_pwr)
-        return 0
+    def _normalize(points: dict):
+        """ приведение к общей длинне """
+        new_len = min(map(len, points.values()))
+        for key, values in points.items():
+            points[key] = values[:new_len]
 
     def _clear(self):
         """ очистка точек кривой и производителя"""
-        self.values_vbr = []
-        self.values_flw = []
-        self.values_lft = []
-        self.values_pwr = []
+        self.points  = []
         if self.__class__ is RecordType:
             self.ProducerName = ""
-
 
 
 class RecordPump(Record):

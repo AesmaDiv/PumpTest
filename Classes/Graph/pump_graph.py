@@ -5,6 +5,7 @@
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QFontMetricsF
 from PyQt5.QtGui import QTransform, QPixmap, QPolygonF, QPainterPath
 from PyQt5.QtCore import QPointF, Qt, QSize
+from AesmaLib.GraphWidget.chart import ChartOptions
 from AesmaLib.GraphWidget.graph import Graph
 from AesmaLib.GraphWidget.graph import Chart
 from AesmaLib.GraphWidget.graph import Axis
@@ -19,12 +20,11 @@ class PumpGraph(Graph):
     def __init__(self, width: int, height: int, parent=None):
         Graph.__init__(self, width, height, parent)
         self.setGeometry(0, 0, width, height)
-        self._limits_value = [0, 0, 0]
+        self._range_value = [0, 0, 0]
         self._range_pixels = [0, 0, 0]
         self._grid_divs: dict = {}
         self._charts_data = {}
         # цветовые палитры для приложения или протокола
-        self._grid_ranges = QBrush(QColor(70, 70, 70))
         self._palettes = {
             'application': {
                 'background': QBrush(QColor(30, 30, 30)),
@@ -64,7 +64,7 @@ class PumpGraph(Graph):
 
     def setLimits(self, minimum: float, nominal: float, maximum: float):
         """ установка области рабочего диапазона """
-        self._limits_value = list(map(float, [minimum, nominal, maximum]))
+        self._range_value = list(map(float, [minimum, nominal, maximum]))
 
     def addChart(self, chart: Chart, name: str):
         """ добавление графика """
@@ -125,7 +125,7 @@ class PumpGraph(Graph):
         painter.setPen(self._style['grid']['border'])
         painter.fillRect(
             x_0, y_0, x_2 - x_0, y_1 - y_0,
-            self._grid_ranges
+            self._style['grid']['ranges']
         )
         painter.drawLine(x_0, y_0, x_0, y_1)
         painter.drawLine(x_1, y_0, x_1, y_1)
@@ -188,11 +188,11 @@ class PumpGraph(Graph):
                 offset_x = self._margins[0] - f_m.width(text) - 10
             elif axis_name == 'y1':
                 offset_x = self._margins[0] + self.getDrawArea().width() + 10
-                painter.setPen(self._charts['pwr'].getPen())
+                painter.setPen(self._charts['etl_pwr'].pen)
             elif axis_name == 'y2':
                 offset_x = self._margins[0] + self.getDrawArea().width() + \
                            self._grid_divs['y1'].width + 40
-                painter.setPen(self._charts['eff'].getPen())
+                painter.setPen(self._charts['etl_eff'].pen)
             offset_y = self.height() - self._margins[3] + f_m.height() / 4.0
             painter.drawText(QPointF(offset_x, offset_y - i * step), text)
         painter.setPen(pen)
@@ -216,13 +216,13 @@ class PumpGraph(Graph):
 
         text = 'Мощность, кВт'
         offset_x = self._margins[0] + self.getDrawArea().width() + 10
-        painter.setPen(self._charts['pwr'].getPen())
+        painter.setPen(self._charts['etl_pwr'].pen)
         self._drawLabel(painter, f_m, offset_x, text)
 
         text = 'КПД, %'
         offset_x = self._margins[0] + self.getDrawArea().width() + \
                    self._grid_divs['y1'].width + 40
-        painter.setPen(self._charts['eff'].getPen())
+        painter.setPen(self._charts['etl_eff'].pen)
         self._drawLabel(painter, f_m, offset_x, text)
         painter.setPen(pen)
 
@@ -259,9 +259,9 @@ class PumpGraph(Graph):
             if data['knots'].size and chart.visibility:
                 pen = painter.pen()
                 brush = painter.brush()
-                painter.setPen(chart.getPen())
-                painter.setBrush(chart.getPen().color())
-                if "knots" in chart.getOptions():
+                painter.setPen(chart.pen)
+                painter.setBrush(chart.pen.color())
+                if ChartOptions.Knots in chart.options:
                     if IS_LOGGED:
                         Journal.log(__name__, "\t-> отрисовка узлов для",
                                     chart.name)
@@ -311,11 +311,11 @@ class PumpGraph(Graph):
     def _calculateMargins(self):
         """ расчёт отступов """
         keys = self._charts.keys()
-        if 'lft' in keys and 'pwr' in keys and 'eff' in keys:
-            self._prepareDivs('x0', self._charts['lft'].getAxis('x'))
-            self._prepareDivs('y0', self._charts['lft'].getAxis('y'))
-            self._prepareDivs('y1', self._charts['pwr'].getAxis('y'))
-            self._prepareDivs('y2', self._charts['eff'].getAxis('y'))
+        if 'etl_lft' in keys and 'etl_pwr' in keys and 'etl_eff' in keys:
+            self._prepareDivs('x0', self._charts['etl_lft'].getAxis('x'))
+            self._prepareDivs('y0', self._charts['etl_lft'].getAxis('y'))
+            self._prepareDivs('y1', self._charts['etl_pwr'].getAxis('y'))
+            self._prepareDivs('y2', self._charts['etl_eff'].getAxis('y'))
 
             self._margins[0] = self._grid_divs['y0'].width + 50
             self._margins[1] = 20
@@ -328,7 +328,7 @@ class PumpGraph(Graph):
         chart: Chart = self._charts[self._base_chart]
         for i in range(3):
             self._range_pixels[i] = chart.translateCoordinate(
-                'x', self._limits_value[i], self.getDrawArea().width())
+                'x', self._range_value[i], self.getDrawArea().width())
 
     def _setCanvasTransform(self, painter: QPainter, transform: QTransform):
         """ трансформация холста """
@@ -386,14 +386,14 @@ class PumpGraph(Graph):
     def _getChartLimit(self, chart: Chart, curve):
         """ получение координат точек описывающих пределы допуска """
         result = chart.createEmptyPoints()
-        if 'limit' in chart.getOptions() and curve['x'].any():
+        a, b = ChartOptions.Limits, chart.options
+        if ChartOptions.Limits in chart.options and curve['x'].any():
             if IS_LOGGED:
                 Journal.log(__name__, "\t-> получение пределов допуска для",
                             chart.name)
             ranges = self._range_pixels
-            coeffs = chart.getLimitCoefs()
             result = self._sliceCurveToRange(curve, ranges)
-            result = self._calculateLimitCoords(chart, result, coeffs)
+            result = self._calculateLimitCoords(chart, result, chart.limitCoefs)
         return result
 
     @staticmethod

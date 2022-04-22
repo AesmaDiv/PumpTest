@@ -165,15 +165,20 @@ class ComboItemModel(FilterModel):
         self.setSourceModel(self._model)
         self.setDynamicSortFilter(True)
 
+    @property
+    def display(self):
+        """ возвращает имя отображаемого поля """
+        return self._display
+
+    def model(self):
+        """ возвращает модель """
+        return self._model
+
     def fill(self, rows: list, display):
         """ заполняет комбобокс элементами из списка """
         self._display = display
         for _, value in enumerate(rows):
             self._model.appendRow(self.createRow(value))
-
-    def model(self):
-        """ возвращает модель """
-        return self._model
 
     def createRow(self, data: dict):
         """ создаёт элемент-строку для комбобокса """
@@ -247,6 +252,7 @@ class ComboItemModel(FilterModel):
         return False
 
     def applyFilter(self, filters=None):
+        """ применение фильтрации """
         # self.select(0)
         self._log(f"=-> {self.parent.objectName()}::\t",
                   "применяем новые фильтры:")

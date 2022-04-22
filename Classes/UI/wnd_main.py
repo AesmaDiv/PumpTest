@@ -2,7 +2,8 @@
     Модуль содержит функции основного окна программы
 """
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot, QUrl
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 from PyQt5.QtWidgets import QMainWindow, QSlider
 from PyQt5.QtGui import QCloseEvent
 from Classes.UI import funcs_aux
@@ -35,28 +36,36 @@ class MainWindow(QMainWindow):
         if self._is_ready:
             self._managers["adam"] = AdamManager(adam.IP, adam.PORT, adam.ADDRESS)
             self._managers["data"] = DataManager(paths['DB'])
-            self._managers["graph"] = GraphManager(self.testdata())
+            self._managers["graph"] = GraphManager(self.testdata)
             # self.adam_manager.callback.append(self._onAdam_dataReceived)
-            self._testlist = TestList(self, self.db_manager())
-            self._type_window = TypeWindow(self, self.db_manager(), paths['TYPE'])
-            self._report = Report(paths['TEMPLATE'], self.graph_manager(), self.testdata())
+            self._testlist = TestList(self, self.db_manager)
+            self._type_window = TypeWindow(self, self.db_manager, paths['TYPE'])
+            self._report = Report(paths['TEMPLATE'], self.graph_manager, self.db_manager)
 
+    @property
     def adam_manager(self):
         """ возвращает ссылку на менеджер управления адамом """
         return self._managers["adam"]
 
+    @property
     def db_manager(self):
         """ возвращает ссылку на менеджер управления базой данных """
         return self._managers["data"]
 
+    @property
     def graph_manager(self):
         """ возвращает ссылку на менеджер управления графиком """
         return self._managers["graph"]
 
+    @property
     def testdata(self):
         """ возвращает ссылку на данные об испытании """
-        return self.db_manager().getTestdata()
+        return self.db_manager.testdata
 
+    @property
+    def testlist(self):
+        """ возвращает ссылку на список тестов """
+        return self._testlist
 
     @Journal.logged
     def show(self) -> bool:
@@ -72,8 +81,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, close_event: QCloseEvent) -> None:
         """ погдотовка к закрытию приложения """
         if self._is_ready:
-            self.adam_manager().dataReceived.disconnect()
-            self.adam_manager().setPollingState(False)
+            # отключение ADAM 5000 TCP
+            self.adam_manager.dataReceived.disconnect()
+            self.adam_manager.setPollingState(False)
         return super().closeEvent(close_event)
 
     def _createGUI(self, path_to_ui):
@@ -87,10 +97,10 @@ class MainWindow(QMainWindow):
     @Journal.logged
     def _prepare(self):
         """ инициализирует и подготавливает компоненты главного окна """
-        self._testlist.initialize()
-        self._testlist.refresh()
-        self._testlist.filterSwitch()
-        funcs_combo.fillCombos(self, self.db_manager())
+        self.testlist.initialize()
+        self.testlist.refresh()
+        self.testlist.filterSwitch()
+        funcs_combo.fillCombos(self, self.db_manager)
         funcs_test.prepareSlidersRange(self)
         funcs_table.initTable_points(self)
         funcs_table.initTable_vibrations(self)
@@ -108,69 +118,70 @@ class MainWindow(QMainWindow):
     @Journal.logged
     def _registerEvents(self):
         """ привязывает события элементов формы к обработчикам """
-        self._testlist.selectionChanged.connect(self._onChangedTestlist)
-        self._testlist.menuSelected.connect(self._onMenuTestlist)
+        self.testlist.selectionChanged.connect(self._onChangedTestlist)
+        self.testlist.menuSelected.connect(self._onMenuTestlist)
         #
-        self.txtFilter_ID.textChanged.connect(self._onChangedFilter_apply)
-        self.txtFilter_DateTime.textChanged.connect(self._onChangedFilter_apply)
-        self.txtFilter_OrderNum.textChanged.connect(self._onChangedFilter_apply)
-        self.txtFilter_Serial.textChanged.connect(self._onChangedFilter_apply)
-        self.btnFilterReset.clicked.connect(self._onClickedFilter_reset)
-        self.radioOrderNum.toggled.connect(self._onChangedTestlist_column)
+        self.txtFilter_ID.textChanged.connect(self._onChangedFilter_Apply)
+        self.txtFilter_DateTime.textChanged.connect(self._onChangedFilter_Apply)
+        self.txtFilter_OrderNum.textChanged.connect(self._onChangedFilter_Apply)
+        self.txtFilter_Serial.textChanged.connect(self._onChangedFilter_Apply)
+        self.btnFilterReset.clicked.connect(self._onClickedFilter_Reset)
+        self.radioOrderNum.toggled.connect(self._onChangedTestlist_Column)
         #
-        self.cmbProducer.currentIndexChanged.connect(self._onChangedCombo_producers)
-        self.cmbType.currentIndexChanged.connect(self._onChangedCombo_types)
-        self.cmbSerial.currentIndexChanged.connect(self._onChangedCombo_serials)
+        self.cmbProducer.currentIndexChanged.connect(self._onChangedCombo_Producers)
+        self.cmbType.currentIndexChanged.connect(self._onChangedCombo_Types)
+        self.cmbSerial.currentIndexChanged.connect(self._onChangedCombo_Serials)
         #
-        self.btnTest_New.clicked.connect(self._onClickedTestInfo_new)
-        self.btnTest_Save.clicked.connect(self._onClickedTestInfo_save)
-        self.btnTest_Cancel.clicked.connect(self._onClickedTestInfo_cancel)
+        self.btnPump_Edit.clicked.connect(self._onClickedInfo_Pump)
+        self.btnPump_Save.clicked.connect(self._onClickedInfo_Pump)
+        self.btnPump_Cancel.clicked.connect(self._onClickedInfo_Pump)
         #
-        self.btnPump_New.clicked.connect(self._onClickedPumpInfo_new)
-        self.btnPump_Save.clicked.connect(self._onClickedPumpInfo_save)
-        self.btnPump_Cancel.clicked.connect(self._onClickedPumpInfo_cancel)
+        self.btnTest_Edit.clicked.connect(self._onClickedInfo_Test)
+        self.btnTest_Save.clicked.connect(self._onClickedInfo_Test)
+        self.btnTest_Cancel.clicked.connect(self._onClickedInfo_Test)
+        self.btnTest_Order.clicked.connect(self._onClickedInfo_Test)
         #
-        self.btnGoTest.clicked.connect(self._onClicked_goTest)
-        self.btnGoBack.clicked.connect(self._onClicked_goBack)
+        self.btnGoTest.clicked.connect(self._onClicked_SwitchMode)
+        self.btnGoBack.clicked.connect(self._onClicked_SwitchMode)
         #
-        self.btnAddPoint.clicked.connect(self._onClicked_addPoint)
-        self.btnRemovePoint.clicked.connect(self._onClicked_removePoint)
-        self.btnClearCurve.clicked.connect(self._onClicked_clearCurve)
-        self.btnSaveCharts.clicked.connect(self._onClickedTestResult_save)
+        self.btnAddPoint.clicked.connect(self._onClicked_PointAdd)
+        self.btnRemovePoint.clicked.connect(self._onClicked_PointRemove)
+        self.btnClearCurve.clicked.connect(self._onClicked_ClearCurve)
+        self.btnSaveCharts.clicked.connect(self._onClickedTestResult_Save)
         #
-        self.chkConnection.clicked.connect(self._onAdam_connection)
-        self.radioFlow0.toggled.connect(self._onChanged_flowmeter)
-        self.radioFlow1.toggled.connect(self._onChanged_flowmeter)
-        self.radioFlow2.toggled.connect(self._onChanged_flowmeter)
-        self.spinPointLines.valueChanged.connect(self._onChanged_pointsNum)
-        self.btnEngine.clicked.connect(self._onClicked_engine)
-        self.txtFlow.textChanged.connect(self._onChanged_sensors)
-        self.txtLift.textChanged.connect(self._onChanged_sensors)
-        self.txtPower.textChanged.connect(self._onChanged_sensors)
-        self.radioPointsReal.toggled.connect(self._onChanged_pointsMode)
+        self.chkConnection.clicked.connect(self._onAdam_Connection)
+        self.radioFlow0.toggled.connect(self._onChanged_Flowmeter)
+        self.radioFlow1.toggled.connect(self._onChanged_Flowmeter)
+        self.radioFlow2.toggled.connect(self._onChanged_Flowmeter)
+        self.spinPointLines.valueChanged.connect(self._onChanged_PointsNum)
+        self.btnEngine.clicked.connect(self._onClicked_Engine)
+        self.txtFlow.textChanged.connect(self._onChanged_Sensors)
+        self.txtLift.textChanged.connect(self._onChanged_Sensors)
+        self.txtPower.textChanged.connect(self._onChanged_Sensors)
+        self.radioPointsReal.toggled.connect(self._onChanged_PointsMode)
         #
-        self.adam_manager().dataReceived.connect(
-            self._onAdam_dataReceived, no_receiver_check = True
+        self.adam_manager.dataReceived.connect(
+            self._onAdam_DataReceived, no_receiver_check = True
         )
 
     def _initMarkers(self):
         """ инициирует маркеры графика испытания """
         params = {
-            'test_lft': Qt.blue,
-            'test_pwr': Qt.red
+            'tst_lft': Qt.blue,    # цвет маркера напора
+            'tst_pwr': Qt.red      # цвет маркера мощности
         }
-        self.graph_manager().initMarkers(params, self.gridGraphTest)
+        self.graph_manager.initMarkers(params, self.gridGraphTest)
 
     def _initSlider(self, slider: QSlider):
         setattr(slider, "is_draging", False)
         def onValueChanged(value):
             if not getattr(slider, "is_draging"):
-                funcs_test.setAdamValue(slider, self.adam_manager(), value)
+                funcs_test.setAdamValue(slider, self.adam_manager, value)
         def onPressed():
             setattr(slider, "is_draging", True)
         def onReleased():
             setattr(slider, "is_draging", False)
-            funcs_test.setAdamValue(slider, self.adam_manager())
+            funcs_test.setAdamValue(slider, self.adam_manager)
         slider.sliderPressed.connect(onPressed)
         slider.sliderReleased.connect(onReleased)
         slider.valueChanged.connect(onValueChanged)
@@ -179,7 +190,7 @@ class MainWindow(QMainWindow):
         """ изменение выбора теста """
         if item:
             # если запись уже выбрана и загружена - выходим
-            if self.testdata().test_.ID == item['ID']:
+            if self.testdata.test_.ID == item['ID']:
                 return
             Journal.log('***' * 25)
             Journal.log_func(self._onChangedTestlist, item['ID'])
@@ -187,53 +198,54 @@ class MainWindow(QMainWindow):
             funcs_combo.resetFilters_pumpInfo(self)
             funcs_group.groupClear(self.groupTestInfo)
             funcs_group.groupClear(self.groupPumpInfo)
-            self.db_manager().clearRecord()
+            self.db_manager.clearRecord()
             # загружаем и отображаем информацию о выбранной записи
-            if self.db_manager().loadRecord(item['ID']):
-                self.graph_manager().clearCharts()
-                self.graph_manager().markersClearKnots()
-                funcs_display.displayRecord(self, self.db_manager())
-            funcs_display.displayTest_deltas(self, self.graph_manager())
+            if self.db_manager.loadRecord(item['ID']):
+                self.graph_manager.clearCharts()
+                self.graph_manager.markersClearKnots()
+                funcs_display.displayRecord(self, self.db_manager)
+            funcs_display.displayTest_deltas(self, self.graph_manager)
+            self.webEngineView.setHtml(self._report.createWeb(), QUrl("file://"))
             Journal.log('===' * 25)
 
-    def _onChangedTestlist_column(self):
+    def _onChangedTestlist_Column(self):
         """ изменён столбец списка тестов (наряд-заказ/серийный номер) """
-        Journal.log_func(self._onChangedTestlist_column)
+        Journal.log_func(self._onChangedTestlist_Column)
         self._testlist.filterSwitch()
 
     def _onMenuTestlist(self, action):
         """ выбор в контекстном меню списка тестов """
         # печать протокола
         if action == "print":
-            self._report.print()
-            return
+            report = self._report.print()
+            web: QWebEngineView = self.webEngineView
+            web.setHtml(report)
         # удаление записи
-        if action == "delete":
+        elif action == "delete":
             if funcs_aux.askPassword():
-                self.db_manager().removeCurrentRecord()
+                self.db_manager.removeCurrentRecord()
                 self._testlist.refresh()
                 Message.show("УСПЕХ", "Запись удалена")
-                return
         # обновление записи
-        if action == "update":
+        elif action == "update":
             if funcs_aux.askPassword():
-                self.db_manager().saveTestInfo()
+                funcs_group.groupSave(self.groupTestInfo, self.testdata.test_)
+                self.db_manager.saveInfo_Test()
                 Message.show("УСПЕХ", "Запись обновлена")
-                return
 
-    def _onChangedCombo_producers(self, index):
+    def _onChangedCombo_Producers(self, index):
         """ выбор производителя """
         item = self.cmbProducer.itemData(index, Qt.UserRole)
-        Journal.log_func(self._onChangedCombo_producers, item['Name'] if item else "None")
+        Journal.log_func(self._onChangedCombo_Producers, item['Name'] if item else "None")
         if item:
             # ↓ фильтрует типоразмеры для данного производителя
             condition = {'Producer': item['ID']} if index else None
             funcs_combo.filterByCondition(self.cmbType, condition)
 
-    def _onChangedCombo_types(self, index):
+    def _onChangedCombo_Types(self, index):
         """ выбор типоразмера """
         item = self.cmbType.itemData(index, Qt.UserRole)
-        Journal.log_func(self._onChangedCombo_types , "None" if not item else item['Name'])
+        Journal.log_func(self._onChangedCombo_Types , "None" if not item else item['Name'])
         if item and all(item.values()):
             # ↑ выбирает производителя для данного типоразмера
             condition = {'ID': item['Producer']}
@@ -241,25 +253,27 @@ class MainWindow(QMainWindow):
             # ↓ фильтрует серийники для данного типоразмера
             condition = {'Type': item['ID']}
             funcs_combo.filterByCondition(self.cmbSerial, condition)
-            # перерисовывает эталонный график
-            self.db_manager().getTestdata().type_.read(item['ID'])
-            self.graph_manager().drawCharts(self.frameGraphInfo)
+            # читает и отображает данные об типоразмере 
+            self.db_manager.testdata.type_.read(item['ID'])
+            self.graph_manager.drawCharts(self.frameGraphInfo)
+            self.lblPumpInfo.setText(
+                f"{self.testdata.type_.ProducerName}: {self.testdata.type_.Name}")
 
-    def _onChangedCombo_serials(self, index):
+    def _onChangedCombo_Serials(self, index):
         """ выбор заводского номера """
         item = self.cmbSerial.itemData(index, Qt.UserRole)
-        Journal.log_func(self._onChangedCombo_serials, item['Serial'] if item else "None")
+        Journal.log_func(self._onChangedCombo_Serials, item['Serial'] if item else "None")
         # ↑ выбирает типоразмер для данного серийника
         if item and all(item.values()):
             funcs_combo.resetFilter(self.cmbType)
             condition = {'ID': item['Type']}
             funcs_combo.selectContains(self.cmbType, condition)
-            self.graph_manager().drawCharts(self.frameGraphInfo)
+            self.graph_manager.drawCharts(self.frameGraphInfo)
 
-    def _onChangedFilter_apply(self, text: str):
+    def _onChangedFilter_Apply(self, text: str):
         """ изменение значения фильтра списка тестов """
         if text:
-            Journal.log_func(self._onChangedFilter_apply, text)
+            Journal.log_func(self._onChangedFilter_Apply, text)
         filter_id = self.txtFilter_ID.text()
         filter_datetime = self.txtFilter_DateTime.text()
         filter_ordernum = self.txtFilter_OrderNum.text()
@@ -267,135 +281,135 @@ class MainWindow(QMainWindow):
         conditions = [filter_id, filter_datetime, filter_ordernum, filter_serial]
         self._testlist.filterApply(conditions)
 
-    def _onClickedFilter_reset(self):
+    def _onClickedFilter_Reset(self):
         """ нажата кнопка сброса фильтра """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClickedFilter_reset)
+        Journal.log_func(self._onClickedFilter_Reset)
         funcs_group.groupClear(self.groupTestList)
         funcs_group.groupClear(self.groupTestInfo)
         funcs_group.groupClear(self.groupPumpInfo)
-        self.db_manager().clearRecord()
-        self._testlist.filterApply()
+        self.db_manager.clearRecord()
+        self.testlist.filterApply()
         funcs_group.groupLock(self.groupTestInfo, True)
         funcs_group.groupLock(self.groupPumpInfo, True)
 
-    def _onClickedPumpInfo_new(self):
-        """ нажата кнопка добавления нового насоса """
+    def _onClickedInfo_Pump(self):
+        """ обработка нажания кнопки данных о насосе """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClickedPumpInfo_new)
-        funcs_group.groupLock(self.groupPumpInfo, False)
-        funcs_group.groupClear(self.groupPumpInfo)
+        Journal.log_func(self._onClickedInfo_Pump)
+        match self.sender():
+            # изменение
+            case self.btnPump_Edit:
+                funcs_group.groupLock(self.groupPumpInfo, False)
+                funcs_group.groupClear(self.groupPumpInfo)
+            # сохранение
+            case self.btnPump_Save:
+                # если типоразмер не опознан, предлагаем добавить новый
+                type_name = self.cmbType.currentText()
+                if not type_name or not funcs_combo.checkExists(self.cmbType, type_name):
+                    if Message.ask("Внимание", "Типоразмер не найден. Добавить новый?"):
+                        if not self._type_window.showDialog():
+                            return
+                        funcs_combo.fillCombos_Pump(self, self.db_manager)
+                funcs_info.saveInfo_Pump(self)
+            # отмена изменений
+            case self.btnPump_Cancel:
+                funcs_combo.resetFilters_pumpInfo(self)
+                funcs_group.groupDisplay(self.groupPumpInfo, self.testdata.pump_)
+                funcs_group.groupLock(self.groupPumpInfo, True)
 
-    def _onClickedPumpInfo_save(self):
-        """ нажата кнопка сохранения нового насоса """
+    def _onClickedInfo_Test(self):
+        """ обработка нажания кнопки данных об испытании """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClickedPumpInfo_save)
-        # если типоразмер не указан, предлагаем добавить новый
-        if not self.cmbType.currentText():
-            if Message.ask("Внимание", "Типоразмер не указан. Добавить новый?"):
-                if self._type_window.addType():
-                    funcs_combo.fillCombos_pump(self, self.db_manager())
-        funcs_info.savePumpInfo(self)
+        Journal.log_func(self._onClickedInfo_Test)
+        match self.sender():
+            # изменение
+            case self.btnTest_Edit:
+                funcs_group.groupLock(self.groupTestInfo, False)
+                self.txtOrderNum.setEnabled(False)
+            # сохранение
+            case self.btnTest_Save:
+                funcs_combo.checkAddAndSelect(self.cmbCustomer, self.db_manager)
+                funcs_combo.checkAddAndSelect(self.cmbOwner, self.db_manager)
+                already_selected = self.txtOrderNum.text() == self.testdata.test_['OrderNum']
+                funcs_info.saveInfo_Test(self, already_selected)
+            # отмена изменений
+            case self.btnTest_Cancel:
+                funcs_group.groupDisplay(self.groupTestInfo, self.testdata.test_)
+                funcs_group.groupLock(self.groupTestInfo, True)
+            # переключение блокировки поля наряд-заказа
+            case self.btnTest_Order:
+                self.txtOrderNum.setEnabled(not self.txtOrderNum.isEnabled())
 
-    def _onClickedPumpInfo_cancel(self):
-        """ нажата кнопка отмены добавления нового насоса """
-        Journal.log('___' * 25)
-        Journal.log_func(self._onClickedPumpInfo_cancel)
-        funcs_combo.resetFilters_pumpInfo(self)
-        funcs_group.groupDisplay(self.groupPumpInfo, self.testdata().pump_)
-        funcs_group.groupLock(self.groupPumpInfo, True)
-
-    def _onClickedTestInfo_new(self):
-        """ нажата кнопка добавления нового теста """
-        Journal.log('___' * 25)
-        Journal.log_func(self._onClickedTestInfo_new)
-        funcs_group.groupClear(self.groupTestInfo)
-        funcs_group.groupLock(self.groupTestInfo, False)
-        funcs_aux.setCurrentDate(self)
-
-    def _onClickedTestInfo_save(self):
-        """ нажата кнопка сохранения нового теста """
-        Journal.log('___' * 25)
-        Journal.log_func(self._onClickedTestInfo_save)
-        funcs_info.saveTestInfo(self, self._testlist)
-
-    def _onClickedTestInfo_cancel(self):
-        """ нажата кнопка отмены добавления нового теста """
-        Journal.log('___' * 25)
-        Journal.log_func(self._onClickedTestInfo_cancel)
-        funcs_group.groupDisplay(self.groupTestInfo, self.testdata().test_)
-        funcs_group.groupLock(self.groupTestInfo, True)
-
-    def _onClickedTestResult_save(self):
+    def _onClickedTestResult_Save(self):
         """ нажата кнопка сохранения результатов теста """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClickedTestResult_save)
-        self.graph_manager().saveTestdata()
-        result = self.testdata().test_.write()
+        Journal.log_func(self._onClickedTestResult_Save)
+        self.graph_manager.saveTestdata()
+        result = self.testdata.test_.write()
         title = 'УСПЕХ' if result else 'ОШИБКА'
         message = 'Результаты сохранены' if result else 'Запись заблокирована'
         Message.show(title, message)
 
-    def _onClicked_save(self):
-        """ нажата кнопка сохранения """
-        # self._parent.__store_record()
-
-    def _onClicked_goTest(self):
-        """ нажата кнопка перехода к тестированию """
+    def _onClicked_SwitchMode(self):
+        """ нажата кнопка перехода между страницами """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClicked_goTest)
-        self.stackedWidget.setCurrentIndex(1)
-        self.graph_manager().displayCharts(self.frameGraphTest)
-        self.graph_manager().markersReposition()
-        self.graph_manager().switchChartsVisibility(True)
+        Journal.log_func(self._onClicked_SwitchMode)
+        match self.sender().objectName():
+            # переход к тестированию
+            case 'btnGoTest':
+                self.stackedWidget.setCurrentIndex(1)
+                self.graph_manager.displayCharts(self.frameGraphTest)
+                self.graph_manager.markersReposition()
+                self.graph_manager.switchChartsVisibility(True)
+            # возврат к информации
+            case 'btnGoBack':
+                self.stackedWidget.setCurrentIndex(0)
+                self.graph_manager.displayCharts(self.frameGraphInfo)
+                self._testlist.setCurrentTest(self.testdata.test_['ID'])
+                self._testlist.refresh()
+            case _:
+                print("!!! Ошибка определения кнопки переключения страниц")
 
-    def _onClicked_goBack(self):
-        """ нажата кнопка возврата на основное окно """
-        Journal.log('___' * 25)
-        Journal.log_func(self._onClicked_goBack)
-        self.stackedWidget.setCurrentIndex(0)
-        self.graph_manager().displayCharts(self.frameGraphInfo)
-        self._testlist.setCurrentTest(self.testdata().test_['ID'])
-
-    def _onClicked_engine(self):
+    def _onClicked_Engine(self):
         """ нажата кнопка начала/остановки испытания """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClicked_engine)
+        Journal.log_func(self._onClicked_Engine)
         state = not funcs_test.states["is_running"]
-        self.graph_manager().switchChartsVisibility(not state)
+        self.graph_manager.switchChartsVisibility(not state)
         funcs_test.switchControlsAccessible(self, state)
         funcs_test.switchRunningState(self, state)
 
-    def _onClicked_addPoint(self):
+    def _onClicked_PointAdd(self):
         """ нажата кнопка добавления точки """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClicked_addPoint)
+        Journal.log_func(self._onClicked_PointAdd)
         spin = self.spinPointLines
         if spin.value() == 0:
             Message.show("Внимание:", "Достигнуто максимальное кол-во точек.")
             return
         current_vals = funcs_test.getCurrentVals(self)
         if spin.value() == spin.maximum():
-            self.graph_manager().setPointLines_max(current_vals[0])
-        if not self.graph_manager().checkPointExists(current_vals[0]):
-            self.graph_manager().markersAddKnots()
-            self.graph_manager().addPointsToCharts(*current_vals)
-            self.graph_manager().displayCharts(self.frameGraphTest)
-            current_vals.append(self.testdata().pump_.Stages)
+            self.graph_manager.setPointLines_max(current_vals[0])
+        if not self.graph_manager.checkPointExists(current_vals[0]):
+            self.graph_manager.markersAddKnots()
+            self.graph_manager.addPointsToCharts(*current_vals)
+            self.graph_manager.displayCharts(self.frameGraphTest)
+            current_vals.append(self.testdata.pump_.Stages)
             funcs_table.addToTable_points(self.tablePoints, current_vals)
             spin.setValue(int(spin.value()) - 1)
 
-    def _onClicked_removePoint(self):
+    def _onClicked_PointRemove(self):
         """ нажата кнопка удаления точки """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClicked_removePoint)
+        Journal.log_func(self._onClicked_PointRemove)
         funcs_table.removeLastRow(self.tablePoints)
-        self.graph_manager().markersRemoveKnots()
-        self.graph_manager().removeLastPointsFromCharts()
-        self.graph_manager().displayCharts(self.frameGraphTest)
+        self.graph_manager.markersRemoveKnots()
+        self.graph_manager.removeLastPointsFromCharts()
+        self.graph_manager.displayCharts(self.frameGraphTest)
         self.spinPointLines.setValue(int(self.spinPointLines.value()) + 1)
 
-    def _onChanged_pointsMode(self):
+    def _onChanged_PointsMode(self):
         """ переключение значений точек реальные / на ступень """
         display = ["flw", "lft", "pwr", "eff"]
         if self.radioPointsReal.isChecked():
@@ -403,21 +417,21 @@ class MainWindow(QMainWindow):
             display[2] = "pwr_real"
         funcs_table.setDisplay(self.tablePoints, display)
 
-    def _onClicked_clearCurve(self):
+    def _onClicked_ClearCurve(self):
         """ нажата кнопка удаления всех точек """
         Journal.log('___' * 25)
-        Journal.log_func(self._onClicked_clearCurve)
+        Journal.log_func(self._onClicked_ClearCurve)
         funcs_table.clear(self.tablePoints)
-        self.graph_manager().markersClearKnots()
-        self.graph_manager().clearPointsFromCharts()
-        self.graph_manager().displayCharts(self.frameGraphTest)
+        self.graph_manager.markersClearKnots()
+        self.graph_manager.clearPointsFromCharts()
+        self.graph_manager.displayCharts(self.frameGraphTest)
 
-    def _onAdam_connection(self):
+    def _onAdam_Connection(self):
         """ нажата кнопка подключения к ADAM5000TCP """
         Journal.log('___' * 25)
-        Journal.log_func(self._onAdam_connection)
+        Journal.log_func(self._onAdam_Connection)
         state = self.chkConnection.isChecked()
-        state = self.adam_manager().setPollingState(state, 0.100)
+        state = self.adam_manager.setPollingState(state, 0.100)
         funcs_test.switchControlsAccessible(self, False)
         self.chkConnection.setChecked(state)
         self.chkConnection.setStyleSheet(
@@ -430,34 +444,34 @@ class MainWindow(QMainWindow):
         funcs_group.groupClear(self.groupTestSensors)
         if state:
             funcs_test.setControlsDefaults(self)
-            funcs_test.setAdamDefaults(self.adam_manager())
+            funcs_test.setAdamDefaults(self.adam_manager)
 
     @pyqtSlot(dict)
-    def _onAdam_dataReceived(self, args: dict):
+    def _onAdam_DataReceived(self, args: dict):
         """ приход данных от ADAM5000TCP """
         # Journal.log_func(self._on_adam_data_received)
         funcs_display.displaySensors(self, args)
 
-    def _onChanged_flowmeter(self):
+    def _onChanged_Flowmeter(self):
         """ изменение текущего расходомера """
         # Journal.log_func(self._on_changed_flowmeter)
         sender = self.sender()
         state = sender.isChecked()
-        funcs_test.switchActiveFlowmeter(self.adam_manager(), sender, state)
+        funcs_test.switchActiveFlowmeter(self.adam_manager, sender, state)
 
-    def _onChanged_pointsNum(self):
+    def _onChanged_PointsNum(self):
         """ изменение порядкового номера отбиваемой точки """
         num = int(self.spinPointLines.value())
         if self.spinPointLines.isEnabled():
-            self.graph_manager().setPointLines_num(num)
+            self.graph_manager.setPointLines_num(num)
         else:
-            self.graph_manager().setPointLines_cur(num)
+            self.graph_manager.setPointLines_cur(num)
 
-    def _onChanged_sensors(self):
+    def _onChanged_Sensors(self):
         """ изменения значений датчиков """
         vals = funcs_test.getCurrentVals(self)
         params = [
-            {'name': 'test_lft', 'x': vals[0], 'y': vals[1]},
-            {'name': 'test_pwr', 'x': vals[0], 'y': vals[2]}
+            {'name': 'tst_lft', 'x': vals[0], 'y': vals[1]},
+            {'name': 'tst_pwr', 'x': vals[0], 'y': vals[2]}
         ]
-        self.graph_manager().markersMove(params)
+        self.graph_manager.markersMove(params)

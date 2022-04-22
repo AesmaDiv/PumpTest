@@ -4,15 +4,22 @@
     Точки и оси, функция трансляции значений по осям
     в координаты холста
 """
-from typing import List
 import math
 import numpy as np
+from enum import Flag, auto
+from typing import List
 from scipy.interpolate import make_interp_spline
 from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtCore import Qt
 from AesmaLib.GraphWidget.axis import Axis
 from AesmaLib.journal import Journal
 
+
+class ChartOptions(Flag):
+    """ Параметры отображения кривой """
+    Curve = auto()
+    Knots = auto()
+    Limits = auto()
 
 class ChartMeta:
     """ Класс болванка для класса графика"""
@@ -23,23 +30,25 @@ class ChartMeta:
         self._pen = QPen(color, 1, style=Qt.SolidLine)
         self._axes = {}
 
+    @property
+    def pen(self):
+        """ получение кисти """
+        return self._pen
+
     def setPen(self, pen: QPen, style=None):
         """ задание кисти """
         self._pen = pen
         if style:
             self._pen.setStyle(style)
 
-    def getPen(self):
-        """ получение кисти """
-        return self._pen
+    @property
+    def axes(self):
+        """ получение осей """
+        return self._axes
 
     def setAxes(self, axes: dict):
         """ задание осей """
         self._axes = axes
-
-    def getAxes(self):
-        """ получение осей """
-        return self._axes
 
     def setAxis(self, axis: Axis, name: str):
         """ задание оси по имени (x0, y0, y1 и тд)"""
@@ -53,9 +62,9 @@ class ChartMeta:
 class Chart(ChartMeta):
     """ Класс кривой графика """
     def __init__(self, points: list = None, name: str = '',
-                 color: QColor = Qt.white, options: str = ''):
+                 color: QColor = Qt.white, options: ChartOptions = ChartOptions.Curve):
         super().__init__(name=name, color=color)
-        self._lim_coefs = [1, 1]
+        self._lim_coefs = (1, 1)
         self._options = options
         self._ptype = np.dtype([('x', 'f4'),('y', 'f4')])
         self._points = self.createEmptyPoints()
@@ -64,22 +73,29 @@ class Chart(ChartMeta):
             self.setPoints(points, do_regenerate_axises=False)
             self._regenerateAxies()
 
-
-    def setLimitCoefs(self, lim_coef_min: float, lim_coef_max: float):
-        """ задание коэфициентов """
-        self._lim_coefs = [lim_coef_min, lim_coef_max]
-
-    def getLimitCoefs(self):
+    @property
+    def limitCoefs(self) -> tuple:
         """ получение коэфициентов """
         return self._lim_coefs
 
-    def setOptions(self, options: str):
-        """ задание опций """
-        self._options = options
+    @limitCoefs.setter
+    def limitCoefs(self, lim_coefs: tuple):
+        """ задание коэфициентов """
+        self._lim_coefs = lim_coefs
 
-    def getOptions(self):
+    def setLimitCoefs(self, lim_coef_min: float, lim_coef_max: float):
+        """ задание коэфициентов """
+        self._lim_coefs = (lim_coef_min, lim_coef_max)
+
+    @property
+    def options(self) -> ChartOptions:
         """ получение опций """
         return self._options
+
+    @options.setter
+    def options(self, options: ChartOptions):
+        """ задание опций """
+        self._options = options
 
     def setPoints(self, points: list, do_regenerate_axises: bool = True):
         """ задание точек """
@@ -88,13 +104,17 @@ class Chart(ChartMeta):
         if do_regenerate_axises:
             self._regenerateAxies()
 
-    def getPoints(self, name: str = ''):
+    def getPoints(self, name: str = '') -> list:
         """ получение списка точек """
         result = np.sort(self._points)
         if name in ('x', 'y'):
             return result[name]
         result = result.T
         return result.tolist()
+
+    def getValueY(self, x: float) -> float:
+        spline = self.getSpline()
+        return float(spline(x)) if spline else 0.0
 
     def addPoint(self, x: float, y: float, do_regenerate_axes: bool = False):
         """ добавление точки """

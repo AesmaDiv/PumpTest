@@ -1,13 +1,14 @@
 """
     Модуль содержит функции работы с графиками
 """
+import numpy as np
 from PyQt5.QtGui import QPalette, QBrush, QColor, QPen
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtWidgets import QFrame
 from Classes.Graph.pump_graph import PumpGraph
 from Classes.Graph.graph_markers import Markers
 from Classes.UI.funcs_aux import calculateEffs
-from AesmaLib.GraphWidget.chart import Chart
+from AesmaLib.GraphWidget.chart import Chart, ChartOptions as co
 from AesmaLib.journal import Journal
 
 
@@ -25,6 +26,7 @@ class GraphManager(PumpGraph):
         super().__init__(100, 100, parent=None)
         self._testdata = testdata
         self._markers = None
+        self._limits = {'lft':(0.95, 1.05), 'pwr': (0.92, 1.08), 'eff': (0.98, 1.02)}
         self.setMargins([10, 10, 10, 10])
 
     def initMarkers(self, params, host):
@@ -57,7 +59,8 @@ class GraphManager(PumpGraph):
     def _loadCharts(self):
         """ загрузка данных о точках """
         points = self._getPoints('etalon')
-        print(f"{self.COUNT} " + ("/" * 50)); self.COUNT += 1;
+        print(f"{self.COUNT} " + ("/" * 50))
+        self.COUNT += 1
         result = self.createCharts_etalon(points)
         if self._testdata.test_:
             points = self._getPoints('test')
@@ -68,10 +71,10 @@ class GraphManager(PumpGraph):
         """ парсинг значений точек из строк """
         is_etalon = (chart_type == 'etalon')
         src = self._testdata.type_ if is_etalon else self._testdata.test_
-        if src.num_points:
-            flws = src.values_flw
-            lfts = src.values_lft
-            pwrs = src.values_pwr
+        if src.points:
+            flws = [p.Flw for p in src.points]
+            lfts = [p.Lft for p in src.points]
+            pwrs = [p.Pwr for p in src.points]
             if is_etalon:
                 pwrs = list(map(lambda x: x * 0.7457, pwrs))
             effs = calculateEffs(flws, lfts, pwrs)
@@ -82,40 +85,36 @@ class GraphManager(PumpGraph):
         """ создание кривых графиков для эталона """
         result = {}
         if points:
-            ch_lft = self._createChart(points[0], points[1], 'lft', 'limits')
-            ch_pwr = self._createChart(points[0], points[2], 'pwr', 'limits')
-            ch_eff = self._createChart(points[0], points[3], 'eff', '')
+            ch_lft = self._createChart(points[0], points[1], 'etl_lft', co.Limits)
+            ch_pwr = self._createChart(points[0], points[2], 'etl_pwr', co.Limits)
+            ch_eff = self._createChart(points[0], points[3], 'etl_eff', co.Limits)
             ch_lft.setPen(QPen(QColor(200, 200, 255), 1), Qt.DashLine)
             ch_pwr.setPen(QPen(QColor(255, 0, 0), 1), Qt.DashLine)
             ch_eff.setPen(QPen(QColor(0, 255, 0), 1), Qt.DashLine)
-            self._scaleChart(ch_lft, (0.95, 1.1), 0, 0)
-            self._scaleChart(ch_pwr, (0.95, 1.1), 0, ch_lft.getAxis('y').getDivs())
-            self._scaleChart(ch_eff, (1.0, 1.0), 0, ch_lft.getAxis('y').getDivs())
-            result.update({'lft': ch_lft,
-                        'pwr': ch_pwr,
-                        'eff': ch_eff})
+            self._scaleChart(ch_lft, self._limits['lft'], 0, 0)
+            self._scaleChart(ch_pwr, self._limits['pwr'], 0, ch_lft.getAxis('y').getDivs())
+            self._scaleChart(ch_eff, self._limits['eff'], 0, ch_lft.getAxis('y').getDivs())
+            result.update({'etl_lft': ch_lft, 'etl_pwr': ch_pwr, 'etl_eff': ch_eff})
         return result
 
     def createCharts_test(self, points: list, etalon_charts: dict):
         """ создание кривых графиков для проведённого испытания """
         result = {}
         if points and len(etalon_charts) == 3:
-            ch_lft = self._createChart(points[0], points[1], 'test_lft', 'knots')
-            ch_pwr = self._createChart(points[0], points[2], 'test_pwr', 'knots')
-            ch_eff = self._createChart(points[0], points[3], 'test_eff', 'knots')
-            ch_lft.setPen(QPen(etalon_charts['lft'].getPen()), Qt.SolidLine)
-            ch_pwr.setPen(QPen(etalon_charts['pwr'].getPen()), Qt.SolidLine)
-            ch_eff.setPen(QPen(etalon_charts['eff'].getPen()), Qt.SolidLine)
-            self._scaleChart(ch_lft, axes=etalon_charts['lft'].getAxes())
-            self._scaleChart(ch_pwr, axes=etalon_charts['pwr'].getAxes())
-            self._scaleChart(ch_eff, axes=etalon_charts['eff'].getAxes())
-            result.update({'test_lft': ch_lft,
-                        'test_pwr': ch_pwr,
-                        'test_eff': ch_eff})
+            ch_lft = self._createChart(points[0], points[1], 'tst_lft', co.Knots)
+            ch_pwr = self._createChart(points[0], points[2], 'tst_pwr', co.Knots)
+            ch_eff = self._createChart(points[0], points[3], 'tst_eff', co.Knots)
+            ch_lft.setPen(QPen(etalon_charts['etl_lft'].pen), Qt.SolidLine)
+            ch_pwr.setPen(QPen(etalon_charts['etl_pwr'].pen), Qt.SolidLine)
+            ch_eff.setPen(QPen(etalon_charts['etl_eff'].pen), Qt.SolidLine)
+            self._scaleChart(ch_lft, axes=etalon_charts['etl_lft'].axes)
+            self._scaleChart(ch_pwr, axes=etalon_charts['etl_pwr'].axes)
+            self._scaleChart(ch_eff, axes=etalon_charts['etl_eff'].axes)
+            result.update({'tst_lft': ch_lft, 'tst_pwr': ch_pwr, 'tst_eff': ch_eff})
         return result
 
     @staticmethod
-    def _createChart(coords_x: list, coords_y: list, name: str, options=''):
+    def _createChart(coords_x: list, coords_y: list, name: str, options: co=''):
         """ создание и настройка экземпляра класса кривой """
         # points = [QPointF(x, y) for x, y in zip(coords_x, coords_y)]
         # result = Chart(points, name, options=options)
@@ -128,7 +127,7 @@ class GraphManager(PumpGraph):
     def _scaleChart(chart: Chart, lim_coefs=(1.0, 1.0), ymin=0, yticks=0, axes=None):
         """ установка размерности для осей и области допуска """
         log(f"------ Скалирование графика для {chart.name}")
-        chart.setLimitCoefs(*lim_coefs)
+        chart.limitCoefs = lim_coefs
         if axes:
             chart.setAxes(axes)
         else:
@@ -139,10 +138,9 @@ class GraphManager(PumpGraph):
 
     def saveTestdata(self):
         """ сохранение данных из таблицы в запись испытания """
-        points_lft_x = super().getChart('test_lft').getPoints('x')
-        points_lft_y = super().getChart('test_lft').getPoints('y')
-        # points_pwr_x = super().get_chart('test_pwr').getPoints('x')
-        points_pwr_y = super().getChart('test_pwr').getPoints('y')
+        points_lft_x = super().getChart('tst_lft').getPoints('x')
+        points_lft_y = super().getChart('tst_lft').getPoints('y')
+        points_pwr_y = super().getChart('tst_pwr').getPoints('y')
         self._testdata.test_['Flows'] = ','.join(list(map(str, points_lft_x)))
         self._testdata.test_['Lifts'] = ','.join(list(map(str, points_lft_y)))
         self._testdata.test_['Powers'] = ','.join(list(map(str, points_pwr_y)))
@@ -187,15 +185,15 @@ class GraphManager(PumpGraph):
 
     def checkPointExists(self, flw) -> bool:
         """ проверка есть ли точка с таким значением по Х """
-        chart: Chart = super().getChart('test_lft')
+        chart: Chart = super().getChart('tst_lft')
         points = chart.getPoints('x')
         return flw in points
 
     def addPointsToCharts(self, flw, lft, pwr, eff):
         """ добавление точек напора и мощности на график """
-        self._addPointToChart('test_lft', flw, lft)
-        self._addPointToChart('test_pwr', flw, pwr)
-        self._addPointToChart('test_eff', flw, eff)
+        self._addPointToChart('tst_lft', flw, lft)
+        self._addPointToChart('tst_pwr', flw, pwr)
+        self._addPointToChart('tst_eff', flw, eff)
 
     def _addPointToChart(self, chart_name: str, value_x: float, value_y: float):
         """ добавление точки на график """
@@ -205,11 +203,11 @@ class GraphManager(PumpGraph):
             chart.addPoint(value_x, value_y)
         else:
             Journal.log(__name__, '\tError: нет такой кривой', chart_name)
-            etalon: Chart = super().getChart(chart_name.replace('test_', ''))
+            etalon: Chart = super().getChart(chart_name.replace('tst_', ''))
             if etalon is not None:
                 chart: Chart = Chart(name=chart_name)
-                chart.setAxes(etalon.getAxes())
-                chart.setPen(QPen(etalon.getPen().color(), 2, Qt.SolidLine))
+                chart.setAxes(etalon.axes())
+                chart.setPen(QPen(etalon.pen().color(), 2, Qt.SolidLine))
                 self.addChart(chart, chart_name)
                 self._addPointToChart(chart_name, value_x, value_y)
             else:
@@ -220,11 +218,11 @@ class GraphManager(PumpGraph):
         chart_name = name
         chart: Chart = super().getChart(chart_name)
         if chart is None:
-            etalon: Chart = super().getChart(chart_name.replace('test_', ''))
+            etalon: Chart = super().getChart(chart_name.replace('tst_', ''))
             if etalon is not None:
                 chart: Chart = Chart(name=chart_name)
-                chart.setAxes(etalon.getAxes())
-                chart.setPen(QPen(etalon.getPen().color(), 2, Qt.SolidLine))
+                chart.setAxes(etalon.axes)
+                chart.setPen(QPen(etalon.pen.color(), 2, Qt.SolidLine))
                 self.addChart(chart, chart_name)
             else:
                 Journal.log(__name__, 'Error: не найден эталон для', chart_name)
@@ -232,9 +230,9 @@ class GraphManager(PumpGraph):
 
     def clearPointsFromCharts(self):
         """ удаление всех точек из графиков напора и мощности """
-        self._clearPointsFromChart('test_lft')
-        self._clearPointsFromChart('test_pwr')
-        self._clearPointsFromChart('test_eff')
+        self._clearPointsFromChart('tst_lft')
+        self._clearPointsFromChart('tst_pwr')
+        self._clearPointsFromChart('tst_eff')
 
     def _clearPointsFromChart(self, chart_name: str):
         """ удаление всех точек из графика """
@@ -244,9 +242,9 @@ class GraphManager(PumpGraph):
 
     def removeLastPointsFromCharts(self):
         """ удаление последних точек из графиков напора и мощности """
-        self._removeLastPointFromChart('test_lft')
-        self._removeLastPointFromChart('test_pwr')
-        self._removeLastPointFromChart('test_eff')
+        self._removeLastPointFromChart('tst_lft')
+        self._removeLastPointFromChart('tst_pwr')
+        self._removeLastPointFromChart('tst_eff')
 
     def _removeLastPointFromChart(self, chart_name: str):
         """ удаление последней точки из графика """
@@ -258,7 +256,7 @@ class GraphManager(PumpGraph):
         """ переключение видимости для кривых """
         # если включено - показывать все графики
         # если выключено - только тестовые (напор / мощность)
-        self.setVisibleCharts(['lft', 'pwr', 'test_lft', 'test_pwr']
+        self.setVisibleCharts(['etl_lft', 'etl_pwr', 'tst_lft', 'tst_pwr']
                                             if not state else 'all')
         # переключение видимости линий для отбивания точек
         # если выключена видимость всех - показывается линии
@@ -269,48 +267,69 @@ class GraphManager(PumpGraph):
         """ генерирует миниотчёт об испытании """
         self._testdata.dlts_.clear()
         result_lines = []
-        # if self._testdata.test_['Flows']:
         self._generateDeltasReport(result_lines)
-        self._generateDeltaEffsReport(result_lines)
+        self._generateOptimalReport(result_lines)
         return '\n'.join(result_lines)
 
     def _generateDeltasReport(self, lines: list):
         """ расчитывает отклонения для напора и мощности """
-        for name, title in zip(('lft', 'pwr'),('Напор', 'Мощность')):
-            self._calculateDeltasFor(name)
+        for name, title in zip(('lft', 'pwr', 'eff'),('Напор', 'Мощность', 'КПД')):
+            self._calculateDeltasFor(name, name != 'eff')
             string = f'\u0394 {title}, %\t'
             for val in self._testdata.dlts_[name]:
                 frmt = '{:>10.2f}' if val else '-.--'
                 string += f'\t{frmt}'.format(val)
             lines.append(string)
 
-    def _generateDeltaEffsReport(self, lines: list):
-        """ расчитывает отклонения для кпд """
-        result = None
-        chart = self._getChart('test_eff')
-        spline = chart.getSpline()
-        if spline:
-            curve = chart.regenerateCurve()
-            nom = self._testdata.type_['Nom']
-            eff_nom = float(spline(nom))
-            eff_max = float(max(curve['y']))
-            result = abs(eff_max - eff_nom)
-        frmt = '{:>10.2f}' if result else '-.--'
-        string = f'Отклонение КПД от номинального, %\t{frmt}'.format(result)
-        lines.append(string)
-        self._testdata.dlts_['eff'] = result
-
-    def _calculateDeltasFor(self, chart_name: str):
+    def _calculateDeltasFor(self, chart_name: str, in_percent=True):
         """ расчитывает отклонения для указанной характеристики """
-        names = (f'test_{chart_name}', f'{chart_name}')
+        names = (f'tst_{chart_name}', f'etl_{chart_name}')
         ranges = ('Min', 'Nom', 'Max')
         get_val = lambda spl, rng: float(spl(self._testdata.type_[rng]))
-        get_dlt = lambda tst, etl: round((tst / etl * 100 - 100), 2)
-        vals, result = [], [None] * 3
+        get_dlt = lambda tst, etl: round(100 * (tst / etl - 1) if in_percent else tst - etl, 2)
+        vals, result = [], [0] * 3
         for name in names:
-            spln = self._getChart(f'{name}').getSpline()
-            if spln:
-                vals.append([get_val(spln, rng) for rng in ranges])
+            chart = self._getChart(f'{name}')
+            if chart:
+                spline = chart.getSpline()
+                if spline:
+                    vals.append([get_val(spline, rng) for rng in ranges])
         if len(vals) > 1:
             result = [get_dlt(x, y) for x, y in zip(vals[0], vals[1])]
-        self._testdata.dlts_[name] = result
+        self._testdata.dlts_[chart_name] = result
+
+    def _generateOptimalReport(self, lines: list):
+        result = self._getOptimalDelta()
+        # result = self._checkOptimalDelta(optimal_delta)
+        frmt = '{:>10.2f}' if result else '-.--'
+        string = f'Отклонение оптимальной подачи, %\t\t{frmt}'.format(result)
+        lines.append(string)
+        self._testdata.dlts_['flw'] = result
+
+    def _getOptimalDelta(self):
+        result = 0.0
+        chart: Chart = self.getChart("tst_eff")
+        if chart:
+            curve = chart.regenerateCurve()
+            if len(curve):
+                nominal = float(self._testdata.type_['Nom'])
+                optimal = self._getEffMaxPoint(curve)[0]
+                result = 100.0 * (optimal / nominal - 1)
+        return result
+
+    def _checkOptimalDelta(self, optimal_delta):
+        nominal = float(self._testdata.type_['Nom'])
+        limits = (-15.0, 15.0)
+        if 30.0 < nominal <= 60.0:
+            limits = (-15.0, 13.0)
+        elif 80.0 < nominal <= 125.0:
+            limits = (-15.0, 12.0)
+        elif nominal > 125.0:
+            limits = (-15.0, 10.0)
+        return limits[0] <= optimal_delta <= limits[1]
+
+    def _getEffMaxPoint(self, curve):
+        index = np.where(curve['y'] == max(curve['y']))[0]
+        x = float(curve['x'][index])
+        y = float(curve['y'][index])
+        return (x, y)
