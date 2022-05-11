@@ -12,7 +12,7 @@ from AesmaLib.GraphWidget.chart import Chart, ChartOptions as co
 from AesmaLib.journal import Journal
 
 
-LOG = True
+LOG = False
 def log(string):
     """ логирование в консоль """
     if LOG:
@@ -59,7 +59,6 @@ class GraphManager(PumpGraph):
     def _loadCharts(self):
         """ загрузка данных о точках """
         points = self._getPoints('etalon')
-        print(f"{self.COUNT} " + ("/" * 50))
         self.COUNT += 1
         result = self.createCharts_etalon(points)
         if self._testdata.test_:

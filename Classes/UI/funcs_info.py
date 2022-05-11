@@ -25,6 +25,7 @@ def saveInfo_Test(wnd, already_selected=False):
     if validateAndSave_Test(wnd, already_selected):
         wnd.graph_manager.markersClearKnots()
         wnd.graph_manager.drawCharts(wnd.frameGraphInfo)
+        # wnd.graph_manager.drawCharts(wnd.frameGraphTest)
         wnd.testlist.refresh()
 
 

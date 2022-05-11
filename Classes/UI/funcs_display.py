@@ -3,7 +3,6 @@
 """
 from PyQt5.QtWidgets import QLineEdit
 from AesmaLib.journal import Journal
-from Classes.UI.funcs_aux import calculateEff
 from Classes.UI import funcs_table, funcs_group, funcs_test
 
 
@@ -27,7 +26,7 @@ def displaySensors(window, sensors: dict):
 
 
 @Journal.logged
-def displayRecord(window, data_manager):
+async def displayRecord(window, data_manager):
     """ отображает информацию о тесте """
     testdata = data_manager.testdata
     funcs_group.groupDisplay(window.groupTestInfo, testdata.test_)
@@ -71,11 +70,80 @@ def displayTest_points(wnd, testdata):
     funcs_table.addToTable_vibrations(wnd.tableVibrations, test.values_vbr)
 
 
-def displayTest_deltas(window, graph_manager):
-    """ отображение результата испытания """
-    test_result = graph_manager.generateResultText()
-    window.lblTestResult.setText(test_result)
-
+def displayTest_results(window, context):
+    """ отображение итоговых результатов испытания """
+    lmt = context['limits']
+    dlt = context['deltas']
+    color = lambda name: "green" if dlt[name] and \
+        lmt[name][0]  <= dlt[name] <= lmt[name][1] else "red"
+    window.lblTestResult_1.setText(
+f"""<table width=200 cellspacing=2>
+    <thead>
+        <tr>
+            <th width=200>параметр</th>
+            <th width=70>допуск</th>
+            <th width=70>данные</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Отклонение оптимальной подачи, %</td>
+            <td>{lmt['flw'][0]} .. {lmt['flw'][1]}</td>
+            <td style='color: {color('flw')};'>{dlt['flw']}</td>
+        </tr>
+        <tr>
+            <td>Отклонение напора, %</td>
+            <td>{lmt['lft'][0]} .. {lmt['lft'][1]}</td>
+            <td style='color: {color('lft')};'>{dlt['lft']}</td>
+        </tr>
+        <tr>
+            <td>Отклонение мощности, %</td>
+            <td>{lmt['pwr'][0]} .. {lmt['pwr'][1]}</td>
+            <td style='color: {color('pwr')};'>{dlt['pwr']}</td>
+        </tr>
+        <tr>
+            <td>Отклонение КПД, %</td>
+            <td>{lmt['eff'][0]} .. {lmt['eff'][1]}</td>
+            <td style='color: {color('eff')};'>{dlt['eff']}</td>
+        </tr>
+    </tbody>
+</table>""")
+    color = lambda name: "green" if dlt[name] and (dlt[name] <= lmt[name]) else "red"
+    window.lblTestResult_2.setText(
+f"""<table width=200 cellspacing=2>
+    <thead>
+        <tr>
+            <th width=200>параметр</th>
+            <th width=70>допуск</th>
+            <th width=70>данные</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Вибрация, мм</td>
+            <td>&#8804; {lmt['vbr']}</td>
+            <td style='color: {color('vbr')};'>{dlt['vbr']}</td>
+            
+        </tr>
+        <tr>
+            <td>Радиальное биение, мм</td>
+            <td>&#8804; {lmt['wob']}</td>
+            <td style='color: {color('wob')};'>{dlt['wob']}</td>
+            
+        </tr>
+        <tr>
+            <td>Момент проворота, кВт</td>
+            <td>&#8804; {lmt['mom']}</td>
+            <td style='color: {color('mom')};'>{dlt['mom']}</td>
+            
+        </tr>
+        <tr>
+            <td>Энергоэффективность</td>
+            <td/>
+            <td style='color: black;'>{context['efficiency']}</td>
+        </tr>
+    </tbody>
+</table>""")
 
 def displayTest_vibrations(window):
     """ отображение показаний вибрации """

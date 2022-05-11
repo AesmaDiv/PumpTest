@@ -4,7 +4,6 @@
     AesmaDiv 2021
     Программа для стенда испытания ЭЦН
 """
-from enum import Flag, auto
 import os
 import sys
 import faulthandler

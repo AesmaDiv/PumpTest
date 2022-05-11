@@ -319,11 +319,11 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Page</string>
+        <string>Протокол испытания</string>
        </attribute>
        <widget class="QWebEngineView" name="webEngineView">
         <property name="geometry">
@@ -361,13 +361,13 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
          <enum>QFrame::Raised</enum>
         </property>
        </widget>
-       <widget class="QLabel" name="lblTestResult">
+       <widget class="QLabel" name="lblTestResult_1">
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>650</y>
-          <width>911</width>
-          <height>51</height>
+          <y>640</y>
+          <width>451</width>
+          <height>71</height>
          </rect>
         </property>
         <property name="font">
@@ -380,15 +380,19 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
          <set>Qt::ImhMultiLine</set>
         </property>
         <property name="text">
-         <string>\u0394 Напор, %\t\t--.--\t--.--\t--.--
-\u0394 Мощность, %\t\t--.--\t---.--\t--.--
-Отклонение КПД от номинального, %\t--.--</string>
+         <string/>
         </property>
         <property name="textFormat">
-         <enum>Qt::PlainText</enum>
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <property name="indent">
+         <number>0</number>
         </property>
        </widget>
        <widget class="QLabel" name="lblPumpInfo">
@@ -405,6 +409,40 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="lblTestResult_2">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>640</y>
+          <width>451</width>
+          <height>71</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhMultiLine</set>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <property name="indent">
+         <number>0</number>
         </property>
        </widget>
       </widget>
@@ -3299,8 +3337,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>271</width>
+          <height>201</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3609,8 +3647,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>100</width>
+          <height>30</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3713,8 +3751,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>100</width>
+          <height>30</height>
          </rect>
         </property>
         <attribute name="label">

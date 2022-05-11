@@ -9,6 +9,7 @@ from Classes.Data.alchemy_tables import Producer, Type, Pump, Test
 
 @dataclass
 class Point:
+    """ структура хранения данных о точках """
     Flw: float
     Lft: float
     Pwr: float
@@ -34,9 +35,7 @@ class Record():
 
     def __getattr__(self, name) -> any:
         """ предоставляет доступ к полю записи по имени """
-        if name in self._props:
-            return self._props[name]
-        return None
+        return self.__getitem__(name)
 
     def keys(self):
         ''' возвращает список имен столбцов '''
@@ -122,7 +121,6 @@ class Record():
 
 class RecordType(Record):
     """ Класс информации о типоразмере """
-    values_vbr = []
     points = []
 
     def __init__(self, db_manager, super_class=Type, rec_id=0):

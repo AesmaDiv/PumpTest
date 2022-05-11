@@ -1,9 +1,10 @@
 """
     Модуль содержит функции основного окна программы
 """
+import time, asyncio
+
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, pyqtSlot, QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QSlider
 from PyQt5.QtGui import QCloseEvent
 from Classes.UI import funcs_aux
@@ -111,6 +112,7 @@ class MainWindow(QMainWindow):
         # ВРЕМЕННО ->
         self._initSlider(self.sliderTorque)
         self._initSlider(self.sliderPressure)
+        # self.tabWidget.setTabVisible(0, False)
         # <- ВРЕМЕННО
         funcs_group.groupLock(self.groupTestInfo, True)
         funcs_group.groupLock(self.groupPumpInfo, True)
@@ -194,6 +196,8 @@ class MainWindow(QMainWindow):
                 return
             Journal.log('***' * 25)
             Journal.log_func(self._onChangedTestlist, item['ID'])
+            print('-' * 30)
+            x = time.time_ns()
             # очищаем фильтры, поля и информацию о записи
             funcs_combo.resetFilters_pumpInfo(self)
             funcs_group.groupClear(self.groupTestInfo)
@@ -203,10 +207,13 @@ class MainWindow(QMainWindow):
             if self.db_manager.loadRecord(item['ID']):
                 self.graph_manager.clearCharts()
                 self.graph_manager.markersClearKnots()
-                funcs_display.displayRecord(self, self.db_manager)
-            funcs_display.displayTest_deltas(self, self.graph_manager)
-            self.webEngineView.setHtml(self._report.createWeb(), QUrl("file://"))
+                asyncio.run(funcs_display.displayRecord(self, self.db_manager))
+            funcs_display.displayTest_results(self, self._report.createContext())
+            # html = self._report.createWeb()
+            # self.webEngineView.setHtml(html, QUrl("file:///"))
+            print(f">> выбор теста {item['ID']}\t\t{(time.time_ns() - x) / 1000000}")
             Journal.log('===' * 25)
+
 
     def _onChangedTestlist_Column(self):
         """ изменён столбец списка тестов (наряд-заказ/серийный номер) """
@@ -217,9 +224,7 @@ class MainWindow(QMainWindow):
         """ выбор в контекстном меню списка тестов """
         # печать протокола
         if action == "print":
-            report = self._report.print()
-            web: QWebEngineView = self.webEngineView
-            web.setHtml(report)
+            self._report.print(parent=self)
         # удаление записи
         elif action == "delete":
             if funcs_aux.askPassword():
@@ -366,6 +371,7 @@ class MainWindow(QMainWindow):
             case 'btnGoBack':
                 self.stackedWidget.setCurrentIndex(0)
                 self.graph_manager.displayCharts(self.frameGraphInfo)
+                # self.graph_manager.displayCharts(self.frameGraphTest)
                 self._testlist.setCurrentTest(self.testdata.test_['ID'])
                 self._testlist.refresh()
             case _:

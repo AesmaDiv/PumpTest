@@ -1,6 +1,7 @@
 """
     Модуль классов связываемых с таблицами базы данных
 """
+from ctypes.wintypes import DOUBLE
 from dataclasses import dataclass
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -124,11 +125,11 @@ class Test(Base):
     SectionStatus = Column('SectionStatus', INTEGER, ForeignKey("SectionStatuses.ID"))
     SectionType = Column('SectionType', INTEGER, ForeignKey("SectionTypes.ID"))
     SectionStatus = Column('SectionStatus', INTEGER, ForeignKey("SectionStatuses.ID"))
-    ShaftDiameter = Column('ShaftDiameter', VARCHAR)
-    ShaftOut = Column('ShaftOut', VARCHAR)
-    ShaftIn = Column('ShaftIn', VARCHAR)
-    ShaftWobb = Column('ShaftWobb', VARCHAR)
-    ShaftMomentum = Column('ShaftMomentum', VARCHAR)
+    ShaftDiameter = Column('ShaftDiameter', FLOAT)
+    ShaftOut = Column('ShaftOut', FLOAT)
+    ShaftIn = Column('ShaftIn', FLOAT)
+    ShaftWobb = Column('ShaftWobb', FLOAT)
+    ShaftMomentum = Column('ShaftMomentum', FLOAT)
     Flows = Column('Flows', VARCHAR)
     Lifts = Column('Lifts', VARCHAR)
     Powers = Column('Powers', VARCHAR)
