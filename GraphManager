@@ -1,0 +1,194 @@
+2022-06-03 08:55:38.997 | INFO     | __main__:<module>:68 - 	*** Запуск приложения ***
+2022-06-03 08:55:39.221 | DEBUG    | Classes.UI.wnd_main:show:98 - запуск основного окна приложения
+2022-06-03 08:55:39.224 | DEBUG    | Classes.UI.wnd_main:_createGUI:120 - инициализация графического интерфейса
+2022-06-03 08:55:39.720 | DEBUG    | Classes.UI.wnd_main:_createBindings:131 - создание привязок значений из testdata к виджетам
+2022-06-03 08:55:39.724 | DEBUG    | Classes.UI.bindings:generate:31 - генерация привязок полей groupTestInfo к RecordTest
+2022-06-03 08:55:39.731 | DEBUG    | Classes.UI.bindings:generate:31 - генерация привязок полей groupPumpInfo к RecordPump
+2022-06-03 08:55:39.747 | DEBUG    | Classes.UI.wnd_main:_prepare:143 - инициализация и подготовка компонентов главного окна
+2022-06-03 08:55:39.972 | DEBUG    | Classes.UI.funcs_table:initTable_points:27 - инициализирует таблицу точек
+2022-06-03 08:55:39.976 | DEBUG    | Classes.UI.funcs_table:initTable_vibrations:48 - инициализирует таблицу вибрации
+2022-06-03 08:55:39.980 | DEBUG    | Classes.UI.funcs_group:groupLock:85 - устанавливает блокировку полей группы groupTestInfo
+2022-06-03 08:55:39.991 | DEBUG    | Classes.UI.funcs_group:groupLock:85 - устанавливает блокировку полей группы groupPumpInfo
+2022-06-03 08:55:40.148 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:243 - ***************************************************************************
+2022-06-03 08:55:40.151 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:244 - Выбор теста № 1000
+2022-06-03 08:55:40.160 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupTestInfo
+2022-06-03 08:55:40.164 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupPumpInfo
+2022-06-03 08:55:40.174 | DEBUG    | Classes.UI.funcs_aux:log:14 - очистка информации о записи
+2022-06-03 08:55:40.232 | DEBUG    | Classes.UI.funcs_aux:log:14 - парсинг данных полученных из БД
+2022-06-03 08:55:40.239 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '111111' по названию
+2022-06-03 08:55:40.242 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера 111111
+2022-06-03 08:55:40.249 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера И30(2010)
+2022-06-03 08:55:40.252 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя ООО "Ижнефтепласт"
+2022-06-03 08:55:40.256 | DEBUG    | Classes.Graph.graph_manager:displayCharts:41 - отображение графиков
+2022-06-03 08:55:40.259 | DEBUG    | Classes.Graph.graph_manager:_prepareCharts:56 - подготовка графиков к отображению
+2022-06-03 08:55:40.262 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_lft
+2022-06-03 08:55:40.268 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_pwr
+2022-06-03 08:55:40.275 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_eff
+2022-06-03 08:55:40.280 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_lft
+2022-06-03 08:55:40.283 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_pwr
+2022-06-03 08:55:40.288 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_eff
+2022-06-03 08:55:40.291 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_lft
+2022-06-03 08:55:40.295 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_pwr
+2022-06-03 08:55:40.299 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_eff
+2022-06-03 08:55:40.305 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_lft
+2022-06-03 08:55:40.308 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_pwr
+2022-06-03 08:55:40.311 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_eff
+2022-06-03 08:55:40.314 | DEBUG    | Classes.Graph.graph_manager:drawCharts:47 - вывод графика в рисунок и в frame
+2022-06-03 08:55:40.751 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:264 - TEST SELECT 597.1434
+2022-06-03 08:55:40.754 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:265 - ===========================================================================
+2022-06-03 08:55:43.636 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:243 - ***************************************************************************
+2022-06-03 08:55:43.639 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:244 - Выбор теста № 997
+2022-06-03 08:55:43.643 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupTestInfo
+2022-06-03 08:55:43.646 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupPumpInfo
+2022-06-03 08:55:43.651 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя None
+2022-06-03 08:55:43.657 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '' по названию
+2022-06-03 08:55:43.659 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера None
+2022-06-03 08:55:43.663 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера None
+2022-06-03 08:55:43.665 | DEBUG    | Classes.UI.funcs_aux:log:14 - очистка информации о записи
+2022-06-03 08:55:43.674 | DEBUG    | Classes.UI.funcs_aux:log:14 - парсинг данных полученных из БД
+2022-06-03 08:55:43.678 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '510821' по названию
+2022-06-03 08:55:43.682 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера 510821
+2022-06-03 08:55:43.693 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера Б5-20ДП
+2022-06-03 08:55:43.696 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя ООО "Борец"
+2022-06-03 08:55:43.699 | DEBUG    | Classes.Graph.graph_manager:displayCharts:41 - отображение графиков
+2022-06-03 08:55:43.701 | DEBUG    | Classes.Graph.graph_manager:_prepareCharts:56 - подготовка графиков к отображению
+2022-06-03 08:55:43.703 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_lft
+2022-06-03 08:55:43.708 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_pwr
+2022-06-03 08:55:43.712 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_eff
+2022-06-03 08:55:43.715 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_lft
+2022-06-03 08:55:43.719 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_pwr
+2022-06-03 08:55:43.722 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_eff
+2022-06-03 08:55:43.725 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_lft
+2022-06-03 08:55:43.729 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_pwr
+2022-06-03 08:55:43.733 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_eff
+2022-06-03 08:55:43.737 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_lft
+2022-06-03 08:55:43.740 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_pwr
+2022-06-03 08:55:43.743 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_eff
+2022-06-03 08:55:43.746 | DEBUG    | Classes.Graph.graph_manager:drawCharts:47 - вывод графика в рисунок и в frame
+2022-06-03 08:55:43.771 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:264 - TEST SELECT 129.588
+2022-06-03 08:55:43.774 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:265 - ===========================================================================
+2022-06-03 08:55:44.268 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:243 - ***************************************************************************
+2022-06-03 08:55:44.271 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:244 - Выбор теста № 996
+2022-06-03 08:55:44.276 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupTestInfo
+2022-06-03 08:55:44.280 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupPumpInfo
+2022-06-03 08:55:44.284 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя None
+2022-06-03 08:55:44.292 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '' по названию
+2022-06-03 08:55:44.294 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера None
+2022-06-03 08:55:44.297 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера None
+2022-06-03 08:55:44.300 | DEBUG    | Classes.UI.funcs_aux:log:14 - очистка информации о записи
+2022-06-03 08:55:44.313 | DEBUG    | Classes.UI.funcs_aux:log:14 - парсинг данных полученных из БД
+2022-06-03 08:55:44.317 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '731734' по названию
+2022-06-03 08:55:44.320 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера 731734
+2022-06-03 08:55:44.327 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера А5А-25Д
+2022-06-03 08:55:44.330 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя ООО "Алнас"
+2022-06-03 08:55:44.333 | DEBUG    | Classes.Graph.graph_manager:displayCharts:41 - отображение графиков
+2022-06-03 08:55:44.336 | DEBUG    | Classes.Graph.graph_manager:_prepareCharts:56 - подготовка графиков к отображению
+2022-06-03 08:55:44.338 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_lft
+2022-06-03 08:55:44.342 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_pwr
+2022-06-03 08:55:44.347 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_eff
+2022-06-03 08:55:44.350 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_lft
+2022-06-03 08:55:44.352 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_pwr
+2022-06-03 08:55:44.355 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_eff
+2022-06-03 08:55:44.359 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_lft
+2022-06-03 08:55:44.363 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_pwr
+2022-06-03 08:55:44.366 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_eff
+2022-06-03 08:55:44.371 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_lft
+2022-06-03 08:55:44.374 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_pwr
+2022-06-03 08:55:44.376 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_eff
+2022-06-03 08:55:44.379 | DEBUG    | Classes.Graph.graph_manager:drawCharts:47 - вывод графика в рисунок и в frame
+2022-06-03 08:55:44.406 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:264 - TEST SELECT 133.5856
+2022-06-03 08:55:44.408 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:265 - ===========================================================================
+2022-06-03 08:55:44.932 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:243 - ***************************************************************************
+2022-06-03 08:55:44.934 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:244 - Выбор теста № 995
+2022-06-03 08:55:44.940 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupTestInfo
+2022-06-03 08:55:44.943 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupPumpInfo
+2022-06-03 08:55:44.948 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя None
+2022-06-03 08:55:44.954 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '' по названию
+2022-06-03 08:55:44.957 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера None
+2022-06-03 08:55:44.960 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера None
+2022-06-03 08:55:44.963 | DEBUG    | Classes.UI.funcs_aux:log:14 - очистка информации о записи
+2022-06-03 08:55:44.971 | DEBUG    | Classes.UI.funcs_aux:log:14 - парсинг данных полученных из БД
+2022-06-03 08:55:44.975 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '430650' по названию
+2022-06-03 08:55:44.977 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера 430650
+2022-06-03 08:55:44.982 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера И5-60(2015)
+2022-06-03 08:55:44.985 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя ООО "Ижнефтепласт"
+2022-06-03 08:55:44.987 | DEBUG    | Classes.Graph.graph_manager:displayCharts:41 - отображение графиков
+2022-06-03 08:55:44.989 | DEBUG    | Classes.Graph.graph_manager:_prepareCharts:56 - подготовка графиков к отображению
+2022-06-03 08:55:44.992 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_lft
+2022-06-03 08:55:44.995 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_pwr
+2022-06-03 08:55:45.001 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_eff
+2022-06-03 08:55:45.004 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_lft
+2022-06-03 08:55:45.007 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_pwr
+2022-06-03 08:55:45.010 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_eff
+2022-06-03 08:55:45.013 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_lft
+2022-06-03 08:55:45.016 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_pwr
+2022-06-03 08:55:45.019 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_eff
+2022-06-03 08:55:45.023 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_lft
+2022-06-03 08:55:45.025 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_pwr
+2022-06-03 08:55:45.029 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_eff
+2022-06-03 08:55:45.031 | DEBUG    | Classes.Graph.graph_manager:drawCharts:47 - вывод графика в рисунок и в frame
+2022-06-03 08:55:45.056 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:264 - TEST SELECT 119.0177
+2022-06-03 08:55:45.058 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:265 - ===========================================================================
+2022-06-03 08:55:45.731 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:243 - ***************************************************************************
+2022-06-03 08:55:45.734 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:244 - Выбор теста № 996
+2022-06-03 08:55:45.741 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupTestInfo
+2022-06-03 08:55:45.745 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupPumpInfo
+2022-06-03 08:55:45.748 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя None
+2022-06-03 08:55:45.754 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '' по названию
+2022-06-03 08:55:45.757 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера None
+2022-06-03 08:55:45.761 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера None
+2022-06-03 08:55:45.763 | DEBUG    | Classes.UI.funcs_aux:log:14 - очистка информации о записи
+2022-06-03 08:55:45.773 | DEBUG    | Classes.UI.funcs_aux:log:14 - парсинг данных полученных из БД
+2022-06-03 08:55:45.777 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '731734' по названию
+2022-06-03 08:55:45.780 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера 731734
+2022-06-03 08:55:45.788 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера А5А-25Д
+2022-06-03 08:55:45.791 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя ООО "Алнас"
+2022-06-03 08:55:45.794 | DEBUG    | Classes.Graph.graph_manager:displayCharts:41 - отображение графиков
+2022-06-03 08:55:45.796 | DEBUG    | Classes.Graph.graph_manager:_prepareCharts:56 - подготовка графиков к отображению
+2022-06-03 08:55:45.798 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_lft
+2022-06-03 08:55:45.802 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_pwr
+2022-06-03 08:55:45.807 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_eff
+2022-06-03 08:55:45.810 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_lft
+2022-06-03 08:55:45.812 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_pwr
+2022-06-03 08:55:45.815 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_eff
+2022-06-03 08:55:45.817 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_lft
+2022-06-03 08:55:45.822 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_pwr
+2022-06-03 08:55:45.826 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_eff
+2022-06-03 08:55:45.829 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_lft
+2022-06-03 08:55:45.832 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_pwr
+2022-06-03 08:55:45.834 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_eff
+2022-06-03 08:55:45.838 | DEBUG    | Classes.Graph.graph_manager:drawCharts:47 - вывод графика в рисунок и в frame
+2022-06-03 08:55:45.863 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:264 - TEST SELECT 126.9509
+2022-06-03 08:55:45.865 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:265 - ===========================================================================
+2022-06-03 08:55:47.052 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:243 - ***************************************************************************
+2022-06-03 08:55:47.054 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:244 - Выбор теста № 1000
+2022-06-03 08:55:47.060 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupTestInfo
+2022-06-03 08:55:47.063 | DEBUG    | Classes.UI.funcs_group:groupClear:30 - очищает поля группы groupPumpInfo
+2022-06-03 08:55:47.066 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя None
+2022-06-03 08:55:47.071 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '' по названию
+2022-06-03 08:55:47.074 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера None
+2022-06-03 08:55:47.077 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера None
+2022-06-03 08:55:47.080 | DEBUG    | Classes.UI.funcs_aux:log:14 - очистка информации о записи
+2022-06-03 08:55:47.087 | DEBUG    | Classes.UI.funcs_aux:log:14 - парсинг данных полученных из БД
+2022-06-03 08:55:47.091 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_SerialsText:340 - выбор заводского номера '111111' по названию
+2022-06-03 08:55:47.094 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Serials:329 - выбор заводского номера 111111
+2022-06-03 08:55:47.098 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Types:308 - выбор типоразмера И30(2010)
+2022-06-03 08:55:47.101 | DEBUG    | Classes.UI.wnd_main:_onChangedCombo_Producers:298 - выбор производителя ООО "Ижнефтепласт"
+2022-06-03 08:55:47.103 | DEBUG    | Classes.Graph.graph_manager:displayCharts:41 - отображение графиков
+2022-06-03 08:55:47.104 | DEBUG    | Classes.Graph.graph_manager:_prepareCharts:56 - подготовка графиков к отображению
+2022-06-03 08:55:47.107 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_lft
+2022-06-03 08:55:47.111 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_pwr
+2022-06-03 08:55:47.114 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для etl_eff
+2022-06-03 08:55:47.119 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_lft
+2022-06-03 08:55:47.121 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_pwr
+2022-06-03 08:55:47.124 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для etl_eff
+2022-06-03 08:55:47.126 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_lft
+2022-06-03 08:55:47.131 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_pwr
+2022-06-03 08:55:47.134 | DEBUG    | Classes.Graph.graph_manager:_createChart:138 - >> cоздание графика для tst_eff
+2022-06-03 08:55:47.138 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_lft
+2022-06-03 08:55:47.140 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_pwr
+2022-06-03 08:55:47.142 | DEBUG    | Classes.Graph.graph_manager:_scaleChart:145 - >> cкалирование графика для tst_eff
+2022-06-03 08:55:47.144 | DEBUG    | Classes.Graph.graph_manager:drawCharts:47 - вывод графика в рисунок и в frame
+2022-06-03 08:55:47.163 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:264 - TEST SELECT 107.4705
+2022-06-03 08:55:47.165 | INFO     | Classes.UI.wnd_main:_onChangedTestlist:265 - ===========================================================================
+2022-06-03 08:55:48.570 | INFO     | __main__:<module>:72 - 	*** Завершение приложения ***
