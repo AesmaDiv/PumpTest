@@ -40,9 +40,9 @@ class App(QApplication):
     def __init__(self, argv) -> None:
         super().__init__(argv)
         self._wnd_main = MainWindow(PATHS['WND'])
-        self._dbm = DataManager(PATHS['DB'])
         self._wnd_type = TypeWindow(self._wnd_main, PATHS['TYPE'])
         self._tdt = TestData()
+        self._dbm = DataManager(PATHS['DB'])
         self._gfm = GraphManager(self._tdt)
         self._report = Report(PATHS['TEMPLATE'], self._gfm, self._dbm)
         self._adam = AdamManager(config.IP, config.PORT, config.ADDRESS)
@@ -55,6 +55,7 @@ class App(QApplication):
         self._wnd_type.setDataManager(self._dbm)
         self._wnd_main.setGraphManager(self._gfm)
         self._wnd_main.setAdamManager(self._adam)
+        self._wnd_main.setReport(self._report)
         self._wnd_main.onTypeChangeRequest.connect(self._onTypeChangeRequest)
         if self._wnd_main.show():
             self.exec_()

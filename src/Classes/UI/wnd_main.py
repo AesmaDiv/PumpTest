@@ -238,7 +238,7 @@ class MainWindow(QMainWindow):
 
 #region ОБРАБОТЧИКИ СОБЫТИЙ =>>
 
-#region СПИСОК ТЕСТОВ ->
+#region     СПИСОК ТЕСТОВ ->
     def _onChangedTestlist(self, item: dict):
         """изменение выбора теста"""
         if not item:
@@ -292,9 +292,9 @@ class MainWindow(QMainWindow):
         self._testlist.filterApply()
         funcs_group.groupLock(self.groupTestInfo, True)
         funcs_group.groupLock(self.groupPumpInfo, True)
-#endregion <- СПИСОК ТЕСТОВ
+#endregion      <- СПИСОК ТЕСТОВ
 
-#region КОМБОБОКСЫ ->
+#region     КОМБОБОКСЫ ->
     def _onChangedCombo_Producers(self, index):
         """выбор производителя"""
         item = self.cmbProducer.itemData(index, Qt.UserRole)
@@ -342,9 +342,9 @@ class MainWindow(QMainWindow):
             logger.debug(f"выбор заводского номера '{text}' по названию")
             index = self.cmbSerial.findText(text)
             self.cmbSerial.setCurrentIndex(index)
-#endregion КОМБОБОКСЫ ->
+#endregion      КОМБОБОКСЫ ->
 
-#region ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ ->
+#region     ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ ->
     def _onClickedInfo_Pump(self):
         """обработка нажания кнопки группы данных о насосе"""
         logger.debug(self._onClickedInfo_Pump.__doc__)
@@ -371,9 +371,9 @@ class MainWindow(QMainWindow):
             self.btnGoTest: self._goToTest,
             self.btnGoInfo: self._goToInfo
         }[self.sender()]()
-#endregion <- ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ
+#endregion      <- ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ
 
-#region УПРАВЛЕНИЕ ИСПЫТАНИЕМ ->
+#region     УПРАВЛЕНИЕ ИСПЫТАНИЕМ ->
     def _onClicked_Engine(self):
         """нажата кнопка начала/остановки испытания"""
         logger.debug(self._onClicked_Engine.__doc__)
@@ -442,9 +442,9 @@ class MainWindow(QMainWindow):
         title = 'УСПЕХ' if result else 'ОШИБКА'
         message = 'Результаты сохранены' if result else 'Запись заблокирована'
         Message.show(title, message)
-#endregion <- УПРАВЛЕНИЕ ИСПЫТАНИЕМ
+#endregion      <- УПРАВЛЕНИЕ ИСПЫТАНИЕМ
 
-#region РАБОТА С ОБОРУДОВАНИЕМ ->
+#region     РАБОТА С ОБОРУДОВАНИЕМ ->
     def _onAdam_Connection(self):
         """нажата кнопка подключения к ADAM5000TCP"""
         logger.debug(self._onAdam_Connection.__doc__)
@@ -484,13 +484,13 @@ class MainWindow(QMainWindow):
             {'name': 'tst_pwr', 'x': vals[0], 'y': vals[2]}
         ]
         self.graph_manager.markersMove(params)
-#endregion <- РАБОТА С ОБОРУДОВАНИЕМ
+#endregion      <- РАБОТА С ОБОРУДОВАНИЕМ
 
 #endregion <<= ОБРАБОТЧИКИ СОБЫТИЙ
 
 #region ФУНКЦИИ К ОБРАБОТЧИКАМ СОБЫТИЙ =>>
 
-#region ДЕЙСТВИЯ С ДАННЫМИ ->
+#region     ДЕЙСТВИЯ С ДАННЫМИ ->
     def _loadRecord(self, record: Record, rec_id: int):
         data = self.db_manager.loadRecord(record.subclass, rec_id)
         record.load(data)
@@ -632,9 +632,9 @@ class MainWindow(QMainWindow):
             state = not self.txtOrderNum.isEnabled()
         logger.debug(f"{self._lockOrder_Test.__doc__} -> {state}")
         self.txtOrderNum.setEnabled(state)
-#endregion <-- ДЕЙСТВИЯ С ДАННЫМИ
+#endregion      <-- ДЕЙСТВИЯ С ДАННЫМИ
 
-#region ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ ->
+#region     ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ ->
     def _goToTest(self):
         """переход к испытанию"""
         logger.debug(self._goToTest.__doc__)
@@ -650,6 +650,6 @@ class MainWindow(QMainWindow):
         self._testlist.setCurrentTest(self._testdata.test_['ID'])
         self._testlist.refresh(self.db_manager)
         self.graph_manager.drawCharts(self.frameGraphInfo)
-#endregion <-- ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ
+#endregion      <-- ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ
 
 #endregion <<= ФУНКЦИИ К ОБРАБОТЧИКАМ СОБЫТИЙ
