@@ -4,7 +4,6 @@
 import time
 from datetime import datetime
 from loguru import logger
-from asyncio import run
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
