@@ -2,20 +2,22 @@
     Модуль содержит функции основного окна программы
 """
 import time
+from datetime import datetime
 from loguru import logger
+from asyncio import run
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QSlider
 from PyQt5.QtGui import QCloseEvent
 
-from Classes.UI import funcs_table
-from Classes.UI import funcs_combo
-from Classes.UI import funcs_group
-from Classes.UI import funcs_test
-from Classes.UI import funcs_display
-from Classes.UI import funcs_info
-from Classes.UI import funcs_aux
+from Classes.UI.funcs import funcs_table
+from Classes.UI.funcs import funcs_combo
+from Classes.UI.funcs import funcs_group
+from Classes.UI.funcs import funcs_test
+from Classes.UI.funcs import funcs_display
+from Classes.UI.funcs import funcs_info
+from Classes.UI.funcs import funcs_aux
 from Classes.UI.testlist import TestList
 from Classes.UI.bindings import Binding
 from Classes.Adam.adam_manager import AdamManager
@@ -74,8 +76,7 @@ class MainWindow(QMainWindow):
             self.adam_manager.setPollingState(False)
         return super().closeEvent(close_event)
 
-#region СВОЙСТВА
-
+#region СВОЙСТВА =>>
     def setTestData(self, testdata: TestData):
         """привязка класса данных об испытании"""
         self._testdata = testdata
@@ -110,11 +111,9 @@ class MainWindow(QMainWindow):
     def adam_manager(self) -> AdamManager:
         """возвращает ссылку на менеджер управления адамом"""
         return self._managers["Adam"]
+#endregion <<= СВОЙСТВА
 
-#endregion
-
-#region ИНИЦИАЛИЗАЦИЯ
-
+#region ИНИЦИАЛИЗАЦИЯ =>
     def _createGUI(self) -> bool:
         """инициализация графического интерфейса"""
         try:
@@ -215,7 +214,7 @@ class MainWindow(QMainWindow):
         self.btnTest_Order.clicked.connect(self._onClickedInfo_Test)
         #
         self.btnGoTest.clicked.connect(self._onClicked_SwitchMode)
-        self.btnGoBack.clicked.connect(self._onClicked_SwitchMode)
+        self.btnGoInfo.clicked.connect(self._onClicked_SwitchMode)
         #
         self.btnAddPoint.clicked.connect(self._onClicked_PointAdd)
         self.btnRemovePoint.clicked.connect(self._onClicked_PointRemove)
@@ -236,11 +235,11 @@ class MainWindow(QMainWindow):
         self.adam_manager.dataReceived.connect(
             self._onAdam_DataReceived, no_receiver_check = True
         )
+#endregion <<= ИНИЦИАЛИЗАЦИЯ
 
-#endregion
+#region ОБРАБОТЧИКИ СОБЫТИЙ =>>
 
-#region ОБРАБОТЧИКИ СОБЫТИЙ
-
+#region СПИСОК ТЕСТОВ ->
     def _onChangedTestlist(self, item: dict):
         """изменение выбора теста"""
         if not item:
@@ -273,6 +272,30 @@ class MainWindow(QMainWindow):
             "update": self._updateInfo
         }[action]()
 
+    def _onChangedFilter_Apply(self, text: str):
+        """изменение значения фильтра списка тестов"""
+        logger.debug(f"{self._onChangedFilter_Apply.__doc__} -> '{text}'")
+        conditions = [
+            self.txtFilter_ID.text(),
+            self.txtFilter_DateTime.text(),
+            self.txtFilter_OrderNum.text(),
+            self.txtFilter_Serial.text()
+        ]
+        self._testlist.filterApply(conditions)
+
+    def _onClickedFilter_Reset(self):
+        """нажатие кнопки сброса фильтра"""
+        logger.debug(self._onClickedFilter_Reset.__doc__)
+        funcs_group.groupClear(self.groupTestList)
+        funcs_group.groupClear(self.groupTestInfo)
+        funcs_group.groupClear(self.groupPumpInfo)
+        self.db_manager.clearRecord()
+        self._testlist.filterApply()
+        funcs_group.groupLock(self.groupTestInfo, True)
+        funcs_group.groupLock(self.groupPumpInfo, True)
+#endregion <- СПИСОК ТЕСТОВ
+
+#region КОМБОБОКСЫ ->
     def _onChangedCombo_Producers(self, index):
         """выбор производителя"""
         item = self.cmbProducer.itemData(index, Qt.UserRole)
@@ -320,29 +343,9 @@ class MainWindow(QMainWindow):
             logger.debug(f"выбор заводского номера '{text}' по названию")
             index = self.cmbSerial.findText(text)
             self.cmbSerial.setCurrentIndex(index)
+#endregion КОМБОБОКСЫ ->
 
-    def _onChangedFilter_Apply(self, text: str):
-        """изменение значения фильтра списка тестов"""
-        logger.debug(f"{self._onChangedFilter_Apply.__doc__} -> '{text}'")
-        conditions = [
-            self.txtFilter_ID.text(),
-            self.txtFilter_DateTime.text(),
-            self.txtFilter_OrderNum.text(),
-            self.txtFilter_Serial.text()
-        ]
-        self._testlist.filterApply(conditions)
-
-    def _onClickedFilter_Reset(self):
-        """нажатие кнопки сброса фильтра"""
-        logger.debug(self._onClickedFilter_Reset.__doc__)
-        funcs_group.groupClear(self.groupTestList)
-        funcs_group.groupClear(self.groupTestInfo)
-        funcs_group.groupClear(self.groupPumpInfo)
-        self.db_manager.clearRecord()
-        self._testlist.filterApply()
-        funcs_group.groupLock(self.groupTestInfo, True)
-        funcs_group.groupLock(self.groupPumpInfo, True)
-
+#region ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ ->
     def _onClickedInfo_Pump(self):
         """обработка нажания кнопки группы данных о насосе"""
         logger.debug(self._onClickedInfo_Pump.__doc__)
@@ -362,35 +365,16 @@ class MainWindow(QMainWindow):
             self.btnTest_Order: self._lockOrder_Test
         }[self.sender()]()
 
-    def _onClickedTestResult_Save(self):
-        """нажата кнопка сохранения результатов теста"""
-        logger.debug(self._onClickedTestResult_Save.__doc__)
-        self.graph_manager.saveTestdata()
-        result = self._testdata.test_.write()
-        title = 'УСПЕХ' if result else 'ОШИБКА'
-        message = 'Результаты сохранены' if result else 'Запись заблокирована'
-        Message.show(title, message)
-
     def _onClicked_SwitchMode(self):
         """нажата кнопка перехода между страницами"""
         logger.debug(self._onClicked_SwitchMode.__doc__)
-        sender = self.sender().objectName()
-        if sender == 'btnGoTest':
-            # переход к тестированию
-            self.stackedWidget.setCurrentIndex(1)
-            self.graph_manager.drawCharts(self.frameGraphTest)
-            self.graph_manager.markersReposition()
-            self.graph_manager.switchChartsVisibility(True)
-            return
-            # возврат к информации
-        if sender == 'btnGoBack':
-            self.stackedWidget.setCurrentIndex(0)
-            self._testlist.setCurrentTest(self._testdata.test_['ID'])
-            self._testlist.refresh(self.db_manager)
-            self.graph_manager.drawCharts(self.frameGraphInfo)
-            return
-        logger.error("Ошибка определения кнопки переключения страниц")
+        {
+            self.btnGoTest: self._goToTest,
+            self.btnGoInfo: self._goToInfo
+        }[self.sender()]()
+#endregion <- ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ
 
+#region УПРАВЛЕНИЕ ИСПЫТАНИЕМ ->
     def _onClicked_Engine(self):
         """нажата кнопка начала/остановки испытания"""
         logger.debug(self._onClicked_Engine.__doc__)
@@ -434,6 +418,14 @@ class MainWindow(QMainWindow):
             display[2] = "pwr_real"
         funcs_table.setDisplay(self.tablePoints, display)
 
+    def _onChanged_PointsNum(self):
+        """изменение порядкового номера отбиваемой точки"""
+        num = int(self.spinPointLines.value())
+        if self.spinPointLines.isEnabled():
+            self.graph_manager.setPointLines_num(num)
+        else:
+            self.graph_manager.setPointLines_cur(num)
+
     def _onClicked_ClearCurve(self):
         """нажата кнопка удаления всех точек"""
         logger.debug(self._onClicked_ClearCurve.__doc__)
@@ -442,6 +434,18 @@ class MainWindow(QMainWindow):
         self.graph_manager.clearPointsFromCharts()
         self.graph_manager.drawCharts(self.frameGraphTest)
 
+    def _onClickedTestResult_Save(self):
+        """нажата кнопка сохранения результатов теста"""
+        logger.debug(self._onClickedTestResult_Save.__doc__)
+        self.graph_manager.saveTestdata()
+        test_ = self._testdata.test_
+        result = self.db_manager.writeRecord(test_.subclass, dict(test_))
+        title = 'УСПЕХ' if result else 'ОШИБКА'
+        message = 'Результаты сохранены' if result else 'Запись заблокирована'
+        Message.show(title, message)
+#endregion <- УПРАВЛЕНИЕ ИСПЫТАНИЕМ
+
+#region РАБОТА С ОБОРУДОВАНИЕМ ->
     def _onAdam_Connection(self):
         """нажата кнопка подключения к ADAM5000TCP"""
         logger.debug(self._onAdam_Connection.__doc__)
@@ -473,14 +477,6 @@ class MainWindow(QMainWindow):
         state = sender.isChecked()
         funcs_test.switchActiveFlowmeter(self.adam_manager, sender, state)
 
-    def _onChanged_PointsNum(self):
-        """изменение порядкового номера отбиваемой точки"""
-        num = int(self.spinPointLines.value())
-        if self.spinPointLines.isEnabled():
-            self.graph_manager.setPointLines_num(num)
-        else:
-            self.graph_manager.setPointLines_cur(num)
-
     def _onChanged_Sensors(self):
         """изменения значений датчиков"""
         vals = funcs_test.getCurrentVals(self)
@@ -489,11 +485,13 @@ class MainWindow(QMainWindow):
             {'name': 'tst_pwr', 'x': vals[0], 'y': vals[2]}
         ]
         self.graph_manager.markersMove(params)
+#endregion <- РАБОТА С ОБОРУДОВАНИЕМ
 
-#endregion
+#endregion <<= ОБРАБОТЧИКИ СОБЫТИЙ
 
-#region ФУНКЦИИ К ОБРАБОТЧИКАМ СОБЫТИЙ
+#region ФУНКЦИИ К ОБРАБОТЧИКАМ СОБЫТИЙ =>>
 
+#region ДЕЙСТВИЯ С ДАННЫМИ ->
     def _loadRecord(self, record: Record, rec_id: int):
         data = self.db_manager.loadRecord(record.subclass, rec_id)
         record.load(data)
@@ -598,7 +596,7 @@ class MainWindow(QMainWindow):
         logger.debug(self._editInfo_Test.__doc__)
         self._states['editing']['test'] = True
         self._states.update({'testId': self._testdata.test_.ID})
-        funcs_aux.setCurrentDate(self)
+        self.txtDateTime.setText(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         funcs_group.groupLock(self.groupTestInfo, False)
         funcs_group.groupLock(self.groupTestList, True)
         self.txtOrderNum.setEnabled(False)
@@ -635,5 +633,24 @@ class MainWindow(QMainWindow):
             state = not self.txtOrderNum.isEnabled()
         logger.debug(f"{self._lockOrder_Test.__doc__} -> {state}")
         self.txtOrderNum.setEnabled(state)
+#endregion <-- ДЕЙСТВИЯ С ДАННЫМИ
 
-#endregion
+#region ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ ->
+    def _goToTest(self):
+        """переход к испытанию"""
+        logger.debug(self._goToTest.__doc__)
+        self.stackedWidget.setCurrentIndex(1)
+        self.graph_manager.drawCharts(self.frameGraphTest)
+        self.graph_manager.markersReposition()
+        self.graph_manager.switchChartsVisibility(True)
+
+    def _goToInfo(self):
+        """возврат к информации"""
+        logger.debug(self._goToInfo.__doc__)
+        self.stackedWidget.setCurrentIndex(0)
+        self._testlist.setCurrentTest(self._testdata.test_['ID'])
+        self._testlist.refresh(self.db_manager)
+        self.graph_manager.drawCharts(self.frameGraphInfo)
+#endregion <-- ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ
+
+#endregion <<= ФУНКЦИИ К ОБРАБОТЧИКАМ СОБЫТИЙ

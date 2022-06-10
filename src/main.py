@@ -4,7 +4,7 @@
     AesmaDiv 2021
     Программа для стенда испытания ЭЦН
 """
-import os
+from os import path
 import sys
 import faulthandler
 from pathlib import Path
@@ -21,18 +21,18 @@ from Classes.Data.report import Report
 from Classes.Adam import adam_config as config
 from Classes.Adam.adam_manager import AdamManager
 
-# # Добавляю текущую папку к путям, где питон ищет модули
-# sys.path.append('.')
-# # импортирую класс журнала (from AesmaLib.journal import Journal)
-# Journal = __import__('AesmaLib.journal', fromlist=['Journal']).Journal
-
-ROOT = Path(os.path.dirname(__file__)).parent.absolute()
+# пути к файлам используемым приложением
+ROOT = Path(path.dirname(__file__)).parent.absolute()
 PATHS = {
-    'DB': os.path.join(ROOT, 'assets/pump.sqlite'),  # путь к файлу базы данных
-    'WND': os.path.join(ROOT, 'assets/mainwindow.ui'),  # путь к файлу GUI
-    'TYPE': os.path.join(ROOT, 'assets/pumpwindow.ui'),  # путь к файлу GUI
-    'TEMPLATE': os.path.join(ROOT, 'assets/report')  # путь к шаблону протокола
+    'DB': path.join(path.join(ROOT, 'assets'), 'pump.sqlite'),  # путь к файлу базы данных
+    'WND': path.join(path.join(ROOT, 'assets'), 'mainwindow.ui'),  # путь к файлу GUI
+    'TYPE': path.join(path.join(ROOT, 'assets'), 'pumpwindow.ui'),  # путь к файлу GUI
+    'TEMPLATE': path.join(path.join(ROOT, 'assets'), 'report')  # путь к шаблону протокола
 }
+
+# для отключения логирования разкомментировать эту строку
+# для включения - закомментировать
+# logger.remove()
 
 
 class App(QApplication):
@@ -65,7 +65,6 @@ class App(QApplication):
 
 
 if __name__ == '__main__':
-    # logger.disable('')
     logger.info("\t*** Запуск приложения ***")
     faulthandler.enable() # вкл. обработчика ошибок
     App(sys.argv).run()

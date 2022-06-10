@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtWidgets import QHeaderView, QMenu
 from PyQt5.QtGui import QCursor
 
-from Classes.UI import funcs_table
+from Classes.UI.funcs import funcs_table
 
 
 class TestList(QObject):

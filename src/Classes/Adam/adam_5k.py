@@ -1,13 +1,14 @@
 """
     AesmaDiv 2021
-    Модуль для работы с Advantech Adam5000TCP"""
+    Модуль для работы с Advantech Adam5000TCP
+"""
 import socket
 from time import sleep
 from threading import Thread
 from dataclasses import dataclass
 from enum import Enum
 from array import array
-from AesmaLib.journal import Journal
+from loguru import logger
 
 
 class CommandType(Enum):
@@ -124,17 +125,30 @@ class Adam5K:
 
     def __del__(self):
         self.disconnect()
-        Journal.log('Adam5K:', '\tdestroyed')
+        logger.debug('Adam5K: destroyed')
+
+    @property
+    def isConnected(self) -> bool:
+        """возвращает статус подключения"""
+        return self._states["is_connected"]
+
+    @property
+    def isReading(self) -> bool:
+        """возвращает статус таймера опроса"""
+        return self._states["is_reading"]
+
+    @property
+    def isBusy(self):
+        """возвращает занят ли контроллер (есть ли команды в очереди)"""
+        return len(self._commands)
 
     def setCallback(self, callback):
         """привязка callback функции"""
         self._callback = callback
 
-    def connect(self) -> bool:
+    async def connect(self) -> bool:
         """подключение"""
-        if self._states["is_connected"]:
-            msg = 'already connected'
-        else:
+        if not self.isConnected:
             try:
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self._sock.settimeout(0.5)
@@ -142,37 +156,24 @@ class Adam5K:
                 self._sock.settimeout(None)
                 self._states["is_connected"] = True
                 self._states["is_reading"] = False
-                msg = 'socket connected'
+                msg = 'сокет подключен'
             except socket.error as ex:
                 msg = 'error', self._conn, ex.strerror
-        Journal.log(f'Adam5K::connect:\t{msg}')
-        return self._states["is_connected"]
+        logger.debug(f'Adam5K:: статус подключения:\t{msg}')
+        return self.isConnected
 
-    def disconnect(self):
+    async def disconnect(self):
         """отключение"""
-        if not self._states["is_connected"]:
-            msg = 'not connected'
-        else:
-            self._states["is_reading"] = False
-            while self._thread.is_alive():
-                continue
-            self._sock.close()
-            self._sock = None
-            self._states["is_connected"] = False
-            msg = 'socket disconnected'
-        Journal.log(f'Adam5K::disconnect:\t{msg}')
-
-    def isConnected(self) -> bool:
-        """возвращает статус подключения"""
-        return self._states["is_connected"]
-
-    def isReading(self) -> bool:
-        """возвращает статус таймера опроса"""
-        return self._states["is_reading"]
-
-    def isBusy(self):
-        """возвращает занят ли контроллер (есть ли команды в очереди)"""
-        return len(self._commands)
+        if not self.isConnected:
+            return
+        self._states["is_reading"] = False
+        while self._thread.is_alive():
+            continue
+        self._sock.close()
+        self._sock = None
+        self._states["is_connected"] = False
+        msg = 'сокет отключен'
+        logger.debug(f'Adam5K:: статус отключения:\t{msg}')
 
     def pause(self):
         """приостановка опроса"""
@@ -193,16 +194,16 @@ class Adam5K:
     def setReadingState(self, state: bool) -> bool:
         """вкл/выкл режима чтения"""
         # проверка подключения
-        if not self.isConnected():
-            Journal.log('Adam5K::setReadingState:\tnot connected')
+        if not self.isConnected:
+            logger.error('Adam5K:: нет подключения')
             return False
         # проверака текущего статуса потока опроса
-        if self.isReading() == state:
-            Journal.log(f'Adam5K::setReadingState:\treading state already {state}')
+        if self.isReading == state:
+            logger.error(f'Adam5K:: статус опроса уже {state}')
             return False
         # запуск или остановка потока таймера опроса
         _ = self._startThread() if state else self._stopThread()
-        Journal.log(f'Adam5K::setReadingState:\tresult {self._states["is_reading"]}')
+        logger.debug(f'Adam5K:: статус опроса {self._states["is_reading"]}')
         return True
 
     def setChannelValue(self, slot_type: SlotType, slot: int, channel: int, value):
@@ -219,7 +220,7 @@ class Adam5K:
 
     def getValue(self, slot_type: SlotType, slot: int, channel: int):
         """получение значения канала"""
-        if not self._states["is_reading"]:
+        if not self.isReading:
             self.__readAllValues_fromDevice()
         result = self.getValue_fromData(slot_type, slot, channel)
         return result
@@ -230,10 +231,11 @@ class Adam5K:
             CommandType.READ, Param(slot_type, slot, channel)
         )
         values = self.__execute(command)
-        result = values[0]
+        if not values:
+            return 0
         if slot_type == SlotType.DIGITAL:
-            return result == 1
-        return result
+            return values[0] == 1
+        return values[0]
 
     def getValue_fromData(self, slot_type: SlotType, slot: int, channel: int):
         """чтение значения канала из массива считанных"""
@@ -251,16 +253,16 @@ class Adam5K:
 
     def sendCommand(self, command):
         """отправка команды"""
-        if self._states["is_connected"]:
-            if self._states["is_reading"]:
-                self._commands.append(command)
-            else:
-                _ = self.__execute(command)
+        if not self.isConnected:
+            logger.error('Adam5K:: нет подключения')
+        if self.isReading:
+            self._commands.append(command)
         else:
-            Journal.log('Adam5K::send command:\t not connected')
+            _ = self.__execute(command)
 
     def _startThread(self):
         """запуск потока опроса"""
+        logger.debug('Adam5K:: запущен таймер опроса устройства...')
         self._states["is_reading"] = True
         self._thread = Thread(
             name="Adam5k polling thread",
@@ -273,11 +275,11 @@ class Adam5K:
         self._states["is_reading"] = False
         while self._thread.is_alive():
             continue
+        logger.debug('Adam5K:: таймер опроса устройства остановлен')
 
     def _threadPolling(self):
         """поток чтения данных из устройства"""
-        Journal.log('Adam5K::\tзапущен таймер опроса устройства...')
-        while self._states["is_reading"]:
+        while self.isConnected and self.isReading:
             sleep(self._states["interval"])
             if self._states["is_paused"]:
                 continue
@@ -287,7 +289,6 @@ class Adam5K:
             )
             thr.start()
             thr.join()
-        Journal.log('Adam5K::\tтаймер опроса устройства остановлен')
 
     def _threadTick(self):
         """тик таймера отправки команд в устройство"""
@@ -331,7 +332,7 @@ class Adam5K:
 
     def __write(self, command: bytes):
         """запись команды в устройство"""
-        if self._sock and self._states["is_connected"]:
+        if self._sock and self.isConnected:
             return self._sock.send(command) == len(command)
         return False
 
@@ -362,7 +363,7 @@ if __name__ == '__main__':
         adam.setChannelValue(SlotType.ANALOG, 2, 0, 1222)
         val = adam.getValue(SlotType.DIGITAL, 0, 1)
         # adam.set_slot_values(SlotType.DIGITAL, 3, [True] * 8 * 4)
-        while adam.isBusy():
+        while adam.isBusy:
             sleep(1.5)
             continue
         adam.setReadingState(False)

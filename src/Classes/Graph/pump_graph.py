@@ -4,6 +4,7 @@
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QFontMetricsF
 from PyQt5.QtGui import QTransform, QPixmap, QPolygonF, QPainterPath
 from PyQt5.QtCore import QPointF, Qt, QSize
+
 from AesmaLib.GraphWidget.chart import ChartOptions
 from AesmaLib.GraphWidget.graph import Graph
 from AesmaLib.GraphWidget.graph import Chart

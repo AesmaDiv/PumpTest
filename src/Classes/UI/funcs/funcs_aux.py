@@ -1,17 +1,7 @@
 """
     Модуль вспомогательных функций
 """
-from datetime import datetime
-from loguru import logger
-
 from AesmaLib.message import Message
-
-
-__logging = True
-def log(message, level='DEBUG'):
-    """логирование"""
-    if __logging:
-        logger.opt().log(level, message)
 
 
 def parseFloat(text: str):
@@ -42,11 +32,15 @@ def calculatePower(sensors: dict):
 def calculateEffs(flws: list, lfts: list, pwrs: list):
     """расчёт точек КПД"""
     result = []
-    count = len(flws)
-    if count == len(lfts) and count == len(pwrs):
-        result = [calculateEff(flws[i], lfts[i], pwrs[i]) \
-                for i in range(count)]
+    if checkSameLength([flws, lfts, pwrs]):
+        result = [calculateEff(f,l,p) for f,l,p in zip(flws, lfts, pwrs)]
     return result
+
+def checkSameLength(arrays: list):
+    """проверка того, что массивы переданные списком имеют одинаковую длинну"""
+    iterator = iter(arrays)
+    length = len(next(iterator))
+    return all(len(item) == length for item in iterator)
 
 
 def calculateEff(flw: float, lft: float, pwr: float):
@@ -63,12 +57,6 @@ def applySpeedFactor(flw: float, lft: float, pwr: float, rpm: float):
         lft *= coeff ** 2
         pwr *= coeff ** 3
     return flw, lft, pwr
-
-
-def setCurrentDate(window):
-    """устанавливает текущую дату-время в соотв.поле"""
-    today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    window.txtDateTime.setText(today)
 
 
 def processMouseWheel(obj, event, coef):

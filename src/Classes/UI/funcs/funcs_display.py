@@ -3,7 +3,7 @@
 """
 from PyQt5.QtWidgets import QLineEdit
 
-from Classes.UI import funcs_table, funcs_group, funcs_test
+from Classes.UI.funcs import funcs_table, funcs_test
 
 
 def displaySensors(window, sensors: dict):
@@ -23,30 +23,6 @@ def displaySensors(window, sensors: dict):
     window.txtFlow.setText(str(round(flw, 2)))
     window.txtLift.setText(str(round(lft, 2)))
     window.txtPower.setText(str(round(pwr, 4)))
-
-
-def displayRecord(window, testdata):
-    """отображает полную информацию об испытании"""
-    displayPumpInfo(window, testdata)
-    displayTestInfo(window, testdata)
-    displayTestPoints(window, testdata)
-
-
-def displayPumpInfo(window, testdata):
-    """отображает информацию о насосе"""
-    # x1 = time.time_ns()
-    funcs_group.groupDisplay(window.groupPumpInfo, testdata.pump_)
-    funcs_group.groupLock(window.groupPumpInfo, True)
-    window.groupTestFrame.setTitle(testdata.type_.Name)
-    # print(f"1 displayPumpInfo\t\t{(time.time_ns() - x1) / 1000000}")
-
-
-def displayTestInfo(window, testdata):
-    """отображает информацию о тесте"""
-    # x2 = time.time_ns()
-    funcs_group.groupDisplay(window.groupTestInfo, testdata.test_)
-    funcs_group.groupLock(window.groupTestInfo, True)
-    # print(f"2 displayTestInfo\t\t{(time.time_ns() - x2) / 1000000}")
 
 
 def displayTestPoints(wnd, testdata):

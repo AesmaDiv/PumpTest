@@ -3,7 +3,7 @@
 """
 from loguru import logger
 
-from Classes.UI.funcs_group import groupValidate
+from Classes.UI.funcs.funcs_group import groupValidate
 from Classes.UI.bindings import Binding
 from Classes.Data.record import Record
 

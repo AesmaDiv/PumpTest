@@ -1,10 +1,12 @@
 """
     Модуль содержит функции для процесса испытания
 """
+from asyncio import run
+
 from PyQt5.QtWidgets import QSlider
 
-from Classes.UI import funcs_table, funcs_aux
-from Classes.UI.funcs_aux import parseFloat, calculateEff
+from Classes.UI.funcs import funcs_table, funcs_aux
+from Classes.UI.funcs.funcs_aux import parseFloat, calculateEff
 from Classes.Adam.adam_manager import AdamManager
 from Classes.Adam.adam_config import params
 
@@ -53,7 +55,7 @@ def switchRunningState(wnd, state: bool):
     msg = {False: 'ЗАПУСК ДВИГАТЕЛЯ', True: 'ОСТАНОВКА ДВИГАТЕЛЯ'}
     wnd.btnEngine.setText(msg[state])
     wnd.btnSaveCharts.setEnabled(not state)
-    wnd.btnGoBack.setEnabled(not state)
+    wnd.btnGoInfo.setEnabled(not state)
     wnd.adam_manager.setValue(params["engine_"], state)
 
 

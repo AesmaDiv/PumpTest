@@ -1,10 +1,12 @@
 """
     Модуль содержит классы для работы с Advantech ADAM 5000 TCP"""
+from loguru import logger
+from asyncio import run
+
 from PyQt5.QtCore import pyqtSignal, QObject
-from AesmaLib.journal import Journal
+
 from Classes.Adam.adam_5k import Adam5K, Param, SlotType
 from Classes.Adam import adam_config as adam
-from Classes.UI.funcs_aux import setCurrentDate
 
 
 class AdamManager(QObject):
@@ -28,15 +30,23 @@ class AdamManager(QObject):
 
     def setPollingState(self, state: bool, interval=1):
         """вкл/выкл опрос устройства"""
-        if state and self._adam.connect():
+        return run(self.setPollingStateAsync(state, interval))
+
+    async def setPollingStateAsync(self, state: bool, interval=1):
+        """вкл/выкл опрос устройства (ассинхронная)"""
+        if state and await self._adam.connect():
             self._adam.setInterval(interval)
             return self._adam.setReadingState(True)
         self._adam.setReadingState(False)
-        self._adam.disconnect()
+        await self._adam.disconnect()
         return False
 
     def setValue(self, param: Param, value: int) -> bool:
         """установка значения для канала"""
+        return run(self.setValueAsync(param, value))
+
+    async def setValueAsync(self, param: Param, value: int) -> bool:
+        """установка значения для канала (ассинхронная)"""
         if self.checkParams(param, value):
             self._adam.setChannelValue(
                 param.slot_type, param.slot, param.channel, value
@@ -46,7 +56,7 @@ class AdamManager(QObject):
 
     def checkParams(self, params: Param, value) -> bool:
         """проверка параметров"""
-        if self._adam.isConnected():
+        if self._adam.isConnected:
             if params.slot_type in (SlotType.ANALOG, SlotType.DIGITAL):
                 if 0 <= params.slot < 8 and 0 <= params.channel < 8:
                     if 0 <= value <= params.dig_max:
@@ -61,11 +71,11 @@ class AdamManager(QObject):
             self._signal.emit(args)
         except RuntimeError as err:
             self._adam.disconnect()
-            Journal.log(err.args)
+            logger.error(err.args)
 
     def __updateSensors(self):
         for key in self._sensors:
-            if not self._adam.isReading():
+            if not self._adam.isReading:
                 self._sensors[key] = [0.0] * self._probes
                 continue
             param = adam.params[key]

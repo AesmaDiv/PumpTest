@@ -5,7 +5,7 @@ from loguru import logger
 from PyQt5 import uic
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QComboBox
 
-from Classes.UI import funcs_combo
+from Classes.UI.funcs import funcs_combo
 from Classes.Data.db_manager import DataManager
 from Classes.Data.db_tables import Producer, Type, Efficiency
 

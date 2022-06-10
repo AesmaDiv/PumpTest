@@ -1,11 +1,12 @@
 """
     Модуль описывает класс маркеров для графика"""
-from math import ceil
 from operator import itemgetter
+
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QEvent, QPointF, QLineF, QRectF, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame
+
 from Classes.Graph.pump_graph import PumpGraph
 from AesmaLib.GraphWidget.chart import Chart
 from AesmaLib.journal import Journal
@@ -214,7 +215,7 @@ class Markers(QFrame):
     def translateValueToPixel(self, point: QPointF, name: str):
         """пересчёт координат из пикселей в значения"""
         result: QPointF = QPointF(0.0, 0.0)
-        etalon: Chart = self._graph.getChart(name.replace('tst_', ''))
+        etalon: Chart = self._graph.getChart(name.replace('tst_', 'etl_'))
         if etalon is not None:
             size = self._area.size()
             max_x = etalon.getAxis('x').getMaximum()

@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QFrame
 from Classes.Data.record import TestData
 from Classes.Graph.pump_graph import PumpGraph
 from Classes.Graph.graph_markers import Markers
-from Classes.UI.funcs_aux import calculateEffs
+from Classes.UI.funcs.funcs_aux import calculateEffs
 
 from AesmaLib.GraphWidget.chart import Chart, ChartOptions as co
 
@@ -97,7 +97,7 @@ class GraphManager(PumpGraph):
                 pwrs = list(map(lambda x: x * 0.7457, pwrs))
             effs = calculateEffs(flws, lfts, pwrs)
             return [flws, lfts, pwrs, effs]
-        return None
+        return [list(), list(), list(), list()]
 
     def createCharts_etalon(self, points: list):
         """создание кривых графиков для эталона"""
@@ -203,8 +203,10 @@ class GraphManager(PumpGraph):
     def checkPointExists(self, flw) -> bool:
         """проверка есть ли точка с таким значением по Х"""
         chart: Chart = super().getChart('tst_lft')
-        points = chart.getPoints('x')
-        return flw in points
+        if chart:
+            points = chart.getPoints('x')
+            return flw in points
+        return False
 
     def addPointsToCharts(self, flw, lft, pwr, eff):
         """добавление точек напора и мощности на график"""
@@ -218,7 +220,7 @@ class GraphManager(PumpGraph):
         if chart:
             logger.debug(f"добавление точки к графику: {value_x}, {value_y}")
             chart.addPoint(value_x, value_y)
-    
+
     def _getChart(self, name: str):
         """получение ссылки на кривую по имени"""
         chart_name = name
