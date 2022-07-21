@@ -1,6 +1,8 @@
 """
     Модуль содержит классы компонента графика
     характеристик ЭЦН"""
+from loguru import logger
+
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QFontMetricsF
 from PyQt5.QtGui import QTransform, QPixmap, QPolygonF, QPainterPath
 from PyQt5.QtCore import QPointF, Qt, QSize
@@ -9,7 +11,6 @@ from AesmaLib.GraphWidget.chart import ChartOptions
 from AesmaLib.GraphWidget.graph import Graph
 from AesmaLib.GraphWidget.graph import Chart
 from AesmaLib.GraphWidget.graph import Axis
-from AesmaLib.journal import Journal
 
 
 IS_LOGGED = True
@@ -72,16 +73,13 @@ class PumpGraph(Graph):
 
     def getChart(self, name: str):
         """получение графика по имени"""
-        if name in self._charts:
-            return self._charts[name]
-        return None
+        return self._charts[name] if name in self._charts else None
 
     def setVisibleCharts(self, names_of_charts_to_show: list = 'all'):
         """установка флага видимости для кривых"""
+        cond = lambda x:  names_of_charts_to_show == 'all' or x in names_of_charts_to_show
         for chart in self._charts.values():
-            chart.visibility = names_of_charts_to_show == 'all' \
-                               or chart.name \
-                               in names_of_charts_to_show
+            chart.visibility = cond(chart.name)
 
     def clearCharts(self):
         """удаление всех кривых"""
@@ -91,28 +89,27 @@ class PumpGraph(Graph):
 
     def _drawGrid(self, painter: QPainter):
         """отрисовка сетки графика"""
-        if len(self._charts):
-            if IS_LOGGED:
-                Journal.log(__name__, "\tотрисовка сетки ->")
-            self._calculateMargins()
-            step_x, step_y = super()._getSteps()
-            pen = painter.pen()
-            painter.setPen(self._style['grid']['pen'])
-            self._drawGridBackground(painter)
-            self._drawGridRanges(painter)
-            self._drawGridLines(painter, 'x0', step_x)
-            self._drawGridLines(painter, 'y0', step_y)
-            self._drawGridDivs_x(painter, step_x)
-            self._drawGridDivs_y(painter, step_y, 'y0')
-            self._drawGridDivs_y(painter, step_y, 'y1')
-            self._drawGridDivs_y(painter, step_y, 'y2')
-            self._drawLabels(painter)
-            painter.setPen(pen)
+        if len(self._charts) == 0:
+            return
+        # logger.debug(f"{self._drawGrid.__doc__} ->")
+        self._calculateMargins()
+        step_x, step_y = super()._getSteps()
+        pen = painter.pen()
+        painter.setPen(self._style['grid']['pen'])
+        self._drawGridBackground(painter)
+        self._drawGridRanges(painter)
+        self._drawGridLines(painter, 'x0', step_x)
+        self._drawGridLines(painter, 'y0', step_y)
+        self._drawGridDivs_x(painter, step_x)
+        self._drawGridDivs_y(painter, step_y, 'y0')
+        self._drawGridDivs_y(painter, step_y, 'y1')
+        self._drawGridDivs_y(painter, step_y, 'y2')
+        self._drawLabels(painter)
+        painter.setPen(pen)
 
     def _drawGridRanges(self, painter: QPainter):
         """отрисовка области рабочего диапазона"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\tотрисовка области раб.диапазона")
+        # logger.debug(self._drawGridRanges.__doc__)
         self._calculateRanges()
         # расчёт раб.диапазона
         x_0 =int(self._margins[0] + self._range_pixels[0])
@@ -134,49 +131,43 @@ class PumpGraph(Graph):
 
     def _drawGridLines(self, painter: QPainter, name, step):
         """отрисовка линий сетки для оси"""
-        if self._grid_divs[name].is_ready:
-            if IS_LOGGED:
-                Journal.log(__name__, f"\tотрисовка линий сетки оси {name}")
-            divs = self._grid_divs[name].divs
-            for i in range(1, len(divs)):
-                self._style['grid']['pen'].setStyle(Qt.SolidLine if divs[i] == 0
-                    else Qt.DotLine)
-                if name == 'x0':
-                    coord = i * step + self._margins[0]
-                    p_0 = QPointF(coord, self._margins[1])
-                    p_1 = QPointF(coord, self.height() - self._margins[3])
-                else:
-                    coord = (len(divs) - i) * step + self._margins[1]
-                    p_0 = QPointF(self._margins[0], coord)
-                    p_1 = QPointF(self.width() - self._margins[2], coord)
-                painter.setPen(self._style['grid']['pen'])
-                painter.drawLine(p_0, p_1)
-        else:
-            if IS_LOGGED:
-                Journal.log(__name__, f"\tError -> деления оси {name} не готовы")
+        if not self._grid_divs[name].is_ready:
+            return
+        # logger.debug(f"{self._drawGridLines.__doc__} {name}")
+        divs = self._grid_divs[name].divs
+        for i in range(1, len(divs)):
+            self._style['grid']['pen'].setStyle(Qt.SolidLine if divs[i] == 0
+                else Qt.DotLine)
+            if name == 'x0':
+                coord = i * step + self._margins[0]
+                p_0 = QPointF(coord, self._margins[1])
+                p_1 = QPointF(coord, self.height() - self._margins[3])
+            else:
+                coord = (len(divs) - i) * step + self._margins[1]
+                p_0 = QPointF(self._margins[0], coord)
+                p_1 = QPointF(self.width() - self._margins[2], coord)
+            painter.setPen(self._style['grid']['pen'])
+            painter.drawLine(p_0, p_1)
 
     def _drawGridDivs_x(self, painter: QPainter, step: float):
         """отрисовка значений делений на оси X"""
-        if self._grid_divs['x0'].is_ready:
-            if IS_LOGGED:
-                Journal.log(__name__, "\tотрисовка делений оси X")
-            f_m = QFontMetricsF(self._style['grid']['font'])
-            divs = self._grid_divs['x0'].divs
-            pen = painter.pen()
-            painter.setPen(self._style['grid']['border'])
-            for i, div in enumerate(divs):
-                text = str(div)
-                offset_x = self._margins[0] - f_m.boundingRect(text).width() / 2.0
-                offset_y = self.height() - self._margins[3] + f_m.height() + 5
-                painter.drawText(QPointF(offset_x + i * step,
-                                         offset_y),
-                                 text)
-            painter.setPen(pen)
+        if not self._grid_divs['x0'].is_ready:
+            return
+        # logger.debug(self._drawGridDivs_x.__doc__)
+        f_m = QFontMetricsF(self._style['grid']['font'])
+        divs = self._grid_divs['x0'].divs
+        pen = painter.pen()
+        painter.setPen(self._style['grid']['border'])
+        for i, div in enumerate(divs):
+            text = str(div)
+            offset_x = self._margins[0] - f_m.boundingRect(text).width() / 2.0
+            offset_y = self.height() - self._margins[3] + f_m.height() + 5
+            painter.drawText(QPointF(offset_x + i * step, offset_y), text)
+        painter.setPen(pen)
 
     def _drawGridDivs_y(self, painter: QPainter, step: float, axis_name='y0'):
         """отрисовка значений делений на оси Y"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\tотрисовка делений оси", axis_name)
+        # logger.debug(f"{self._drawGridDivs_y.__doc__} {axis_name}")
         f_m = QFontMetricsF(self._style['grid']['font'])
         divs = self._grid_divs[axis_name].divs
         pen = painter.pen()
@@ -236,9 +227,8 @@ class PumpGraph(Graph):
 
     def _drawCharts(self, painter: QPainter):
         """отрисовка всех графиков"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\tотрисовка графиков ->")
-        transform: QTransform = QTransform()
+        # logger.debug(f"{self._drawCharts.__doc__} ->")
+        transform = QTransform()
         self._prepareChartsData()
         self._setCanvasTransform(painter, transform)
         self._drawChartsLimits(painter)
@@ -253,75 +243,71 @@ class PumpGraph(Graph):
 
     def _drawChartsKnotsAndCurves(self, painter: QPainter):
         """отрисовка узлов и кривых"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\tотрисовка узлов и кривых ->")
+        # logger.debug(f"{self._drawChartsKnotsAndCurves.__doc__} ->")
         for chart, data in self._charts_data.items():
-            if data['knots'].size and chart.visibility:
-                pen = painter.pen()
-                brush = painter.brush()
-                painter.setPen(chart.pen)
-                painter.setBrush(chart.pen.color())
-                if ChartOptions.Knots in chart.options:
-                    if IS_LOGGED:
-                        Journal.log(__name__, "\t-> отрисовка узлов для",
-                                    chart.name)
-                    PumpGraph._drawKnots(painter, data['knots'])
-                painter.setBrush(brush)
-                if IS_LOGGED:
-                    Journal.log(__name__, "\t-> отрисовка кривой для",
-                                chart.name)
-                PumpGraph._drawCurve(painter, data['curve'])
-                painter.setPen(pen)
+            if not data['knots'].size or not chart.visibility:
+                continue
+            pen = painter.pen()
+            brush = painter.brush()
+            painter.setPen(chart.pen)
+            painter.setBrush(chart.pen.color())
+            if ChartOptions.Knots in chart.options:
+                # logger.debug(f"отрисовка узлов для {chart.name}")
+                PumpGraph._drawKnots(painter, data['knots'])
+            painter.setBrush(brush)
+            # logger.debug(f"отрисовка кривой для {chart.name}")
+            PumpGraph._drawCurve(painter, data['curve'])
+            painter.setPen(pen)
 
     @staticmethod
     def _drawCurve(painter: QPainter, points):
         """отрисовка линий по точкам"""
-        if points.size:
-            path = QPainterPath()
-            path.moveTo(QPointF(points[0][0], points[0][1]))
-            for i in range(1, len(points['x'])):
-                path.lineTo(QPointF(points[i][0], points[i][1]))
-            painter.drawPath(path)
+        if not points.size:
+            return
+        path = QPainterPath()
+        path.moveTo(QPointF(points[0][0], points[0][1]))
+        for i in range(1, len(points['x'])):
+            path.lineTo(QPointF(points[i][0], points[i][1]))
+        painter.drawPath(path)
 
     @staticmethod
     def _drawKnots(painter: QPainter, points):
         """отрисовка узлов"""
-        if len(points['x']):
-            for point in points:
-                painter.drawEllipse(QPointF(point[0], point[1]), 2, 2)
+        if len(points['x']) == 0:
+            return
+        for point in points:
+            painter.drawEllipse(QPointF(point[0], point[1]), 2, 2)
 
     @staticmethod
     def _drawLimitPolygon(painter: QPainter, chart, points):
         """отрисовка полигона для области допуска"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\tотрисовка пределов допуска для",
-                        chart.name)
-        if points.size:
-            old_pen = painter.pen()
-            old_brush = painter.brush()
-            polygon = QPolygonF()
-            for point in points:
-                polygon.append(QPointF(point[0], point[1]))
-            painter.setPen(LIMIT_PEN)
-            painter.setBrush(LIMIT_PEN.color())
-            painter.drawPolygon(polygon, Qt.OddEvenFill)
-            painter.setBrush(old_brush)
-            painter.setPen(old_pen)
+        # logger.debug(f"{PumpGraph._drawLimitPolygon.__doc__} {chart.name}")
+        if not points.size:
+            return
+        old_pen = painter.pen()
+        old_brush = painter.brush()
+        polygon = QPolygonF()
+        for point in points:
+            polygon.append(QPointF(point[0], point[1]))
+        painter.setPen(LIMIT_PEN)
+        painter.setBrush(LIMIT_PEN.color())
+        painter.drawPolygon(polygon, Qt.OddEvenFill)
+        painter.setBrush(old_brush)
+        painter.setPen(old_pen)
 
     def _calculateMargins(self):
         """расчёт отступов"""
         keys = self._charts.keys()
-        if 'etl_lft' in keys and 'etl_pwr' in keys and 'etl_eff' in keys:
-            self._prepareDivs('x0', self._charts['etl_lft'].getAxis('x'))
-            self._prepareDivs('y0', self._charts['etl_lft'].getAxis('y'))
-            self._prepareDivs('y1', self._charts['etl_pwr'].getAxis('y'))
-            self._prepareDivs('y2', self._charts['etl_eff'].getAxis('y'))
-
-            self._margins[0] = self._grid_divs['y0'].width + 50
-            self._margins[1] = 20
-            self._margins[2] = self._grid_divs['y1'].width + 40 + \
-                               self._grid_divs['y2'].width + 40
-            self._margins[3] = self._grid_divs['x0'].height + 30
+        if 'etl_lft' not in keys or 'etl_pwr' not in keys or 'etl_eff' not in keys:
+            return
+        self._prepareDivs('x0', self._charts['etl_lft'].getAxis('x'))
+        self._prepareDivs('y0', self._charts['etl_lft'].getAxis('y'))
+        self._prepareDivs('y1', self._charts['etl_pwr'].getAxis('y'))
+        self._prepareDivs('y2', self._charts['etl_eff'].getAxis('y'))
+        self._margins[0] = self._grid_divs['y0'].width + 50
+        self._margins[1] = 20
+        self._margins[2] = self._grid_divs['y1'].width + 40 + self._grid_divs['y2'].width + 40
+        self._margins[3] = self._grid_divs['x0'].height + 30
 
     def _calculateRanges(self):
         """расчёт рабочего диапазона"""
@@ -344,28 +330,23 @@ class PumpGraph(Graph):
 
     def _prepareChartsData(self):
         """подготовка данных для формирования графика"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\tподготовка данных для кривых ->")
+        # logger.debug(f"{self._prepareChartData.__doc__} ->")
         for chart in self._charts.values():
             self._prepareChartData(chart)
 
     def _prepareChartData(self, chart: Chart):
         """подготовка данных для построения кривой"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\t-> подготовка данных для кривой", chart.name)
+        # logger.debug(f"{self._prepareChartData.__doc__} {chart.name}")
         draw_area = self.getDrawArea()
         knots = self._getChartKnots(chart, draw_area)
         curve = self._getChartCurve(chart, draw_area)
         limit = self._getChartLimit(chart, curve)
-        self._charts_data.update({
-            chart: {'knots': knots, 'curve': curve, 'limits': limit}})
+        self._charts_data.update({chart: {'knots': knots, 'curve': curve, 'limits': limit}})
 
     @staticmethod
     def _getChartKnots(chart: Chart, draw_area):
         """получение координат узлов кривой"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\t-> получение узлов для",
-                        chart.name)
+        # logger.debug(f"{PumpGraph._getChartKnots.__doc__} {chart.name}")
         result = chart.createEmptyPoints()
         if len(chart.getPoints('x')) > 1:
             sz_cnv = [draw_area.width(), draw_area.height()]
@@ -375,8 +356,7 @@ class PumpGraph(Graph):
     @staticmethod
     def _getChartCurve(chart: Chart, draw_area):
         """получение координат точек кривой"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\t-> получение кривой для", chart.name)
+        # logger.debug(f"{PumpGraph._getChartCurve.__doc__} {chart.name}")
         result = chart.createEmptyPoints()
         if len(chart.getPoints('x')) > 1:
             sz_cnv = [draw_area.width(), draw_area.height()]
@@ -387,9 +367,7 @@ class PumpGraph(Graph):
         """получение координат точек описывающих пределы допуска"""
         result = chart.createEmptyPoints()
         if ChartOptions.Limits in chart.options and curve['x'].any():
-            if IS_LOGGED:
-                Journal.log(__name__, "\t-> получение пределов допуска для",
-                            chart.name)
+            # logger.debug(f"{self._getChartLimit.__doc__} {chart.name}")
             ranges = self._range_pixels
             result = self._sliceCurveToRange(curve, ranges)
             result = self._calculateLimitCoords(chart, result, chart.limitCoefs)
@@ -434,8 +412,7 @@ class Divisions:
 
     def prepare(self, axis: Axis):
         """подготовка делений для оси"""
-        if IS_LOGGED:
-            Journal.log(__name__, "\tподготовка делений для", self.name)
+        # logger.debug(f"{self.prepare.__doc__} {self.name}")
         f_m = QFontMetricsF(self.font)
         self.divs.clear()
         for _, div in axis.generateDivSteps():

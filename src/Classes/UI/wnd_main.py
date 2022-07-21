@@ -7,18 +7,19 @@ from loguru import logger
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt5.QtWidgets import QMainWindow, QSlider
+from PyQt5.QtWidgets import QMainWindow, QSlider, QLabel, QPushButton, QToolButton
 from PyQt5.QtGui import QCloseEvent
 
 from Classes.UI.funcs import funcs_table
 from Classes.UI.funcs import funcs_combo
 from Classes.UI.funcs import funcs_group
 from Classes.UI.funcs import funcs_test
-from Classes.UI.funcs import funcs_display
 from Classes.UI.funcs import funcs_info
 from Classes.UI.funcs import funcs_aux
+from Classes.UI.test_manager import TestManager, TestMode
 from Classes.UI.testlist import TestList
 from Classes.UI.bindings import Binding
+from Classes.UI.progress import PurgeProgress
 from Classes.Adam.adam_manager import AdamManager
 from Classes.Data.db_manager import DataManager
 from Classes.Data.record import Record, TestData
@@ -41,11 +42,13 @@ class MainWindow(QMainWindow):
         self._managers = {
             'Adam': None,
             'Data': None,
-            'Graf': None
+            'Graf': None,
+            'Test': None
         }
         self._bindings = {
             'test': None,
-            'pump': None
+            'pump': None,
+            'sens': None
         }
         self._states = {
             'editing': {
@@ -64,7 +67,6 @@ class MainWindow(QMainWindow):
         self._prepare()
         super().show()
         self.move(1, 1)
-        # funcs_test.switchRunningState(self, False)
         return True
 
     def closeEvent(self, close_event: QCloseEvent) -> None:
@@ -74,6 +76,16 @@ class MainWindow(QMainWindow):
             self.adam_manager.dataReceived.disconnect()
             self.adam_manager.setPollingState(False)
         return super().closeEvent(close_event)
+
+    def initConnections(self):
+        """инициализация подключений"""
+        # подключение к базе данных
+        style = "#statusDb { color: 'white'; background-color: 'green'; }" \
+            if self.db_manager.isConnected else \
+            "#statusDb { color: 'white'; background-color: 'red'; }"
+        self.statusDb.setStyleSheet(style)
+        # подключение к Adam5000TCP
+        self.chkConnection.click()
 
 #region СВОЙСТВА =>>
     def setTestData(self, testdata: TestData):
@@ -87,6 +99,10 @@ class MainWindow(QMainWindow):
     def setGraphManager(self, graph_manager: GraphManager):
         """привязка менеджера графиков"""
         self._managers.update({'Graf': graph_manager})
+
+    def setTestManager(self, test_manager: TestManager):
+        """привязка менеджера управления испытание"""
+        self._managers.update({'Test': test_manager})
 
     def setAdamManager(self, adam_manager: AdamManager):
         """привязка менеджера управления адамом"""
@@ -110,6 +126,11 @@ class MainWindow(QMainWindow):
     def adam_manager(self) -> AdamManager:
         """возвращает ссылку на менеджер управления адамом"""
         return self._managers["Adam"]
+
+    @property
+    def test_manager(self) -> TestManager:
+        """возвращает ссылку на менеджер управления адамом"""
+        return self._managers["Test"]
 #endregion <<= СВОЙСТВА
 
 #region ИНИЦИАЛИЗАЦИЯ =>
@@ -133,8 +154,10 @@ class MainWindow(QMainWindow):
             return False
         self._bindings['test'] = Binding(self.groupTestInfo, self._testdata.test_)
         self._bindings['pump'] = Binding(self.groupPumpInfo, self._testdata.pump_)
+        self._bindings['sens'] = Binding(self.groupTestSensors, self.test_manager.sensors)
         self._bindings['test'].generate()
         self._bindings['pump'].generate()
+        self._bindings['sens'].generate()
         return True
 
     def _prepare(self):
@@ -150,9 +173,10 @@ class MainWindow(QMainWindow):
         funcs_combo.fillCombos(self, self.db_manager)
         self._registerEvents()
         self._initSliders()
+        self._initStatusBar()
         funcs_table.initTable_points(self)
         funcs_table.initTable_vibrations(self)
-        # self.tabWidget.setTabVisible(0, False)
+        self.tabWidget.setTabVisible(0, False)
         self.graph_manager.initMarkers(self.gridGraphTest)
         funcs_group.groupLock(self.groupTestInfo, True)
         funcs_group.groupLock(self.groupPumpInfo, True)
@@ -164,27 +188,69 @@ class MainWindow(QMainWindow):
         self._testlist.filterSwitch()
 
     def _initSliders(self):
-        funcs_test.prepareSlidersRange(self)
         self._initSlider(self.sliderFlow)
         self._initSlider(self.sliderSpeed)
-        # ВРЕМЕННО ↓
-        self._initSlider(self.sliderTorque)
-        self._initSlider(self.sliderPressure)
 
     def _initSlider(self, slider: QSlider):
         """инициализация слайдеров управления ходом испытания"""
         setattr(slider, "is_draging", False)
         def onValueChanged(value):
             if not getattr(slider, "is_draging"):
-                funcs_test.setAdamValue(slider, self.adam_manager, value)
+                self.test_manager.sliderToAdam(slider.objectName(), value)
         def onPressed():
             setattr(slider, "is_draging", True)
         def onReleased():
             setattr(slider, "is_draging", False)
-            funcs_test.setAdamValue(slider, self.adam_manager)
+            self.test_manager.sliderToAdam(slider.objectName(), slider.value())
         slider.sliderPressed.connect(onPressed)
         slider.sliderReleased.connect(onReleased)
         slider.valueChanged.connect(onValueChanged)
+
+    def _initStatusBar(self):
+        """инициализация статусбара"""
+        self._addConnectionIcons()
+        self._addPurgeElements()
+        self._addMessageString()
+        self._addReloadConfig()
+
+    def _addConnectionIcons(self):
+        """добавление индикаторов подключений"""
+        for name, text in zip(('statusDb', 'statusAdam'),('DB', 'ADAM')):
+            lbl = QLabel(self, objectName=name, text=text)
+            lbl.setFixedWidth(80)
+            lbl.setAlignment(Qt.AlignCenter)
+            self.statusBar().addWidget(lbl)
+            setattr(self, name, lbl)
+
+    def _addPurgeElements(self):
+        """добавление элементов управления продувкой"""
+        # кнопка начала/остановки продувки
+        btn = QPushButton(self, text="Продувка", checkable=True)
+        btn.setFixedSize(80, 20)
+        btn.clicked.connect(self._onClicked_Purge)
+        self.statusBar().addWidget(btn)
+        setattr(self, "btnPurge", btn)
+        # прогрессбар для индикации продувки
+        prg = PurgeProgress(self, delay=100, minimum=0, maximum=0)
+        prg.onTick.connect(self._onTick_Purge)
+        prg.setFixedSize(80, 20)
+        prg.hide()
+        self.statusBar().addWidget(prg)
+        setattr(self, "progressPurge", prg)
+
+    def _addMessageString(self):
+        """добавление строки сообщений"""
+        lbl = QLabel(self, objectName='statusMessage', text='...')
+        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setStyleSheet("#statusMessage { background-color: 'grey'; padding-left: 5px;}")
+        self.statusBar().addPermanentWidget(lbl, 1)
+        setattr(self, 'statusMessage', lbl)
+
+    def _addReloadConfig(self):
+        btn = QToolButton(self, width=20, height=20)
+        btn.clicked.connect(self.adam_manager.reloadConfig)
+        self.statusBar().addPermanentWidget(btn, 1)
+        setattr(self, 'btnReloadConfig', btn)
 
     def _registerEvents(self):
         """привязка событий элементов формы к обработчикам"""
@@ -196,7 +262,7 @@ class MainWindow(QMainWindow):
         self.txtFilter_OrderNum.textChanged.connect(self._onChangedFilter_Apply)
         self.txtFilter_Serial.textChanged.connect(self._onChangedFilter_Apply)
         self.btnFilterReset.clicked.connect(self._onClickedFilter_Reset)
-        self.radioOrderNum.toggled.connect(self._onChangedTestlist_Column)
+        self.radioOrderNum.toggled.connect(self._onToggled_TestlistColumn)
         #
         self.cmbProducer.currentIndexChanged.connect(self._onChangedCombo_Producers)
         self.cmbType.currentIndexChanged.connect(self._onChangedCombo_Types)
@@ -221,15 +287,19 @@ class MainWindow(QMainWindow):
         self.btnSaveCharts.clicked.connect(self._onClickedTestResult_Save)
         #
         self.chkConnection.clicked.connect(self._onAdam_Connection)
-        self.radioFlow0.toggled.connect(self._onChanged_Flowmeter)
-        self.radioFlow1.toggled.connect(self._onChanged_Flowmeter)
-        self.radioFlow2.toggled.connect(self._onChanged_Flowmeter)
+        self.radioFlow0.toggled.connect(self._onToggled_Flowmeter)
+        self.radioFlow1.toggled.connect(self._onToggled_Flowmeter)
+        self.radioFlow2.toggled.connect(self._onToggled_Flowmeter)
+        self.radioRotationL.toggled.connect(self._onToggled_Rotation)
+        self.radioRotationR.toggled.connect(self._onToggled_Rotation)
+        self.radioModeO.toggled.connect(self._onToggled_TestMode)
+        self.radioModeT.toggled.connect(self._onToggled_TestMode)
         self.spinPointLines.valueChanged.connect(self._onChanged_PointsNum)
         self.btnEngine.clicked.connect(self._onClicked_Engine)
         self.txtFlow.textChanged.connect(self._onChanged_Sensors)
         self.txtLift.textChanged.connect(self._onChanged_Sensors)
         self.txtPower.textChanged.connect(self._onChanged_Sensors)
-        self.radioPointsReal.toggled.connect(self._onChanged_PointsMode)
+        self.radioPointsReal.toggled.connect(self._onToggled_PointsMode)
         #
         self.adam_manager.dataReceived.connect(
             self._onAdam_DataReceived, no_receiver_check = True
@@ -251,25 +321,31 @@ class MainWindow(QMainWindow):
         })
         # если запись уже выбрана и загружена - выходим
         x = time.time_ns()
-        if self._testdata.test_.ID != item['ID']:
-            self._clearInfo()
-            self._loadInfo(item['ID'])
-            # self._report.show(self)
+        if self._testdata.test_.ID == item['ID']:
+            return
+        self._clearInfo()
+        self._loadInfo(item['ID'])
+        if self._report:
+            self._report.show(self, self._testdata)
+            # self._report.show(self, self._testdata, self.webEngineView)
         logger.info(f"{'===' * 25}")
         print(f"TEST SELECT {(time.time_ns() - x) / 1000000}")
 
-    def _onChangedTestlist_Column(self):
+    def _onToggled_TestlistColumn(self):
         """изменение столбца отображения в списке тестов (наряд-заказ/серийный номер)"""
-        logger.debug(self._onChangedTestlist_Column.__doc__)
+        logger.debug(self._onToggled_TestlistColumn.__doc__)
         self._testlist.filterSwitch()
 
     def _onMenuTestlist(self, action):
         """выбор в контекстном меню списка тестов"""
-        {
-            "print": self._printInfo,
-            "delete": self._deleteInfo,
-            "update": self._updateInfo
-        }[action]()
+        try:
+            {
+                "print": self._printInfo,
+                "delete": self._deleteInfo,
+                "update": self._updateInfo
+            }[action]()
+        except KeyError:
+            logger.error("Ошибка определения элемента контестного меню")
 
     def _onChangedFilter_Apply(self, text: str):
         """изменение значения фильтра списка тестов"""
@@ -374,14 +450,6 @@ class MainWindow(QMainWindow):
 #endregion      <- ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ
 
 #region     УПРАВЛЕНИЕ ИСПЫТАНИЕМ ->
-    def _onClicked_Engine(self):
-        """нажата кнопка начала/остановки испытания"""
-        logger.debug(self._onClicked_Engine.__doc__)
-        state = not funcs_test.states["is_running"]
-        funcs_test.switchControlsAccessible(self, state)
-        funcs_test.switchRunningState(self, state)
-        self.graph_manager.switchChartsVisibility(not state)
-
     def _onClicked_PointAdd(self):
         """нажата кнопка добавления точки"""
         logger.debug(self._onClicked_PointAdd.__doc__)
@@ -404,12 +472,14 @@ class MainWindow(QMainWindow):
         """нажата кнопка удаления точки"""
         logger.debug(self._onClicked_PointRemove.__doc__)
         funcs_table.removeLastRow(self.tablePoints)
+        if self.spinPointLines.value() == self.spinPointLines.maximum():
+            self.graph_manager.setPointLines_max(0)
         self.graph_manager.markersRemoveKnots()
         self.graph_manager.removeLastPointsFromCharts()
         self.graph_manager.drawCharts(self.frameGraphTest)
         self.spinPointLines.setValue(int(self.spinPointLines.value()) + 1)
 
-    def _onChanged_PointsMode(self):
+    def _onToggled_PointsMode(self):
         """переключение значений точек реальные / на ступень"""
         display = ["flw", "lft", "pwr", "eff"]
         if self.radioPointsReal.isChecked():
@@ -449,8 +519,9 @@ class MainWindow(QMainWindow):
         """нажата кнопка подключения к ADAM5000TCP"""
         logger.debug(self._onAdam_Connection.__doc__)
         state = self.chkConnection.isChecked()
-        state = self.adam_manager.setPollingState(state, 0.100)
-        funcs_test.switchControlsAccessible(self, False)
+        state = self.test_manager.switchConnection(state)
+        if state:
+            funcs_test.switchControlsAccessible(self, False)
         self.chkConnection.setChecked(state)
         self.chkConnection.setStyleSheet(
             "QCheckBox { color: %s; }" % ("lime" if state else "red")
@@ -458,23 +529,82 @@ class MainWindow(QMainWindow):
         self.chkConnection.setText(
             "контроллер %s" % ("подключен" if state else "отключен")
         )
+        self.statusAdam.setStyleSheet(
+            "#statusAdam { color: 'white'; background-color: %s; }" % ("green" if state else "red")
+        )
         self.pageTestControl.setEnabled(state)
         funcs_group.groupClear(self.groupTestSensors)
+
+    def _onClicked_Engine(self):
+        """нажата кнопка начала/остановки испытания"""
+        logger.debug(self._onClicked_Engine.__doc__)
+        state = not self.test_manager.isEngineRunning
+        if not {
+                True: self.test_manager.startTesting,
+                False: self.test_manager.stopTesting
+            }[state]():
+            return
+        self.btnEngine.setText({False: 'ЗАПУСК ДВИГАТЕЛЯ', True: 'ОСТАНОВКА ДВИГАТЕЛЯ'}[state])
+        self.graph_manager.switchChartsVisibility(not state)
+        funcs_test.switchControlsAccessible(self, state)
+
+    def _onClicked_Purge(self):
+        """нажата кнопка начала/остановки продувки"""
+        logger.debug(self._onClicked_Purge.__doc__)
+        state = self.btnPurge.isChecked()
+        self.pageTestControl.setEnabled(not state)
         if state:
-            funcs_test.setControlsDefaults(self)
-            funcs_test.setAdamDefaults(self.adam_manager)
+            self.radioFlow2.toggle()
+            self.progressPurge.show()
+            self.progressPurge.start()
+            self.pageTestControl.setToolTip("Заблокировано во время продувки")
+            self.statusMessage.setText("Идёт продувка ... ")
+        else:
+            self.progressPurge.hide()
+            self.progressPurge.stop()
+            self.pageTestControl.setToolTip("")
+            self.statusMessage.setText("...")
+
+    def _onTick_Purge(self):
+        text = self.statusMessage.text()
+        text = text[1::] + text[0]
+        self.statusMessage.setText(text)
 
     @pyqtSlot(dict)
-    def _onAdam_DataReceived(self, args: dict):
+    def _onAdam_DataReceived(self, adam_data: dict):
         """приход данных от ADAM5000TCP"""
-        funcs_display.displaySensors(self, args)
+        self.test_manager.updateSensors(adam_data)
+        self._bindings['sens'].toWidgets()
 
-    def _onChanged_Flowmeter(self):
+    def _onToggled_Flowmeter(self, state: bool):
         """изменение текущего расходомера"""
-        logger.debug(self._onChanged_Flowmeter.__doc__)
-        sender = self.sender()
-        state = sender.isChecked()
-        funcs_test.switchActiveFlowmeter(self.adam_manager, sender, state)
+        if not state:
+            return
+        logger.debug(self._onToggled_Flowmeter.__doc__)
+        {
+            self.radioFlow0: self.test_manager.setFlowmeter_05,
+            self.radioFlow1: self.test_manager.setFlowmeter_1,
+            self.radioFlow2: self.test_manager.setFlowmeter_2
+        }[self.sender()]()
+
+    def _onToggled_Rotation(self, state: bool):
+        """изменение направления вращения"""
+        if not state:
+            return
+        logger.debug(self._onToggled_Rotation.__doc__)
+        self.test_manager.setEngineRotation(self.sender() is self.radioRotationL)
+
+    def _onToggled_TestMode(self, state: bool):
+        """изменение режима работы стенда"""
+        if not state:
+            return
+        logger.debug(self._onToggled_TestMode.__doc__)
+        if self.sender() == self.radioModeT:
+            mode = TestMode.TEST
+        else:
+            mode = TestMode.IDLING
+            self.radioFlow2.toggle()
+        self.test_manager.switchTestMode(mode)
 
     def _onChanged_Sensors(self):
         """изменения значений датчиков"""
@@ -517,7 +647,7 @@ class MainWindow(QMainWindow):
         """вывод протокола на печать"""
         logger.debug(self._printInfo.__doc__)
         if self._report:
-            self._report.print(parent=self)
+            self._report.print(self, self._testdata)
 
     def _deleteInfo(self):
         """запрос на удаление текущей записи"""

@@ -339,7 +339,7 @@ class Adam5K:
     @staticmethod
     def __toBits(value: int):
         """конвертирование значения в биты"""
-        bits = f"{0:08b}".format(value)
+        bits = f"{value:08b}"
         bits = bits[::-1]
         return bits
 

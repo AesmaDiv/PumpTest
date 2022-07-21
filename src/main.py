@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import QApplication
 from Classes.Graph.graph_manager import GraphManager
 from Classes.UI.wnd_main import MainWindow
 from Classes.UI.wnd_type import TypeWindow
+from Classes.UI.test_manager import TestManager
 from Classes.Data.db_manager import DataManager
 from Classes.Data.record import TestData
 from Classes.Data.report import Report
@@ -23,11 +24,12 @@ from Classes.Adam.adam_manager import AdamManager
 
 # пути к файлам используемым приложением
 ROOT = Path(path.dirname(__file__)).parent.absolute()
+ASSETS = path.join(ROOT, 'assets')
 PATHS = {
-    'DB': path.join(path.join(ROOT, 'assets'), 'pump.sqlite'),  # путь к файлу базы данных
-    'WND': path.join(path.join(ROOT, 'assets'), 'mainwindow.ui'),  # путь к файлу GUI
-    'TYPE': path.join(path.join(ROOT, 'assets'), 'pumpwindow.ui'),  # путь к файлу GUI
-    'TEMPLATE': path.join(path.join(ROOT, 'assets'), 'report')  # путь к шаблону протокола
+    'DB': path.join(ASSETS, 'pump.sqlite'),  # путь к файлу базы данных
+    'WND': path.join(ASSETS, 'mainwindow.ui'),  # путь к файлу GUI
+    'TYPE': path.join(ASSETS, 'pumpwindow.ui'),  # путь к файлу GUI
+    'TEMPLATE': path.join(ASSETS, 'report')  # путь к шаблону протокола
 }
 
 # для отключения логирования разкомментировать эту строку
@@ -41,23 +43,26 @@ class App(QApplication):
         super().__init__(argv)
         self._wnd_main = MainWindow(PATHS['WND'])
         self._wnd_type = TypeWindow(self._wnd_main, PATHS['TYPE'])
+        self._adam = AdamManager(config.IP, config.PORT, config.ADDRESS)
         self._tdt = TestData()
         self._dbm = DataManager(PATHS['DB'])
         self._gfm = GraphManager(self._tdt)
+        self._tst = TestManager(self._adam)
         self._report = Report(PATHS['TEMPLATE'], self._gfm, self._dbm)
-        self._adam = AdamManager(config.IP, config.PORT, config.ADDRESS)
 
     def run(self):
         """запуск приложения"""
-        self.setStyle('Fusion')
+        # self.setStyle('Fusion')
         self._wnd_main.setTestData(self._tdt)
         self._wnd_main.setDataManager(self._dbm)
         self._wnd_type.setDataManager(self._dbm)
         self._wnd_main.setGraphManager(self._gfm)
         self._wnd_main.setAdamManager(self._adam)
+        self._wnd_main.setTestManager(self._tst)
         self._wnd_main.setReport(self._report)
         self._wnd_main.onTypeChangeRequest.connect(self._onTypeChangeRequest)
         if self._wnd_main.show():
+            self._wnd_main.initConnections()
             self.exec_()
 
     def _onTypeChangeRequest(self, data: dict):

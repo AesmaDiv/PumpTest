@@ -1,6 +1,7 @@
 """
     Модуль описания класса протокола об испытании
 """
+import asyncio
 import os
 import numpy as np
 from loguru import logger
@@ -12,16 +13,17 @@ from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtCore import QSize, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 
-from Classes.Data.record import Record, Point
-from Classes.Graph.graph_manager import GraphManager
+from Classes.Data.record import Record, Point, TestData
+from Classes.Graph.graph_manager import GraphManager, ChartType
 from Classes.Data.db_manager import DataManager
-from Classes.Data.record import TestData
-from Classes.Data.db_tables import *
+from Classes.Data.db_tables import (Producer, Efficiency ,Type, Group, Material,
+    Size, Connection, Customer, Owner, SectionStatus, SectionType)
 
 
 class Report(QObject):
     """Класс протокола об испытании"""
     _NAMES = {
+        "template_folder": "",
         "template": "template.html",
         "report": "report.pdf",
         "image": "graph_image.jpg"
@@ -38,127 +40,286 @@ class Report(QObject):
 
     def __init__(self, template_folder, graph_manager: GraphManager, data_manager: DataManager):
         super().__init__()
+        Report._NAMES['template_folder'] = template_folder
         self._webview = None
         self._printer = None
-        self._context = None
-        self._template_folder = template_folder
-        self._db_manager = data_manager
         self._graph_manager = graph_manager
-        self._path_to_img = os.path.join(
-            self._template_folder,
-            self._NAMES["image"]
-        )
-        self._base_url = QUrl.fromLocalFile(self._template_folder + os.path.sep)
+        self._db_manager = data_manager
+        self._base_url = QUrl.fromLocalFile(template_folder + os.path.sep)
+        self._template = self._loadTemplate()
 
-    def show(self, window, webview=None, base_url=None):
+    def show(self, window, testdata: TestData, webview=None):
         """отображение протокола в элементе WebEngineView"""
         logger.debug(self.show.__doc__)
-        self._createContext()
-        self._showContext(window)
-        # if webview:
-        #     html = self._createWeb()
-            # webview.setHtml(html)#, QUrl(base_url))
+        context = Report._createContext(self._graph_manager, testdata)
+        Report._showContext(window, context)
+        if webview:
+            html = self._createWeb(self._template, self._graph_manager, context)
+            webview.setHtml(html, QUrl("file://"))
 
-    def print(self, parent):
-        """Генерирование протокола"""
+    def print(self, parent, testdata: TestData):
+        """вывод на печать"""
         logger.debug(self.print.__doc__)
         if not self._printer:
             self._initPrinter()
-        page = self._createWeb()
+        asyncio.run(self._print_async(parent, testdata))
+
+    async def _print_async(self, parent, testdata):
+        """вывод на печать (асинхронный метод)"""
+        html = await self._createHtml(testdata)
         webview = QWebEngineView(parent=parent)
         webview.show()
-        webview.setZoomFactor(1)
-        webview.setBaseSize(3508, 2480)
-        webview.setHtml(page, QUrl("file://"))
-        if QPrintDialog(self._printer).exec_():
-            print("Report\t\t->отправка протокола на печать")
-            page = webview.page()
-            page.print(self._printer, self._onPrinted)
-        self._removeGraphImage()
-
-    def _createWeb(self):
-        """генерирование HTML разметки протокола"""
-        logger.debug(self._createWeb.__doc__)
-        try:
-            # self.createContext()
-            self._createGraphImage()
-            result = self._loadTemplate()
-            result = result.render(self._context)
-        except (TypeError, UndefinedError, TemplateSyntaxError) as err:
-            print("Protocol::createWeb error:\t", err.message)
-            result = ""
-        return result
+        await Report._print(webview, html, self._printer)
+        Report._removeGraphImage()
 
     def _initPrinter(self):
         """инициализация представления и принтера при первом запросе"""
         self._printer = QPrinter(QPrinter.ScreenResolution)
         self._printer.setOutputFormat(QPrinter.NativeFormat)
-        self._printer.setPageSize(QPageSize(QPageSize.A4))
-
-    def _loadTemplate(self):
-        """загрузка html шаблона"""
-        logger.debug(self._loadTemplate.__doc__)
-        loader = FileSystemLoader(self._template_folder)
-        jinja_env = Environment(loader=loader, autoescape=True)
-        result = jinja_env.get_template(self._NAMES["template"])
-        return result
-
-    def _createGraphImage(self):
-        """сохранение графика испытания в jpg"""
-        logger.debug(self._createGraphImage.__doc__)
-        img_size = QSize(794, 450)
-        self._graph_manager.switchPalette('report')
-        self._graph_manager.renderToImage(img_size, self._path_to_img)
-        self._graph_manager.switchPalette('application')
-
-    def _removeGraphImage(self):
-        if os.path.exists(self._path_to_img):
-            os.remove(self._path_to_img)
+        self._printer.setPageMargins(12, 16, 12, 0, QPrinter.Millimeter)
+        self._printer.setPageSize(QPrinter.A4)
 
     @staticmethod
-    def _onPrinted(result: bool):
-        """callback вызова печати"""
-        print(f"Report\t\t->{'успех' if result else 'ошибка'}")
-
-    def _print(self, report):
+    async def _print(webview: QWebEngineView, html, printer):
         """печать протокола испытания"""
-        self._webview.setZoomFactor(1)
-        self._webview.setHtml(report, baseUrl=self._base_url)
-        if QPrintDialog(self._printer).exec_():
+        webview.setZoomFactor(1)
+        # webview.setBaseSize(3508, 2480)
+        webview.setHtml(html, baseUrl=QUrl("file://"))
+        print("Report\t\t->диалог выбора принтера")
+        if QPrintDialog(printer).exec_():
             print("Report\t\t->отправка протокола на печать")
-            self._webview.page().print(self._printer, self._onPrinted)
-        os.remove(self._path_to_img)
+            page = webview.page()
+            page.print(printer, Report._onPrinted)
 
-    def _createContext(self):
+    async def _createHtml(self, testdata):
+        """генерирование протокола"""
+        Report._addNamesForIDs(self._db_manager, testdata)
+        context = Report._createContext(self._graph_manager, testdata)
+        result = Report._createWeb(self._template, self._graph_manager, context)
+        return result
+
+    @staticmethod
+    def _createWeb(template, graph_manager: GraphManager, context: dict):
+        """генерирование HTML разметки протокола"""
+        logger.debug(Report._createWeb.__doc__)
+        try:
+            Report._createGraphImage(graph_manager)
+            result = template.render(context)
+        except (TypeError, UndefinedError, TemplateSyntaxError) as err:
+            logger.error(f"Protocol::createWeb error:\t{err}")
+            result = ""
+        return result
+
+    @staticmethod
+    def _loadTemplate():
+        """загрузка html шаблона"""
+        logger.debug(Report._loadTemplate.__doc__)
+        loader = FileSystemLoader(Report._NAMES['template_folder'])
+        jinja_env = Environment(loader=loader, autoescape=True)
+        result = jinja_env.get_template(Report._NAMES["template"])
+        return result
+
+    @staticmethod
+    def _createGraphImage(graph_manager: GraphManager):
+        """сохранение графика испытания в jpg"""
+        logger.debug(Report._createGraphImage.__doc__)
+        img_size = QSize(794, 450)
+        path_to_img = os.path.join(Report._NAMES['template_folder'], Report._NAMES["image"])
+        graph_manager.switchPalette('report')
+        graph_manager.renderToImage(img_size, path_to_img)
+        graph_manager.switchPalette('application')
+
+    @staticmethod
+    def _removeGraphImage():
+        path_to_img = os.path.join(Report._NAMES['template_folder'], Report._NAMES["image"])
+        if os.path.exists(path_to_img):
+            os.remove(path_to_img)
+
+    @staticmethod
+    def _onPrinted(state: bool):
+        """callback вызова печати"""
+        print(f"Report\t\t->{'успех' if state else 'ошибка'}")
+
+    @staticmethod
+    def _createContext(graph_manager: GraphManager, testdata: TestData) -> dict:
         """создание контекста для заполнение шаблона данными об испытании"""
-        logger.debug(self._createContext.__doc__)
-        td = self._db_manager.testdata
-        # x = time.time_ns()
-        self._addNamesForIDs(td)
-        deltas = self._getDeltas()
-        vibration = self._getMaxVibration()
-        point_tst = self._getPointsForTest()
-        point_rng = self._getPointsForRanges()
-        point_tst = self._insertsPoints(point_tst, point_rng)
-        point_etl = self._getPointsForEtalon(point_tst)
-        efficiency = self._getEfficiency(td.pump_.SizeName, point_rng)
-        self._context = {
-            "info_pump": td.pump_,
-            "info_test": td.test_,
-            "info_type": td.type_,
+        logger.debug(Report._createContext.__doc__)
+        deltas = Report._getDeltas(graph_manager, testdata)
+        vibration = Report._getMaxVibration(testdata)
+        point_tst = Report._getPointsForTest(testdata)
+        point_rng = Report._getPointsForRanges(graph_manager, testdata)
+        point_tst = Report._insertsPoints(point_tst, point_rng)
+        point_etl = Report._getPointsForEtalon(graph_manager, point_tst)
+        efficiency = Report._getEfficiency(testdata.pump_.SizeName, point_rng)
+        result = {
+            "info_pump": testdata.pump_,
+            "info_test": testdata.test_,
+            "info_type": testdata.type_,
             "point_tst": point_tst,
             "point_etl": point_etl,
             "deltas": deltas,
             "vibration": vibration,
             "efficiency": efficiency,
-            "limits": self._LIMITS
+            "limits": Report._LIMITS
         }
+        return result
 
-    def _showContext(self, window):
+    @staticmethod
+    def _addNamesForIDs(data_manager: DataManager, testdata: TestData):
+        """добавление имён полей для id полей"""
+        def func(info: Record, tables: tuple):
+            prop_name = ""
+            get_name = lambda x: x['ID'] == info[prop_name]
+            for table in tables:
+                prop_name = table.__name__
+                if prop_name in info.keys():
+                    items = data_manager.getListFor(table, ('ID', 'Name'))
+                    name = next(filter(get_name, items), {"Name": ""}).get('Name')
+                    setattr(info, f"{prop_name}Name", name)
+        func(testdata.type_, (Producer, Efficiency))
+        func(testdata.pump_, (Type, Group, Material, Size, Connection))
+        func(testdata.test_, (Customer, Owner, SectionStatus, SectionType))
+
+    @staticmethod
+    def _insertsPoints(dst: list, src: list) -> list:
+        """вставка точек в массив точек"""
+        result = []
+        if dst and src:
+            tst = [p.Flw for p in dst]
+            rng = [p.Flw for p in src]
+            indices = np.searchsorted(tst, rng)
+            result = np.insert(dst, indices, src, axis=0)
+        return list(result)
+
+    @staticmethod
+    def _getPointsForTest(testdata: TestData) -> list:
+        """получение точек кривой испытания"""
+        return testdata.test_.points
+
+    @staticmethod
+    def _getPointsForRanges(graph_manager: GraphManager, testdata: TestData) -> list:
+        """получение точек для границ рабочей зоны"""
+        flows = (
+            testdata.type_['Min'],
+            testdata.type_['Nom'],
+            testdata.type_['Max']
+        )
+        return Report._getPointsFor(graph_manager, flows, ChartType.TEST)
+
+    @staticmethod
+    def _getPointsForEtalon(graph_manager: GraphManager, test_points: list) -> list:
+        """получение точек эталонной кривой, соответствующих кривой испытания"""
+        result = []
+        if all(test_points):
+            flows = [p.Flw for p in test_points]
+            result = Report._getPointsFor(graph_manager, flows, ChartType.ETALON)
+        return result
+
+    @staticmethod
+    def _getPointsFor(graph_manager: GraphManager, flows: list, chart_type: ChartType) -> list:
+        """получение точек для указанных расходов и типа кривых"""
+        if not flows:
+            return []
+        result, charts = [], []
+        # получаем кривые по типу кривых
+        prefix = 'tst' if chart_type == ChartType.TEST else 'etl'
+        chart_names = [f"{prefix}{name}" for name in ("_lft", "_pwr", "_eff")]
+        for name in chart_names:
+            chart = graph_manager.getChart(name)
+            # если ошибка поиска кривой, возвращаем пустой результат
+            if not chart or chart.isEmpty():
+                return []
+            charts.append(chart)
+        # для каждого расхода получаем значения из кривых
+        result = [
+            Point(flw, *(chart.getValueY(flw) for chart in charts))
+            for flw in flows
+        ]
+        return result
+
+    @staticmethod
+    def _getDeltas(graph_manager: GraphManager, testdata: TestData) -> dict:
+        """получение информации об отклонениях кривых"""
+        result = {
+                'flw': None,
+                'lft': None,
+                'pwr': None,
+                'eff': None,
+                'vbr': None,
+                'wob': None,
+                'mom': None
+        }
+        point_dlt = Report._getDeltaList(graph_manager, testdata)
+        if point_dlt:
+            # транспонирование массивов значений
+            point_dlt = np.array(point_dlt).T.tolist()
+            tst = testdata.test_
+            # заполнение результата
+            result.update({
+                'flw': Report._getOptimalDelta(graph_manager, testdata),
+                'lft': max(point_dlt[1], key=abs),
+                'pwr': max(point_dlt[2], key=abs),
+                'eff': max(point_dlt[3], key=abs),
+                'vbr': max(tst.values_vbr) if tst.values_vbr else 0.0,
+                'wob': tst['ShaftWobb'],
+                'mom': tst['ShaftMomentum']
+            })
+        return result
+
+    @staticmethod
+    def _getDeltaList(graph_manager: GraphManager, testdata: TestData) -> list:
+        """получение массивов отклонений для указанных имён кривых"""
+        result = []
+        # диапазон расхода в рабочей зоне
+        flw_min = int(testdata.type_['Min'])
+        flw_max = int(testdata.type_['Max'])
+        flw_rng = list(range(flw_min, flw_max + 1))
+        # точки для этого диапазона (тест и эталон)
+        point_tst = Report._getPointsFor(graph_manager, flw_rng, ChartType.TEST)
+        point_etl = Report._getPointsFor(graph_manager, flw_rng, ChartType.ETALON)
+        # расчёт отклонений
+        if all((point_tst, point_etl)):
+            func = lambda t, e: [
+                round(t.Flw, 2),
+                round(100.0 * (-1 + t.Lft / e.Lft), 2),
+                round(100.0 * (-1 + t.Pwr / e.Pwr), 3),
+                round(t.Eff - e.Eff, 2)
+            ]
+            result = [func(t,e) for t,e in zip(point_tst, point_etl)]
+        return result
+
+    @staticmethod
+    def _getOptimalDelta(graph_manager: GraphManager, testdata: TestData) -> float:
+        """получение отклонения оптимальной подачи"""
+        result = 0.0
+        chart = graph_manager.getChart("tst_eff")
+        if not chart:
+            return result
+        curve = chart.regenerateCurve()
+        if len(curve):
+            flw_nom = float(testdata.type_['Nom'])
+            flw_opt = Report._getEffMaxPoint(curve)[0]
+            result = 100.0 * (flw_opt / flw_nom - 1)
+        return round(result, 2)
+
+    @staticmethod
+    def _getEffMaxPoint(curve) -> tuple:
+        """получение точки с максимальным КПД"""
+        index = np.where(curve['y'] == max(curve['y']))[0]
+        x = float(curve['x'][index])
+        y = float(curve['y'][index])
+        return (x, y)
+
+    @staticmethod
+    def _getMaxVibration(testdata: TestData):
+        vbr = testdata.test_.values_vbr
+        return max(vbr) if vbr else 0.0
+
+    @staticmethod
+    def _showContext(window, context):
         """отображение итоговых результатов испытания"""
-        # x = time.time_ns()
-        lmt = self._context['limits']
-        dlt = self._context['deltas']
+        lmt = context['limits']
+        dlt = context['deltas']
         color = lambda name: "green" if dlt[name] and \
             lmt[name][0]  <= dlt[name] <= lmt[name][1] else "red"
         window.lblTestResult_1.setText(
@@ -222,144 +383,10 @@ class Report(QObject):
             <tr>
                 <td>Энергоэффективность</td>
                 <td/>
-                <td style='color: black;'>{self._context['efficiency']}</td>
+                <td style='color: black;'>{context['efficiency']}</td>
             </tr>
         </tbody>
     </table>""")
-        # print(f"->2 showContext\t\t\t{(time.time_ns() - x) / 1000000}")
-
-    def _addNamesForIDs(self, testdata: TestData):
-        """добавление имён полей для id полей"""
-        def func(info: Record, tables):
-            prop_name = ""
-            get_name = lambda x: x['ID'] == info[prop_name]
-            for table in tables:
-                prop_name = table.__name__
-                if prop_name in info.keys():
-                    items = self._db_manager.getListFor(table, ('ID', 'Name'))
-                    name = next(filter(get_name, items), {"Name": ""}).get('Name')
-                    setattr(info, f"{prop_name}Name", name)
-        func(testdata.type_, (Producer, Efficiency))
-        func(testdata.pump_, (Type, Group, Material, Size, Connection))
-        func(testdata.test_, (Customer, Owner, SectionStatus, SectionType))
-
-    @staticmethod
-    def _insertsPoints(dst: list, src: list) -> list:
-        """вставка точек в массив точек"""
-        tst = [p.Flw for p in dst]
-        rng = [p.Flw for p in src]
-        indices = np.searchsorted(tst, rng)
-        result = np.insert(dst, indices, src, axis=0)
-        return result
-
-    def _getPointsForTest(self):
-        """получение точек кривой испытания"""
-        return self._db_manager.testdata.test_.points
-
-    def _getPointsForRanges(self) -> list:
-        """получение точек для границ рабочей зоны"""
-        flows = (
-            self._db_manager.testdata.type_['Min'],
-            self._db_manager.testdata.type_['Nom'],
-            self._db_manager.testdata.type_['Max']
-        )
-        return self._getPointsFor(flows, ('tst_lft', 'tst_pwr','tst_eff'))
-
-    def _getPointsForEtalon(self, test_points: list) -> list:
-        """получение точек эталонной кривой, соответствующих кривой испытания"""
-        flows = [p.Flw for p in test_points]
-        return self._getPointsFor(flows, ('etl_lft', 'etl_pwr','etl_eff'))
-
-    def _getPointsFor(self, flows: list, chart_names: list) -> list:
-        """получение точек для указанных расходов и имён кривых"""
-        result = []
-        for flw in flows:
-            # фиксируем расход
-            vals = [flw]
-            # получаем значения для этого расхода из кривых
-            for chart_name in chart_names:
-                chart = self._graph_manager.getChart(chart_name)
-                if chart:
-                    vals.append(chart.getValueY(flw))
-                # если ошибка поиска кривой, возвращаем пустой результат
-                else:
-                    return []
-            # создаём и добавляем точку к результату
-            result.append(Point(Flw=vals[0],Lft=vals[1],Pwr=vals[2],Eff=vals[3]))
-        return result
-
-    def _getDeltas(self) -> dict:
-        """получение информации об отклонениях кривых"""
-        result = {
-                'flw': None,
-                'lft': None,
-                'pwr': None,
-                'eff': None,
-                'vbr': None,
-                'wob': None,
-                'mom': None
-        }
-        point_dlt = self._getDeltaList(list(result.keys())[1:4])
-        if point_dlt:
-            # транспонирование массивов значений
-            point_dlt = np.array(point_dlt).T.tolist()
-            tst = self._db_manager.testdata.test_
-            # заполнение результата
-            result.update({
-                'flw': self._getOptimalDelta(),
-                'lft': max(point_dlt[1], key=abs),
-                'pwr': max(point_dlt[2], key=abs),
-                'eff': max(point_dlt[3], key=abs),
-                'vbr': max(tst.values_vbr) if tst.values_vbr else 0.0,
-                'wob': tst['ShaftWobb'],
-                'mom': tst['ShaftMomentum']
-            })
-        return result
-
-    def _getDeltaList(self, names: tuple) -> list:
-        """получение массивов отклонений для указанных имён кривых"""
-        result = []
-        # диапазон расхода в рабочей зоне
-        flw_min = int(self._db_manager.testdata.type_['Min'])
-        flw_max = int(self._db_manager.testdata.type_['Max'])
-        flw_rng = list(range(flw_min, flw_max + 1))
-        # точки для этого диапазона (тест и эталон)
-        point_tst = self._getPointsFor(flw_rng, [f'tst_{name}' for name in names])
-        point_etl = self._getPointsFor(flw_rng, [f'etl_{name}' for name in names])
-        # расчёт отклонений
-        if all((point_tst, point_etl)):
-            func = lambda t, e: [
-                round(t.Flw, 2),
-                round(100.0 * (-1 + t.Lft / e.Lft), 2),
-                round(100.0 * (-1 + t.Pwr / e.Pwr), 3),
-                round(t.Eff - e.Eff, 2)
-            ]
-            result = [func(t,e) for t,e in zip(point_tst, point_etl)]
-        return result
-
-    def _getOptimalDelta(self) -> float:
-        """получение отклонения оптимальной подачи"""
-        result = 0.0
-        chart = self._graph_manager.getChart("tst_eff")
-        if not chart:
-            return result
-        curve = chart.regenerateCurve()
-        if len(curve):
-            flw_nom = float(self._db_manager.testdata.type_['Nom'])
-            flw_opt = self._getEffMaxPoint(curve)[0]
-            result = 100.0 * (flw_opt / flw_nom - 1)
-        return round(result, 2)
-
-    def _getEffMaxPoint(self, curve) -> tuple:
-        """получение точки с максимальным КПД"""
-        index = np.where(curve['y'] == max(curve['y']))[0]
-        x = float(curve['x'][index])
-        y = float(curve['y'][index])
-        return (x, y)
-
-    def _getMaxVibration(self):
-        vbr = self._db_manager.testdata.test_.values_vbr
-        return max(vbr) if vbr else 0.0
 
     @staticmethod
     def _getEfficiency(size: str, points_rng) -> str:

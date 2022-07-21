@@ -2,6 +2,7 @@
     Модуль описывает структуру хранения информации об испытании
     и класс по управлению этой информацией
 """
+import os
 from loguru import logger
 from sqlalchemy import create_engine, MetaData, exc
 from sqlalchemy.orm.session import sessionmaker
@@ -14,8 +15,13 @@ class DataManager:
     """Класс менеджера базы данных"""
     def __init__(self, path_to_db) -> None:
         self._path_to_db = path_to_db
-        self._engine = create_engine(f'sqlite:///{path_to_db}')
-        self._meta = MetaData(self._engine)
+        self._engine = None
+        self._meta = None
+        self._ready = self._checkConnection(path_to_db)
+
+    @property
+    def isConnected(self):
+        return self._ready
 
     def execute(self, func, *args, **kwargs):
         """выполнение запросов к БД и очистка"""
@@ -178,6 +184,13 @@ class DataManager:
             return query.one() if query.count() else None
         result = self.execute(func)
         return DataManager._convertToDict(result)
+
+    def _checkConnection(self, path_to_db):
+        if os.path.exists(path_to_db):
+            self._engine = create_engine(f'sqlite:///{path_to_db}')
+            self._meta = MetaData(self._engine)
+            return True
+        return False
 
     @staticmethod
     def _convertToDict(record: Record) -> dict:

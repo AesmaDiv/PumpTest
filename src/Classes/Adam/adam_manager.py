@@ -1,12 +1,13 @@
 """
     Модуль содержит классы для работы с Advantech ADAM 5000 TCP"""
-from loguru import logger
+from importlib import reload
 from asyncio import run
+from loguru import logger
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
 from Classes.Adam.adam_5k import Adam5K, Param, SlotType
-from Classes.Adam import adam_config as adam
+from Classes.Adam import adam_config as config
 
 
 class AdamManager(QObject):
@@ -28,6 +29,25 @@ class AdamManager(QObject):
         self._adam = Adam5K(host, port, address)
         self._adam.setCallback(self.__adamThreadTickCallback)
 
+    @property
+    def isConnected(self):
+        """состояние подключения к Adam5000TCP"""
+        return self._adam.isConnected
+
+    def setSensors(self, sensor_names: list):
+        """определение имён опрашиваемых каналов"""
+        self._sensors = {name: [0.0] * self._probes for name in sensor_names}
+
+    def reloadConfig(self):
+        self._adam.pause()
+        try:
+            global config
+            reload(config)
+        except BaseException as err:
+            logger.error("Ошибка обновления конфигурации. Проверьте корректность данных.")
+            logger.error(str(err))
+        self._adam.unpause()
+
     def setPollingState(self, state: bool, interval=1):
         """вкл/выкл опрос устройства"""
         return run(self.setPollingStateAsync(state, interval))
@@ -45,14 +65,22 @@ class AdamManager(QObject):
         """установка значения для канала"""
         return run(self.setValueAsync(param, value))
 
+    def getValue(self, param: Param):
+        """получение значения из канала"""
+        return run(self.getValueAsync(param))
+
     async def setValueAsync(self, param: Param, value: int) -> bool:
         """установка значения для канала (ассинхронная)"""
         if self.checkParams(param, value):
-            self._adam.setChannelValue(
-                param.slot_type, param.slot, param.channel, value
-            )
+            self._adam.setChannelValue(param.slot_type, param.slot, param.channel, value)
             return True
         return False
+
+    async def getValueAsync(self, param: Param):
+        """получение значения для канала (ассинхронная)"""
+        if self.checkParams(param, 0):
+            return self._adam.getValue(param.slot_type, param.slot, param.channel)
+        return -1
 
     def checkParams(self, params: Param, value) -> bool:
         """проверка параметров"""
@@ -78,15 +106,15 @@ class AdamManager(QObject):
             if not self._adam.isReading:
                 self._sensors[key] = [0.0] * self._probes
                 continue
-            param = adam.params[key]
-            value = self._adam.getValue(
-                param.slot_type, param.slot, param.channel
-            )
+            if key not in config.PARAMS:
+                continue
+            param = config.PARAMS[key]
+            value = self._adam.getValue(param.slot_type, param.slot, param.channel)
             value = param.val_rng * (value - param.offset) / param.dig_max
+            if key in config.COEFS:
+                value *= config.COEFS[key]
             self._sensors[key].pop(0)
             self._sensors[key].append(round(value, 2))
 
     def __createEventArgs(self):
-        return {
-            key: sum(vals)/len(vals) for key, vals in self._sensors.items()
-        }
+        return {key: sum(vals)/len(vals) for key, vals in self._sensors.items()}

@@ -1,6 +1,7 @@
 """
     Модуль описывает класс маркеров для графика"""
 from operator import itemgetter
+from loguru import logger
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QEvent, QPointF, QLineF, QRectF, pyqtSignal
@@ -8,8 +9,8 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame
 
 from Classes.Graph.pump_graph import PumpGraph
+
 from AesmaLib.GraphWidget.chart import Chart
-from AesmaLib.journal import Journal
 
 
 class Markers(QFrame):
@@ -55,7 +56,7 @@ class Markers(QFrame):
 
     def setPointLinesMax(self, value: float):
         """установка максимального значения расхода для текущего типоразмера"""
-        pos = self.translateValueToPixel(QPointF(value, 0), "lft")
+        pos = self.translateValueToPixel(QPointF(value, 0), "etl_lft")
         self._point_lines['max'] = pos.x()
 
     def setPointLinesNumber(self, value: int):
@@ -71,7 +72,7 @@ class Markers(QFrame):
         """получение координат маркера"""
         if name in self._markers:
             return self._markers[name]['pos']
-        Journal.log(__name__, 'Error = no such marker')
+        logger.error(f'Маркер {name} не найден')
         return QPointF(0.0, 0.0)
 
     def setMarkerPosition(self, name: str, pos: QPointF):
@@ -79,14 +80,14 @@ class Markers(QFrame):
         if name in self._markers:
             self._markers[name].update({'pos': pos})
         else:
-            Journal.log(__name__, 'Error = no such marker')
+            logger.error(f'Маркер {name} не найден')
 
     def setMarkerColor(self, name: str, color):
         """установка цвета маркера"""
         if name in self._markers:
             self._markers[name].update({'color': color})
         else:
-            Journal.log(__name__, 'Error = no such marker')
+            logger.error(f'Маркер {name} не найден')
 
     def repositionFor(self, graph: PumpGraph):
         """перенос маркера на другой холст"""

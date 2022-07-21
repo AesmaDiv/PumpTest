@@ -1,6 +1,8 @@
 """
     Модуль вспомогательных функций
 """
+from time import time, sleep
+from PyQt5.QtWidgets import QApplication
 from AesmaLib.message import Message
 
 
@@ -13,20 +15,22 @@ def parseFloat(text: str):
     return result
 
 
-def calculateLift(sensors: dict):
+def calculateLift(psi_in: float, psi_out: float):
     """рассчёт потребляемой мощности"""
-    psi_in = sensors.get('psi_in', 0)
-    psi_out = sensors.get('psi_out', 0)
     lift = (psi_out - psi_in) / 0.433
     return lift
 
 
-def calculatePower(sensors: dict):
+def calculatePower(torque: float, rpm: float):
     """рассчёт потребляемой мощности"""
-    torque = sensors.get('torque', 0)
-    rpm = sensors.get('rpm', 0)
     power = rpm * torque / 5252.0
     return power
+
+
+def calculateEff(flw: float, lft: float, pwr: float):
+    """расчёт КПД"""
+    return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
+        if flw and lft and pwr else 0
 
 
 def calculateEffs(flws: list, lfts: list, pwrs: list):
@@ -41,12 +45,6 @@ def checkSameLength(arrays: list):
     iterator = iter(arrays)
     length = len(next(iterator))
     return all(len(item) == length for item in iterator)
-
-
-def calculateEff(flw: float, lft: float, pwr: float):
-    """расчёт КПД"""
-    return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
-        if flw and lft and pwr else 0
 
 
 def applySpeedFactor(flw: float, lft: float, pwr: float, rpm: float):
@@ -78,3 +76,11 @@ def askPassword():
     if not result:
         Message.show("ОШИБКА", "Не верный пароль")
     return result
+
+def pause(seconds: float):
+    """задержка в секундах"""
+    print(f"PAUSE {seconds} seconds -> ...")
+    for _ in range(seconds * 1000):
+        QApplication.processEvents()
+        sleep(0.001)
+    print(f"... -> UNPAUSE {seconds}")

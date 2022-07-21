@@ -4,14 +4,16 @@
     Точки и оси, функция трансляции значений по осям
     в координаты холста"""
 import math
-import numpy as np
 from enum import Flag, auto
 from typing import List
+import numpy as np
+from loguru import logger
 from scipy.interpolate import make_interp_spline
+
 from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtCore import Qt
+
 from AesmaLib.GraphWidget.axis import Axis
-from AesmaLib.journal import Journal
 
 
 class ChartOptions(Flag):
@@ -82,6 +84,9 @@ class Chart(ChartMeta):
         """задание коэфициентов"""
         self._lim_coefs = lim_coefs
 
+    def isEmpty(self):
+        return len(self._points) == 0
+
     def setLimitCoefs(self, lim_coef_min: float, lim_coef_max: float):
         """задание коэфициентов"""
         self._lim_coefs = (lim_coef_min, lim_coef_max)
@@ -112,6 +117,7 @@ class Chart(ChartMeta):
         return result.tolist()
 
     def getValueY(self, x: float) -> float:
+        """получение Y координаты"""
         spline = self.getSpline()
         return float(spline(x)) if spline else 0.0
 
@@ -132,7 +138,7 @@ class Chart(ChartMeta):
             if do_regenerate_axies:
                 self._regenerateAxies()
         else:
-            Journal.log(__name__, 'Error:: индекс вне диапазона')
+            logger.error('индекс вне диапазона')
 
     def clearPoints(self):
         """удаление всех точек"""
@@ -172,7 +178,7 @@ class Chart(ChartMeta):
                 coef = self._axes[name].getLength() / length
                 value = self._axes[name].getMinimum() + value * coef
             return value
-        Journal.log(__name__, "Error:: неверное имя оси")
+        logger.error("неверное имя оси")
         return 0
 
     def _regenerateAxies(self):
@@ -213,7 +219,7 @@ class Chart(ChartMeta):
             pnts = list(map(tuple, temp))
             result = np.array(pnts, dtype=self._ptype)
             return result
-        Journal.log(__name__, 'Error:: массив координат имеет неверный формат')
+        logger.error('массив координат имеет неверный формат')
         return self.createEmptyPoints()
 
     def _sortPoints(self):

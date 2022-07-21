@@ -35,14 +35,14 @@ class Binding:
         for widget in widgets:
             obj_name = widget.objectName()
             name = obj_name[3:]
+            if name in ('Producer', 'Type'):
+                continue
             prp_name = 'text'
             if isinstance(widget, QTextEdit):
                 prp_name = 'plainText'
             if isinstance(widget, QComboBox):
                 prp_name = 'currentIndex'
                 # исключительные случаи
-                if name in ('Producer', 'Type'):
-                    continue
                 if name == 'Serial':
                     prp_name = 'currentText'
             # setattr(self, name, )

@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -93,7 +93,7 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>361</width>
+         <width>392</width>
          <height>701</height>
         </rect>
        </property>
@@ -340,7 +340,7 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
        <attribute name="title">
         <string>Протокол испытания</string>
        </attribute>
-       <widget class="QWebEngineView" name="webEngineView">
+       <widget class="QWebEngineView" name="webEngineView" native="true">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -349,7 +349,7 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
           <height>691</height>
          </rect>
         </property>
-        <property name="url">
+        <property name="url" stdset="0">
          <url>
           <string>about:blank</string>
          </url>
@@ -388,6 +388,7 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
         <property name="font">
          <font>
           <pointsize>7</pointsize>
+          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -438,6 +439,7 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
         <property name="font">
          <font>
           <pointsize>7</pointsize>
+          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -1192,10 +1194,10 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
             </property>
             <property name="html">
              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Segoe UI'; font-size:9pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -2312,7 +2314,7 @@ p, li { white-space: pre-wrap; }
         <property name="geometry">
          <rect>
           <x>648</x>
-          <y>680</y>
+          <y>676</y>
           <width>271</width>
           <height>24</height>
          </rect>
@@ -2347,7 +2349,10 @@ p, li { white-space: pre-wrap; }
         </rect>
        </property>
        <property name="maximum">
-        <number>65535</number>
+        <number>4095</number>
+       </property>
+       <property name="value">
+        <number>4095</number>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -2418,26 +2423,32 @@ p, li { white-space: pre-wrap; }
          <x>10</x>
          <y>50</y>
          <width>263</width>
-         <height>327</height>
+         <height>351</height>
         </rect>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
        </property>
        <property name="title">
         <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
           <property name="sizeConstraint">
-           <enum>QLayout::SetDefaultConstraint</enum>
+           <enum>QLayout::SetNoConstraint</enum>
           </property>
-          <property name="horizontalSpacing">
-           <number>10</number>
-          </property>
-          <property name="verticalSpacing">
+          <property name="spacing">
            <number>5</number>
           </property>
-          <item row="3" column="2">
-           <widget class="QLineEdit" name="txtPsiOut">
+          <item row="2" column="2">
+           <widget class="QLineEdit" name="txtTorque">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -2463,12 +2474,12 @@ p, li { white-space: pre-wrap; }
              <set>Qt::ImhNone</set>
             </property>
             <property name="readOnly">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QLabel" name="lblProducer_2">
+          <item row="12" column="0" colspan="2">
+           <widget class="QLabel" name="lblAssembly_10">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -2488,15 +2499,80 @@ p, li { white-space: pre-wrap; }
              </size>
             </property>
             <property name="text">
-             <string>Скорость:</string>
+             <string>Мощность:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="QLabel" name="lblStages_3">
+          <item row="1" column="2">
+           <widget class="QLineEdit" name="txtRPM">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="text">
+             <string>1234.5678</string>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QLabel" name="lblProducer_5">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>120</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>psi</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0" colspan="2">
+           <widget class="QLabel" name="lblLenght_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -2512,46 +2588,18 @@ p, li { white-space: pre-wrap; }
             <property name="maximumSize">
              <size>
               <width>200</width>
-              <height>19</height>
+              <height>20</height>
              </size>
             </property>
             <property name="text">
-             <string>Давление (вх.):</string>
+             <string>2&quot;:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QLabel" name="lblSerial_4">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>110</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Расходомер 0.5&quot;:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
+          <item row="1" column="3">
            <widget class="QLabel" name="lblProducer_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2582,230 +2630,7 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="6" column="0" colspan="2">
-           <widget class="QLabel" name="lblSerial_5">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>110</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string> 1&quot;:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="3">
-           <widget class="QRadioButton" name="radioFlow0">
-            <property name="maximumSize">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="2">
-           <widget class="QLineEdit" name="txtLift">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="QWidget" name="widget" native="true">
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>10</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3">
-           <widget class="QLabel" name="lblProducer_5">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>psi</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="QLineEdit" name="txtFlow0">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0" colspan="2">
-           <widget class="QLabel" name="lblLenght_3">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>110</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>2&quot;:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="2">
-           <widget class="QWidget" name="widget_2" native="true">
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>10</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="3">
-           <widget class="QRadioButton" name="radioFlow1">
-            <property name="maximumSize">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="3">
-           <widget class="QLabel" name="lblProducer_6">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::RightToLeft</enum>
-            </property>
-            <property name="text">
-             <string>psi</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="0" colspan="2">
+          <item row="11" column="0" colspan="2">
            <widget class="QLabel" name="lblAssembly_6">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2833,131 +2658,7 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QLineEdit" name="txtRPM">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="text">
-             <string>1234.5678</string>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="3">
-           <widget class="QLabel" name="lblProducer_9">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::RightToLeft</enum>
-            </property>
-            <property name="text">
-             <string>кВт</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="2">
-           <widget class="QLineEdit" name="txtFlow2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="0" colspan="2">
-           <widget class="QLabel" name="lblAssembly_9">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>110</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Расход:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="3">
+          <item row="10" column="3">
            <widget class="QLabel" name="lblProducer_7">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2988,8 +2689,8 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="9" column="2">
-           <widget class="QLineEdit" name="txtFlow">
+          <item row="12" column="3">
+           <widget class="QLabel" name="lblProducer_9">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -2998,29 +2699,29 @@ p, li { white-space: pre-wrap; }
             </property>
             <property name="minimumSize">
              <size>
-              <width>70</width>
-              <height>23</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>70</width>
-              <height>23</height>
+              <width>120</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
             </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
+            <property name="text">
+             <string>кВт</string>
             </property>
-            <property name="readOnly">
-             <bool>true</bool>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="2" column="2">
-           <widget class="QLineEdit" name="txtPsiIn">
+          <item row="10" column="0" colspan="2">
+           <widget class="QLabel" name="lblAssembly_9">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -3029,28 +2730,25 @@ p, li { white-space: pre-wrap; }
             </property>
             <property name="minimumSize">
              <size>
-              <width>70</width>
-              <height>23</height>
+              <width>110</width>
+              <height>20</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>70</width>
-              <height>23</height>
+              <width>200</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
+            <property name="text">
+             <string>Расход:</string>
             </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
+          <item row="2" column="0" colspan="2">
            <widget class="QLabel" name="lblType_2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -3078,7 +2776,453 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="10" column="3">
+          <item row="6" column="0" colspan="2">
+           <widget class="QLabel" name="lblSerial_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Расходомер 0.5&quot;:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QLineEdit" name="txtPsiIn">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="2">
+           <widget class="QWidget" name="widget_2" native="true">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>10</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="2">
+           <widget class="QLineEdit" name="txtFlow">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0" colspan="2">
+           <widget class="QLabel" name="lblSerial_5">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string> 1&quot;:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QLabel" name="lblAssembly_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Давление (вых.):</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="2">
+           <widget class="QLineEdit" name="txtPower">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QLabel" name="lblProducer_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Скорость:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="2">
+           <widget class="QLineEdit" name="txtFlow0">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="2">
+           <widget class="QLineEdit" name="txtFlow1">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="3">
+           <widget class="QRadioButton" name="radioFlow1">
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QWidget" name="widget" native="true">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>10</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="2">
+           <widget class="QLineEdit" name="txtLift">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QLineEdit" name="txtPsiOut">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="3">
+           <widget class="QRadioButton" name="radioFlow2">
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="2">
+           <widget class="QLineEdit" name="txtFlow2">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="3">
+           <widget class="QRadioButton" name="radioFlow0">
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="3">
            <widget class="QLabel" name="lblProducer_8">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -3109,39 +3253,8 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="6" column="2">
-           <widget class="QLineEdit" name="txtFlow1">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="3" column="0" colspan="2">
-           <widget class="QLabel" name="lblAssembly_3">
+           <widget class="QLabel" name="lblStages_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -3157,80 +3270,18 @@ p, li { white-space: pre-wrap; }
             <property name="maximumSize">
              <size>
               <width>200</width>
-              <height>20</height>
+              <height>19</height>
              </size>
             </property>
             <property name="text">
-             <string>Давление (вых.):</string>
+             <string>Давление (вх.):</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLineEdit" name="txtTorque">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="2">
-           <widget class="QLineEdit" name="txtPower">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
-            </property>
-            <property name="inputMethodHints">
-             <set>Qt::ImhNone</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
+          <item row="2" column="3">
            <widget class="QLabel" name="lblProducer_4">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -3258,24 +3309,8 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="7" column="3">
-           <widget class="QRadioButton" name="radioFlow2">
-            <property name="maximumSize">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="0" colspan="2">
-           <widget class="QLabel" name="lblAssembly_10">
+          <item row="4" column="3">
+           <widget class="QLabel" name="lblProducer_6">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -3284,21 +3319,24 @@ p, li { white-space: pre-wrap; }
             </property>
             <property name="minimumSize">
              <size>
-              <width>110</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>200</width>
+              <width>120</width>
               <height>20</height>
              </size>
             </property>
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
             <property name="text">
-             <string>Мощность:</string>
+             <string>psi</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -3359,7 +3397,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>0</y>
           <width>271</width>
-          <height>201</height>
+          <height>192</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3438,7 +3476,7 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>22</y>
+           <y>30</y>
            <width>271</width>
            <height>24</height>
           </rect>
@@ -3457,7 +3495,7 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>110</y>
+           <y>88</y>
            <width>271</width>
            <height>24</height>
           </rect>
@@ -3505,7 +3543,7 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>170</x>
-           <y>140</y>
+           <y>120</y>
            <width>100</width>
            <height>24</height>
           </rect>
@@ -3519,6 +3557,7 @@ p, li { white-space: pre-wrap; }
          <property name="font">
           <font>
            <pointsize>10</pointsize>
+           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
@@ -3530,7 +3569,7 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>140</y>
+           <y>120</y>
            <width>24</width>
            <height>24</height>
           </rect>
@@ -3538,6 +3577,7 @@ p, li { white-space: pre-wrap; }
          <property name="font">
           <font>
            <pointsize>12</pointsize>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -3549,7 +3589,7 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>30</x>
-           <y>140</y>
+           <y>120</y>
            <width>24</width>
            <height>24</height>
           </rect>
@@ -3563,6 +3603,7 @@ p, li { white-space: pre-wrap; }
          <property name="font">
           <font>
            <pointsize>12</pointsize>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -3574,7 +3615,7 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>170</y>
+           <y>150</y>
            <width>271</width>
            <height>24</height>
           </rect>
@@ -3588,6 +3629,7 @@ p, li { white-space: pre-wrap; }
          <property name="font">
           <font>
            <pointsize>10</pointsize>
+           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
@@ -3599,23 +3641,41 @@ p, li { white-space: pre-wrap; }
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>46</y>
+           <y>60</y>
            <width>271</width>
-           <height>20</height>
+           <height>24</height>
           </rect>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>24</height>
+          </size>
+         </property>
          <property name="maximum">
-          <number>65535</number>
+          <number>3000</number>
+         </property>
+         <property name="value">
+          <number>2910</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::NoTicks</enum>
          </property>
         </widget>
         <widget class="QSpinBox" name="spinPointLines">
          <property name="geometry">
           <rect>
            <x>110</x>
-           <y>140</y>
+           <y>120</y>
            <width>52</width>
            <height>24</height>
           </rect>
@@ -3630,46 +3690,14 @@ p, li { white-space: pre-wrap; }
           <number>10</number>
          </property>
         </widget>
-        <widget class="QSlider" name="sliderTorque">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>65</y>
-           <width>271</width>
-           <height>20</height>
-          </rect>
-         </property>
-         <property name="maximum">
-          <number>65535</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-        <widget class="QSlider" name="sliderPressure">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>85</y>
-           <width>271</width>
-           <height>20</height>
-          </rect>
-         </property>
-         <property name="maximum">
-          <number>65535</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
        </widget>
        <widget class="QWidget" name="pageTestPoints">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>271</width>
+          <height>192</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3772,8 +3800,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>271</width>
+          <height>192</height>
          </rect>
         </property>
         <attribute name="label">
