@@ -6,9 +6,9 @@ import numpy as np
 from loguru import logger
 # from time import time_ns
 
-from PyQt5.QtGui import QPalette, QBrush, QColor, QPen
-from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtWidgets import QFrame
+from PyQt6.QtGui import QPalette, QBrush, QColor, QPen
+from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtWidgets import QFrame
 
 from Classes.Data.record import TestData
 from Classes.Graph.pump_graph import PumpGraph
@@ -28,8 +28,8 @@ class GraphManager(PumpGraph):
     """Менеджер графиков"""
     COUNT = 1
     MARKERS_PARAMS = {
-        'tst_lft': Qt.blue,    # цвет маркера напора
-        'tst_pwr': Qt.red      # цвет маркера мощности
+        'tst_lft': Qt.GlobalColor.blue,    # цвет маркера напора
+        'tst_pwr': Qt.GlobalColor.red      # цвет маркера мощности
     }
 
     def __init__(self, testdata: TestData) -> None:
@@ -57,7 +57,7 @@ class GraphManager(PumpGraph):
         # logger.debug(self.drawCharts.__doc__)
         pic = self.renderToImage(frame.size())
         palette = frame.palette()
-        palette.setBrush(QPalette.Background, QBrush(pic))
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(pic))
         frame.setPalette(palette)
         frame.setAutoFillBackground(True)
 
@@ -114,9 +114,9 @@ class GraphManager(PumpGraph):
         ch_lft = self._createChart(points[0], points[1], 'etl_lft', co.Limits)
         ch_pwr = self._createChart(points[0], points[2], 'etl_pwr', co.Limits)
         ch_eff = self._createChart(points[0], points[3], 'etl_eff', co.Limits)
-        ch_lft.setPen(QPen(QColor(200, 200, 255), 1), Qt.DashLine)
-        ch_pwr.setPen(QPen(QColor(255, 0, 0), 1), Qt.DashLine)
-        ch_eff.setPen(QPen(QColor(0, 255, 0), 1), Qt.DashLine)
+        ch_lft.setPen(QPen(QColor(200, 200, 255), 1), Qt.PenStyle.DashLine)
+        ch_pwr.setPen(QPen(QColor(255, 0, 0), 1), Qt.PenStyle.DashLine)
+        ch_eff.setPen(QPen(QColor(0, 255, 0), 1), Qt.PenStyle.DashLine)
         self._scaleChart(ch_lft, self._limits['lft'], 0, 0)
         self._scaleChart(ch_pwr, self._limits['pwr'], 0, ch_lft.getAxis('y').getDivs())
         self._scaleChart(ch_eff, self._limits['eff'], 0, ch_lft.getAxis('y').getDivs())
@@ -130,9 +130,9 @@ class GraphManager(PumpGraph):
         ch_lft = self._createChart(points[0], points[1], 'tst_lft', co.Knots)
         ch_pwr = self._createChart(points[0], points[2], 'tst_pwr', co.Knots)
         ch_eff = self._createChart(points[0], points[3], 'tst_eff', co.Knots)
-        ch_lft.setPen(QPen(etalon_charts['etl_lft'].pen), Qt.SolidLine)
-        ch_pwr.setPen(QPen(etalon_charts['etl_pwr'].pen), Qt.SolidLine)
-        ch_eff.setPen(QPen(etalon_charts['etl_eff'].pen), Qt.SolidLine)
+        ch_lft.setPen(QPen(etalon_charts['etl_lft'].pen), Qt.PenStyle.SolidLine)
+        ch_pwr.setPen(QPen(etalon_charts['etl_pwr'].pen), Qt.PenStyle.SolidLine)
+        ch_eff.setPen(QPen(etalon_charts['etl_eff'].pen), Qt.PenStyle.SolidLine)
         self._scaleChart(ch_lft, axes=etalon_charts['etl_lft'].axes)
         self._scaleChart(ch_pwr, axes=etalon_charts['etl_pwr'].axes)
         self._scaleChart(ch_eff, axes=etalon_charts['etl_eff'].axes)
@@ -236,7 +236,7 @@ class GraphManager(PumpGraph):
         if etalon:
             chart: Chart = Chart(name=chart_name)
             chart.setAxes(etalon.axes)
-            chart.setPen(QPen(etalon.pen.color(), 2, Qt.SolidLine))
+            chart.setPen(QPen(etalon.pen.color(), 2, Qt.PenStyle.SolidLine))
             self.addChart(chart, chart_name)
             return chart
         logger.error(f"Не найден эталон для {chart_name}")

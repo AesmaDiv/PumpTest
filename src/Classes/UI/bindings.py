@@ -4,8 +4,8 @@
 """
 from loguru import logger
 
-from PyQt5.QtCore import QVariant, QRegExp
-from PyQt5.QtWidgets import QWidget, QLineEdit, QTextEdit, QComboBox
+from PyQt6.QtCore import QVariant, QRegularExpression
+from PyQt6.QtWidgets import QWidget, QLineEdit, QTextEdit, QComboBox
 
 
 def bind(objectName: str, propertyName: str):
@@ -30,7 +30,7 @@ class Binding:
         data_name = self.data.__class__.__name__
         logger.debug(f"генерация привязок полей {obj_name} к {data_name}")
         classes = (QLineEdit, QTextEdit, QComboBox)
-        widgets = self.parent.findChildren(classes, QRegExp('[(txt)(cmb)]'))
+        widgets = self.parent.findChildren(classes, QRegularExpression('[(txt)(cmb)]'))
         widgets = list(filter(lambda item: item.objectName()[3:] in self.data.keys(), widgets))
         for widget in widgets:
             obj_name = widget.objectName()

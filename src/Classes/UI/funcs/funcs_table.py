@@ -4,8 +4,8 @@
 from dataclasses import dataclass, field
 from loguru import logger
 
-from PyQt5.QtWidgets import QTableView, QHeaderView
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
+from PyQt6.QtWidgets import QTableView, QHeaderView
+from PyQt6.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
 
 from Classes.UI import models
 
@@ -33,10 +33,10 @@ def initTable_points(window):
             headers=['расход\nм³/сут', 'напор\nм', 'мощность\nкВт', 'кпд\n%'],
             headers_sizes=[60, 60, 80, 60],
             headers_resizes=[
-                QHeaderView.Stretch,
-                QHeaderView.Stretch,
-                QHeaderView.Fixed,
-                QHeaderView.Stretch
+                QHeaderView.ResizeMode.Stretch,
+                QHeaderView.ResizeMode.Stretch,
+                QHeaderView.ResizeMode.Fixed,
+                QHeaderView.ResizeMode.Stretch
             ]
         )
     )
@@ -53,7 +53,7 @@ def initTable_vibrations(window):
             display=['num','vbr'],
             headers=['№','мм/с2'],
             headers_sizes=[60, 80],
-            headers_resizes=[QHeaderView.Fixed, QHeaderView.Stretch]
+            headers_resizes=[QHeaderView.ResizeMode.Fixed, QHeaderView.ResizeMode.Stretch]
         )
     )
 
@@ -145,7 +145,7 @@ def getRow(table_view: QTableView):
     try:
         m_index = table_view.currentIndex()
         m_index = m_index.sibling(m_index.row(), m_index.column())
-        items = m_index.data(Qt.UserRole)
+        items = m_index.data(Qt.ItemDataRole.UserRole)
         return items
     except AttributeError as error:
         logger.error(f"error: {str(error)}")
@@ -158,7 +158,7 @@ def getRow(table_view: QTableView):
 def setHeaders(table_view: QTableView, headers_sizes: list, headers_resizes: list):
     """установка заголовков столбцов таблицы"""
     header = table_view.verticalHeader()
-    header.setSectionResizeMode(QHeaderView.Fixed)
+    header.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
     header.setDefaultSectionSize(20)
     header = table_view.horizontalHeader()
     headers_count = min(len(headers_sizes), len(headers_sizes))
@@ -171,6 +171,6 @@ def selectRow(table_view: QTableView, row: int):
     """выбор строки в таблице по индексу"""
     sel_model = table_view.selectionModel()
     index = table_view.model().sourceModel().index(row, 0)
-    mode = QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows
+    mode = QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows
     sel_model.select(index, mode)
     table_view.setFocus()

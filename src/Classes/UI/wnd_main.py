@@ -5,10 +5,10 @@ import time
 from datetime import datetime
 from loguru import logger
 
-from PyQt5 import uic
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt5.QtWidgets import QMainWindow, QSlider, QLabel, QPushButton, QToolButton
-from PyQt5.QtGui import QCloseEvent
+from PyQt6 import uic
+from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
+from PyQt6.QtWidgets import QMainWindow, QSlider, QLabel, QPushButton, QToolButton
+from PyQt6.QtGui import QCloseEvent
 
 from Classes.UI.funcs import funcs_table
 from Classes.UI.funcs import funcs_combo
@@ -16,11 +16,12 @@ from Classes.UI.funcs import funcs_group
 from Classes.UI.funcs import funcs_test
 from Classes.UI.funcs import funcs_info
 from Classes.UI.funcs import funcs_aux
-from Classes.UI.test_manager import TestManager, TestMode
 from Classes.UI.testlist import TestList
 from Classes.UI.bindings import Binding
 from Classes.UI.progress import PurgeProgress
+from Classes.Test.test_manager import TestManager, TestMode
 from Classes.Adam.adam_manager import AdamManager
+from Classes.Adam.adam_names import ChannelNames as CN
 from Classes.Data.db_manager import DataManager
 from Classes.Data.record import Record, TestData
 from Classes.Data.report import Report
@@ -80,12 +81,12 @@ class MainWindow(QMainWindow):
     def initConnections(self):
         """инициализация подключений"""
         # подключение к базе данных
-        style = "#statusDb { color: 'white'; background-color: 'green'; }" \
-            if self.db_manager.isConnected else \
-            "#statusDb { color: 'white'; background-color: 'red'; }"
-        self.statusDb.setStyleSheet(style)
+        self._displayLabelState(self.statusDb, self.db_manager.isConnected)
         # подключение к Adam5000TCP
         self.chkConnection.click()
+
+    def displayMessage(self, message: str):
+        self.statusMessage.setText(message)
 
 #region СВОЙСТВА =>>
     def setTestData(self, testdata: TestData):
@@ -211,6 +212,7 @@ class MainWindow(QMainWindow):
         self._addConnectionIcons()
         self._addPurgeElements()
         self._addMessageString()
+        self._addValveIndicators()
         self._addReloadConfig()
 
     def _addConnectionIcons(self):
@@ -218,7 +220,7 @@ class MainWindow(QMainWindow):
         for name, text in zip(('statusDb', 'statusAdam'),('DB', 'ADAM')):
             lbl = QLabel(self, objectName=name, text=text)
             lbl.setFixedWidth(80)
-            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.statusBar().addWidget(lbl)
             setattr(self, name, lbl)
 
@@ -241,16 +243,33 @@ class MainWindow(QMainWindow):
     def _addMessageString(self):
         """добавление строки сообщений"""
         lbl = QLabel(self, objectName='statusMessage', text='...')
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl.setStyleSheet("#statusMessage { background-color: 'grey'; padding-left: 5px;}")
-        self.statusBar().addPermanentWidget(lbl, 1)
+        self.statusBar().addWidget(lbl, 1)
         setattr(self, 'statusMessage', lbl)
+
+    def _addValveIndicators(self):
+        """добавление индикаторов кранов"""
+        valves = ('vlvAir', 'vlvWater', 'vlvTest', 'vlvF1', 'vlvF2')
+        names = ('Вздх', 'Вода', 'Тест', 'Крн0', 'Крн1')
+        for name, text in zip(valves, names):
+            lbl = QLabel(self, objectName=name, text=text)
+            lbl.setFixedWidth(30)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.statusBar().addWidget(lbl)
+            setattr(self, name, lbl)
 
     def _addReloadConfig(self):
         btn = QToolButton(self, width=20, height=20)
         btn.clicked.connect(self.adam_manager.reloadConfig)
         self.statusBar().addPermanentWidget(btn, 1)
         setattr(self, 'btnReloadConfig', btn)
+
+    def _displayLabelState(self, label: QLabel, state: bool):
+        color = "'green'" if state else "'red'"
+        style = "#" + label.objectName() + "{ color: 'white'; background-color:" + color +";}"
+        label.setStyleSheet(style)
+
 
     def _registerEvents(self):
         """привязка событий элементов формы к обработчикам"""
@@ -373,7 +392,7 @@ class MainWindow(QMainWindow):
 #region     КОМБОБОКСЫ ->
     def _onChangedCombo_Producers(self, index):
         """выбор производителя"""
-        item = self.cmbProducer.itemData(index, Qt.UserRole)
+        item = self.cmbProducer.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор производителя -> {item['Name'] if item else 'None'}")
         if self._states['editing']['pump'] and item:
             # ↓ фильтрует типоразмеры для данного производителя
@@ -383,7 +402,7 @@ class MainWindow(QMainWindow):
 
     def _onChangedCombo_Types(self, index):
         """выбор типоразмера"""
-        item = self.cmbType.itemData(index, Qt.UserRole)
+        item = self.cmbType.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор типоразмера -> {item['Name'] if item else 'None'}")
         if not item or not all(item.values()):
             return
@@ -404,7 +423,7 @@ class MainWindow(QMainWindow):
 
     def _onChangedCombo_Serials(self, index):
         """выбор заводского номера"""
-        item = self.cmbSerial.itemData(index, Qt.UserRole)
+        item = self.cmbSerial.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор заводского номера -> {item['Serial'] if item else 'None'}")
         # ↑ выбирает типоразмер для данного серийника
         if item and all(item.values()):
@@ -552,17 +571,20 @@ class MainWindow(QMainWindow):
         """нажата кнопка начала/остановки продувки"""
         logger.debug(self._onClicked_Purge.__doc__)
         state = self.btnPurge.isChecked()
-        self.pageTestControl.setEnabled(not state)
         if state:
-            self.radioFlow2.toggle()
+            self.radioModeO.toggle()
+        self.test_manager.switchTestMode(TestMode.PURGE)
+        if self.test_manager.testMode == TestMode.PURGE:
             self.progressPurge.show()
             self.progressPurge.start()
             self.pageTestControl.setToolTip("Заблокировано во время продувки")
+            self.pageTestControl.setEnabled(False)
             self.statusMessage.setText("Идёт продувка ... ")
         else:
             self.progressPurge.hide()
             self.progressPurge.stop()
             self.pageTestControl.setToolTip("")
+            self.pageTestControl.setEnabled(True)
             self.statusMessage.setText("...")
 
     def _onTick_Purge(self):
@@ -575,6 +597,10 @@ class MainWindow(QMainWindow):
         """приход данных от ADAM5000TCP"""
         self.test_manager.updateSensors(adam_data)
         self._bindings['sens'].toWidgets()
+        labels = (self.vlvAir, self.vlvWater, self.vlvTest, self.vlvF1, self.vlvF2)
+        keys = (CN.VLV_AIR, CN.VLV_WTR, CN.VLV_TST, CN.VLV_12, CN.VLV_2)
+        for label, key in zip(labels, keys):
+            self._displayLabelState(label, adam_data[key])
 
     def _onToggled_Flowmeter(self, state: bool):
         """изменение текущего расходомера"""
@@ -647,7 +673,7 @@ class MainWindow(QMainWindow):
         """вывод протокола на печать"""
         logger.debug(self._printInfo.__doc__)
         if self._report:
-            self._report.print(self, self._testdata)
+            self._report.print(self._testdata)
 
     def _deleteInfo(self):
         """запрос на удаление текущей записи"""

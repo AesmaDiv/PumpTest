@@ -4,10 +4,10 @@
 """
 from loguru import logger
 
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtGui import QPainter, QPainterPath, QPen, QColor, QBrush
-from PyQt5.QtGui import QFont, QFontMetricsF, QTransform
-from PyQt5.QtCore import QPointF, Qt, QRectF, QSizeF
+from PyQt6.QtWidgets import QWidget
+from PyQt6.QtGui import QPainter, QPainterPath, QPen, QColor, QBrush
+from PyQt6.QtGui import QFont, QFontMetricsF, QTransform
+from PyQt6.QtCore import QPointF, Qt, QRectF, QSizeF
 
 from AesmaLib.GraphWidget.axis import Axis
 from AesmaLib.GraphWidget.chart import Chart
@@ -89,7 +89,7 @@ class Graph(QWidget):
         logger.debug(f"{self.paintEvent.__doc__} -> begin *************")
         painter = QPainter()
         painter.begin(self)
-        painter.setRenderHints(QPainter.Antialiasing, True)
+        painter.setRenderHints(QPainter.RenderHint.Antialiasing, True)
         self._drawGrid(painter)
         self._drawCharts(painter)
         self._drawBorder(painter)
@@ -130,7 +130,7 @@ class Graph(QWidget):
         axis: Axis = self._charts[self._base_chart].getAxis('x')
         condition = lambda x, y: x == 0 or x == self._divs_x or y == 0
         for i, div in axis.generateDivSteps():
-            self._style['grid']['pen'].setStyle(Qt.SolidLine if condition(i, div) else Qt.DotLine)
+            self._style['grid']['pen'].setStyle(Qt.PenStyle.SolidLine if condition(i, div) else Qt.PenStyle.DotLine)
             coord = i * step + self._margins[0]
             painter.setPen(self._style['grid']['pen'])
             painter.drawLine(QPointF(coord,
@@ -144,9 +144,9 @@ class Graph(QWidget):
         axis: Axis = self._charts[self._base_chart].getAxis('y')
         for i, div in axis.generateDivSteps():
             if i == 0 or i == self._divs_y or div == 0.0:
-                self._style['grid']['pen'].setStyle(Qt.SolidLine)
+                self._style['grid']['pen'].setStyle(Qt.PenStyle.SolidLine)
             else:
-                self._style['grid']['pen'].setStyle(Qt.DotLine)
+                self._style['grid']['pen'].setStyle(Qt.PenStyle.DotLine)
             coord = (self._divs_y - i) * step + self._margins[1]
             painter.setPen(self._style['grid']['pen'])
             painter.drawLine(QPointF(self._margins[0],

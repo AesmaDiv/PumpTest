@@ -2,8 +2,8 @@
     Кастомный прогрессбар для продувки
 """
 
-from PyQt5.QtCore import QTimer, pyqtSignal
-from PyQt5.QtWidgets import QProgressBar
+from PyQt6.QtCore import QTimer, pyqtSignal
+from PyQt6.QtWidgets import QProgressBar
 
 
 class PurgeProgress(QProgressBar):

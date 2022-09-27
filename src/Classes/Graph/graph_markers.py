@@ -3,10 +3,10 @@
 from operator import itemgetter
 from loguru import logger
 
-from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QEvent, QPointF, QLineF, QRectF, pyqtSignal
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QFrame
+from PyQt6 import QtGui
+from PyQt6.QtCore import Qt, QEvent, QPointF, QLineF, QRectF, pyqtSignal
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QFrame
 
 from Classes.Graph.pump_graph import PumpGraph
 
@@ -25,7 +25,7 @@ class Markers(QFrame):
             "max": 0,
             "num": 10,
             "cur": 10,
-            "pen": QtGui.QPen(Qt.yellow, 2)
+            "pen": QtGui.QPen(Qt.GlobalColor.yellow, 2)
         }
         self._names: list = names
         self._markers: dict = {}
@@ -35,7 +35,7 @@ class Markers(QFrame):
 
     def eventFilter(self, obj: QFrame, event_):
         """фильтр событий"""
-        if event_.type() == QEvent.Paint:
+        if event_.type() == QEvent.Type.Paint:
             if obj == self._area:
                 painter = QtGui.QPainter()
                 painter.begin(obj)
@@ -44,7 +44,7 @@ class Markers(QFrame):
                 self._drawKnots(painter)
                 painter.end()
             return True
-        if event_.type() == QEvent.MouseMove:
+        if event_.type() == QEvent.Type.MouseMove:
             if obj == self._area:
                 # funcsTemporary.process_move_marker(obj, e)
                 pass
@@ -145,8 +145,8 @@ class Markers(QFrame):
     def _initArea(self):
         self._area.installEventFilter(self)
         self._area.setGeometry(1, 1, 10, 10)
-        self._area.setFrameShape(QFrame.StyledPanel)
-        self._area.setFrameShadow(QFrame.Raised)
+        self._area.setFrameShape(QFrame.Shape.StyledPanel)
+        self._area.setFrameShadow(QFrame.Shadow.Raised)
         self._area.setStyleSheet(
             "QFrame {"
             "border: 1px solid red;"
@@ -163,7 +163,7 @@ class Markers(QFrame):
         self._markers.update({
             name: {
                 'pos': QPointF(5.0, 5.0),
-                'color': Qt.yellow,
+                'color': Qt.GlobalColor.yellow,
                 'knots': []
             }
         })

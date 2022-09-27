@@ -3,9 +3,9 @@
 """
 from loguru import logger
 
-from PyQt5.QtWidgets import QGroupBox, QWidget, QToolButton, QPushButton
-from PyQt5.QtWidgets import QLineEdit, QComboBox, QTextEdit, QTableView
-from PyQt5.QtCore import QRegExp
+from PyQt6.QtWidgets import QGroupBox, QWidget, QToolButton, QPushButton
+from PyQt6.QtWidgets import QLineEdit, QComboBox, QTextEdit, QTableView
+from PyQt6.QtCore import QRegularExpression
 
 from AesmaLib.message import Message
 
@@ -16,7 +16,7 @@ def groupDisplay(group: QGroupBox, record):
     for name, value in record.items():
         if name in ('ID', 'Type', 'Producer'):
             continue
-        item = group.findChildren(QWidget, QRegExp(name))
+        item = group.findChildren(QWidget, QRegularExpression(name))
         if item:
             if isinstance(item[0], QLineEdit | QTextEdit):
                 item[0].setText(str(value))
@@ -63,7 +63,7 @@ def groupSave(group: QGroupBox, record, keep_id=False):
     if not keep_id:
         record['ID'] = None
     for name in record.keys():
-        widget = group.findChildren(QWidget, QRegExp(name))
+        widget = group.findChildren(QWidget, QRegularExpression(name))
         if widget:
             if isinstance(widget[0], QLineEdit):
                 record[name] = int(widget[0].text()) \

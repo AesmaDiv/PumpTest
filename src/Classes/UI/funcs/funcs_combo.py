@@ -1,7 +1,7 @@
 """
     Модуль содержит функции для работы с комбобоксами главного окна
 """
-from PyQt5.QtWidgets import QComboBox
+from PyQt6.QtWidgets import QComboBox
 
 from Classes.UI.models import ComboItemModel
 from Classes.Data.db_tables import (Customer, Producer, Type, Pump, Owner,

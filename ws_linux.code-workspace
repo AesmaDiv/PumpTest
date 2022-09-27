@@ -7,7 +7,6 @@
 	"launch": {
 		"version": "0.2.0",
 		"configurations": [
-		
 			{
 				"name": "Python: Текущий файл",
 				"type": "python",
@@ -18,6 +17,6 @@
 		]
 	},
 	"settings": {
-    	"python.pythonPath": "/home/aesma/Junk/lenv.3.10/bin/python",
+    	"python.pythonPath": "./_venv/bin/python",
 	}
 }

@@ -3,9 +3,9 @@
     характеристик ЭЦН"""
 from loguru import logger
 
-from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QFontMetricsF
-from PyQt5.QtGui import QTransform, QPixmap, QPolygonF, QPainterPath
-from PyQt5.QtCore import QPointF, Qt, QSize
+from PyQt6.QtGui import QPainter, QPen, QColor, QBrush, QFont, QFontMetricsF
+from PyQt6.QtGui import QTransform, QPixmap, QPolygonF, QPainterPath
+from PyQt6.QtCore import QPointF, Qt, QSize
 
 from AesmaLib.GraphWidget.chart import ChartOptions
 from AesmaLib.GraphWidget.graph import Graph
@@ -14,7 +14,7 @@ from AesmaLib.GraphWidget.graph import Axis
 
 
 IS_LOGGED = True
-LIMIT_PEN = QPen(QColor(200, 200, 0, 40), 1, Qt.SolidLine)
+LIMIT_PEN = QPen(QColor(200, 200, 0, 40), 1, Qt.PenStyle.SolidLine)
 
 class PumpGraph(Graph):
     """класс компонента графика характеристик ЭЦН"""
@@ -136,8 +136,8 @@ class PumpGraph(Graph):
         # logger.debug(f"{self._drawGridLines.__doc__} {name}")
         divs = self._grid_divs[name].divs
         for i in range(1, len(divs)):
-            self._style['grid']['pen'].setStyle(Qt.SolidLine if divs[i] == 0
-                else Qt.DotLine)
+            self._style['grid']['pen'].setStyle(Qt.PenStyle.SolidLine if divs[i] == 0
+                else Qt.PenStyle.DotLine)
             if name == 'x0':
                 coord = i * step + self._margins[0]
                 p_0 = QPointF(coord, self._margins[1])
@@ -176,7 +176,7 @@ class PumpGraph(Graph):
             text = str(divs[i])
             offset_x = 0.0
             if axis_name == 'y0':
-                offset_x = self._margins[0] - f_m.width(text) - 10
+                offset_x = self._margins[0] - f_m.tightBoundingRect(text).width() - 10
             elif axis_name == 'y1':
                 offset_x = self._margins[0] + self.getDrawArea().width() + 10
                 painter.setPen(self._charts['etl_pwr'].pen)
@@ -195,7 +195,7 @@ class PumpGraph(Graph):
 
         text = 'Расход, м³/сутки'
         offset_x = self._margins[0] + self.getDrawArea().width() / 2
-        offset_x -= f_m.width(text) / 2
+        offset_x -= f_m.tightBoundingRect(text).width() / 2
         offset_y = self.height() - self._margins[3] + f_m.height()
         offset_y += 20
         painter.setPen(self._style['grid']['border'])
@@ -217,11 +217,11 @@ class PumpGraph(Graph):
         self._drawLabel(painter, f_m, offset_x, text)
         painter.setPen(pen)
 
-    def _drawLabel(self, painter: QPainter, font_metrics, offset_x, text):
+    def _drawLabel(self, painter: QPainter, font_metrics: QFontMetricsF, offset_x, text):
         """отображение подписи оси"""
         painter.rotate(-90)
         offset_y = -self._margins[1] - self.getDrawArea().height() / 2
-        offset_y -= font_metrics.width(text) / 2
+        offset_y -= font_metrics.tightBoundingRect(text).width() / 2
         painter.drawText(QPointF(offset_y, offset_x + 45), text)
         painter.rotate(90)
 
@@ -237,9 +237,9 @@ class PumpGraph(Graph):
 
     def _drawChartsLimits(self, painter: QPainter):
         """отрисовка пределов допуска для всех кривых"""
-        for chart, data in self._charts_data.items():
+        for _, data in self._charts_data.items():
             if data['limits'].size:
-                self._drawLimitPolygon(painter, chart, data['limits'])
+                self._drawLimitPolygon(painter, data['limits'])
 
     def _drawChartsKnotsAndCurves(self, painter: QPainter):
         """отрисовка узлов и кривых"""
@@ -279,9 +279,8 @@ class PumpGraph(Graph):
             painter.drawEllipse(QPointF(point[0], point[1]), 2, 2)
 
     @staticmethod
-    def _drawLimitPolygon(painter: QPainter, chart, points):
+    def _drawLimitPolygon(painter: QPainter, points):
         """отрисовка полигона для области допуска"""
-        # logger.debug(f"{PumpGraph._drawLimitPolygon.__doc__} {chart.name}")
         if not points.size:
             return
         old_pen = painter.pen()
@@ -291,7 +290,7 @@ class PumpGraph(Graph):
             polygon.append(QPointF(point[0], point[1]))
         painter.setPen(LIMIT_PEN)
         painter.setBrush(LIMIT_PEN.color())
-        painter.drawPolygon(polygon, Qt.OddEvenFill)
+        painter.drawPolygon(polygon, Qt.FillRule.OddEvenFill)
         painter.setBrush(old_brush)
         painter.setPen(old_pen)
 
@@ -425,7 +424,7 @@ class Divisions:
     def updateWidth(self, text: str, font_metrics: QFontMetricsF):
         """обновление ширины"""
         # rect = font_metrics.boundingRect(text)
-        size = font_metrics.size(Qt.TextSingleLine, text)
+        size = font_metrics.size(0x0100, text)
         width = size.width()
         if width > self.width:
             self.width = round(width) + 0

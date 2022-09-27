@@ -1,8 +1,8 @@
 """
     Модуль содержит функции диалоговых окон"""
 import hashlib
-from PyQt5.QtWidgets import QLineEdit, QMessageBox, QInputDialog
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QLineEdit, QMessageBox, QInputDialog
+from PyQt6.QtCore import Qt
 
 class Message:
     """Класс вывода диалоговых окон"""

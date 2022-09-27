@@ -1,9 +1,6 @@
 """
     Модуль содержит функции для процесса испытания
 """
-from asyncio import run
-from tokenize import group
-
 from Classes.UI.funcs import funcs_table
 from Classes.UI.funcs.funcs_aux import parseFloat, calculateEff
 

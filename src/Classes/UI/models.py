@@ -2,10 +2,9 @@
     Модуль содержит классы моделей для таблиц и комбобоксов,
     которые описывают механизм отображения элементов
 """
-from PyQt5.QtCore import Qt, QAbstractTableModel
-from PyQt5.QtCore import QSortFilterProxyModel, QVariant
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.Qt import QModelIndex
+from PyQt6.QtCore import Qt, QAbstractTableModel
+from PyQt6.QtCore import QSortFilterProxyModel, QVariant, QModelIndex
+from PyQt6.QtGui import QStandardItemModel, QStandardItem
 
 
 class TemplateTableModel(QAbstractTableModel):
@@ -56,36 +55,36 @@ class ListModel(TemplateTableModel):
         """имплементация метода суперкласса (данные)"""
         return self._data
 
-    def data(self, index: QModelIndex, role=Qt.DisplayRole) -> QVariant:
+    def data(self, index: QModelIndex, role=Qt.ItemDataRole.DisplayRole) -> QVariant:
         """возвращает отображаемое значение"""
         if not index.isValid():
             return QVariant()
         row, col = index.row(), index.column()
         data = self._data[row]
-        if role == Qt.UserRole:
+        if role == Qt.ItemDataRole.UserRole:
             return QVariant(data)
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             key = self._display[col]
             return data[key] if key in data.keys() else QVariant()
         return QVariant()
 
-    def headerData(self, column: int, orientation, role=Qt.DisplayRole) -> QVariant:
+    def headerData(self, column: int, orientation, role=Qt.ItemDataRole.DisplayRole) -> QVariant:
         """возвращает заголовок"""
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             return QVariant(self._headers[column])
         return QVariant()
 
-    def getRowContains(self, column: int, value, role=Qt.DisplayRole) -> QModelIndex:
+    def getRowContains(self, column: int, value, role=Qt.ItemDataRole.DisplayRole) -> QModelIndex:
         """возвращает строку содержащую значение"""
         matches = self.match(self.index(0, column), role, value, -1,
-                             flags=Qt.MatchContains | Qt.MatchRecursive)
+                             flags=Qt.MatchFlag.MatchContains | Qt.MatchFlag.MatchRecursive)
         return  matches[0] if matches else None
 
-    def findContains(self, value, role=Qt.DisplayRole):
+    def findContains(self, value, role=Qt.ItemDataRole.DisplayRole):
         """возвращает список строк содержащих значение"""
         matches = self.match(self.index(0, 0), role, value, -1,
                              flags=Qt.MatchContains | Qt.MatchRecursive)
-        return [index.data(Qt.UserRole) for index in matches] if matches else []
+        return [index.data(Qt.ItemDataRole.UserRole) for index in matches] if matches else []
 
 
 class FilterModel(QSortFilterProxyModel):
@@ -127,7 +126,7 @@ class FilterModel(QSortFilterProxyModel):
             index = self.sourceModel().index(source_row, i, source_parent)
             if not index.isValid():
                 continue
-            data = str(index.data(Qt.DisplayRole))
+            data = str(index.data(Qt.ItemDataRole.DisplayRole))
             result &= fltr in data if data else True
         return result
 
@@ -138,7 +137,7 @@ class FilterModel(QSortFilterProxyModel):
         # я не знаю как избавиться от вложенных условий и не потерять читабельность кода
         if source_row:  # фильтровать все поля кроме нулевого
             index = self.sourceModel().index(source_row, 0, source_parent)
-            data = index.data(Qt.UserRole)
+            data = index.data(Qt.ItemDataRole.UserRole)
             if data:
                 for key, value in self._conditions.items():
                     if key in data.keys():
@@ -177,12 +176,12 @@ class ComboItemModel(FilterModel):
         """создаёт элемент-строку для комбобокса"""
         result = QStandardItem()
         result.setText(data[self._display] if self._display in data else 'Error')
-        result.setData(data, Qt.UserRole)
+        result.setData(data, Qt.ItemDataRole.UserRole)
         return result
 
     def findIndex(self, value) -> int:
         """возвращает индекс элемента содержащего значение"""
-        items = self._model.findItems('', Qt.MatchContains)
+        items = self._model.findItems('', Qt.MatchFlag.MatchContains)
         if not items:
             return 0
         # функция поиска если value - словарь
@@ -194,7 +193,7 @@ class ComboItemModel(FilterModel):
         else:
             func = lambda data: value in data.values()
         return next((index for index, item in enumerate(items) \
-                        if func(item.data(Qt.UserRole))), 0)
+                        if func(item.data(Qt.ItemDataRole.UserRole))), 0)
 
     def getItem(self, index=-1) -> QStandardItem:
         """возвращает элемент по индексу"""

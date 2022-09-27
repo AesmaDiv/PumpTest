@@ -10,12 +10,12 @@ import faulthandler
 from pathlib import Path
 from loguru import logger
 
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 
 from Classes.Graph.graph_manager import GraphManager
 from Classes.UI.wnd_main import MainWindow
 from Classes.UI.wnd_type import TypeWindow
-from Classes.UI.test_manager import TestManager
+from Classes.Test.test_manager import TestManager
 from Classes.Data.db_manager import DataManager
 from Classes.Data.record import TestData
 from Classes.Data.report import Report
@@ -47,7 +47,7 @@ class App(QApplication):
         self._tdt = TestData()
         self._dbm = DataManager(PATHS['DB'])
         self._gfm = GraphManager(self._tdt)
-        self._tst = TestManager(self._adam)
+        self._tst = TestManager(self._adam, self._wnd_main.displayMessage)
         self._report = Report(PATHS['TEMPLATE'], self._gfm, self._dbm)
 
     def run(self):
@@ -63,7 +63,7 @@ class App(QApplication):
         self._wnd_main.onTypeChangeRequest.connect(self._onTypeChangeRequest)
         if self._wnd_main.show():
             self._wnd_main.initConnections()
-            self.exec_()
+            self.exec()
 
     def _onTypeChangeRequest(self, data: dict):
         self._wnd_type.showDialog(data)

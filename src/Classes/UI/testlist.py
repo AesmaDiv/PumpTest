@@ -1,9 +1,9 @@
 """
     Модуль содержит класс списка тестов
 """
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
-from PyQt5.QtWidgets import QHeaderView, QMenu
-from PyQt5.QtGui import QCursor
+from PyQt6.QtCore import pyqtSignal, QObject, Qt
+from PyQt6.QtWidgets import QHeaderView, QMenu
+from PyQt6.QtGui import QCursor
 
 from Classes.UI.funcs import funcs_table
 
@@ -26,8 +26,8 @@ class TestList(QObject):
         tests_display = ['ID', 'DateTime', 'OrderNum', 'Serial']
         tests_headers = ['№', 'Дата-Время', 'Наряд-Заказ', 'Заводской номер']
         tests_headers_sizes = [50, 150, 200, 200]
-        tests_resizes = [QHeaderView.Fixed, QHeaderView.Fixed,
-                        QHeaderView.Stretch, QHeaderView.Stretch]
+        tests_resizes = [QHeaderView.ResizeMode.Fixed, QHeaderView.ResizeMode.Fixed,
+                        QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.Stretch]
         tests_data = None
         wnd.tests_filter = funcs_table.models.FilterModel(wnd)
         wnd.tests_filter.setDynamicSortFilter(True)
@@ -42,7 +42,7 @@ class TestList(QObject):
                 headers_resizes=tests_resizes
             )
         )
-        self._table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self._table.selectionModel().currentChanged.connect(self._onSelectionChanged)
         self._table.customContextMenuRequested.connect(self._onMenuSelected)
 
@@ -93,5 +93,5 @@ class TestList(QObject):
             menu.addAction("Распечатать"): "print",
             menu.addAction("Удалить"): "delete",
             menu.addAction("Переписать"): "update"
-        }.get(menu.exec_(QCursor.pos()), "")
+        }.get(menu.exec(QCursor.pos()), "")
         self._signalMenu.emit(action)

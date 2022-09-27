@@ -6,7 +6,7 @@ from Classes.Adam.adam_5k import SlotType, Param
 from Classes.Adam.adam_names import ChannelNames
 
 
-IP              = '10.10.10.11'
+IP              = '10.10.10.10'
 PORT            = 502
 ADDRESS         = 1
 

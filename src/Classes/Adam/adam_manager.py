@@ -1,10 +1,10 @@
 """
     Модуль содержит классы для работы с Advantech ADAM 5000 TCP"""
+import asyncio
 from importlib import reload
-from asyncio import run
 from loguru import logger
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt6.QtCore import pyqtSignal, QObject
 
 from Classes.Adam.adam_5k import Adam5K, Param, SlotType
 from Classes.Adam import adam_config as config
@@ -36,7 +36,10 @@ class AdamManager(QObject):
 
     def setSensors(self, sensor_names: list):
         """определение имён опрашиваемых каналов"""
-        self._sensors = {name: [0.0] * self._probes for name in sensor_names}
+        self._sensors = {
+            name: [0.0] * self._probes if name in config.COEFS
+                else False for name in sensor_names
+        }
 
     def reloadConfig(self):
         self._adam.pause()
@@ -50,7 +53,7 @@ class AdamManager(QObject):
 
     def setPollingState(self, state: bool, interval=1):
         """вкл/выкл опрос устройства"""
-        return run(self.setPollingStateAsync(state, interval))
+        return AdamManager.__create_task(self.setPollingStateAsync(state, interval))
 
     async def setPollingStateAsync(self, state: bool, interval=1):
         """вкл/выкл опрос устройства (ассинхронная)"""
@@ -63,11 +66,11 @@ class AdamManager(QObject):
 
     def setValue(self, param: Param, value: int) -> bool:
         """установка значения для канала"""
-        return run(self.setValueAsync(param, value))
+        return AdamManager.__create_task(self.setValueAsync(param, value))
 
     def getValue(self, param: Param):
         """получение значения из канала"""
-        return run(self.getValueAsync(param))
+        return AdamManager.__create_task(self.getValueAsync(param))
 
     async def setValueAsync(self, param: Param, value: int) -> bool:
         """установка значения для канала (ассинхронная)"""
@@ -110,11 +113,26 @@ class AdamManager(QObject):
                 continue
             param = config.PARAMS[key]
             value = self._adam.getValue(param.slot_type, param.slot, param.channel)
-            value = param.val_rng * (value - param.offset) / param.dig_max
             if key in config.COEFS:
+                value = param.val_rng * (value - param.offset) / param.dig_max
                 value *= config.COEFS[key]
-            self._sensors[key].pop(0)
-            self._sensors[key].append(round(value, 2))
+                self._sensors[key].pop(0)
+                self._sensors[key].append(round(value, 2))
+            else:
+                self._sensors[key] = value
 
     def __createEventArgs(self):
-        return {key: sum(vals)/len(vals) for key, vals in self._sensors.items()}
+        return {
+            key: sum(vals)/len(vals) if key in config.COEFS
+                else vals for key, vals in self._sensors.items()
+        }
+
+    @staticmethod
+    def __create_task(task):
+        # try:
+        #     loop = asyncio.new_event_loop()
+        #     asyncio.set_event_loop(loop)
+        #     return asyncio.create_task(task)
+        # except RuntimeError as err:
+        #     print("Async error:", err)
+        return asyncio.run(task)

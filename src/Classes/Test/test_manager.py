@@ -1,6 +1,5 @@
-from dataclasses import dataclass
-from loguru import logger
 from enum import Enum, auto
+from loguru import logger
 
 from Classes.Adam.adam_manager import AdamManager
 from Classes.Adam.adam_config import PARAMS
@@ -24,10 +23,13 @@ class Flowmeter(Enum):
 
 class TestManager:
     """Менеджер управления процессом испытания"""
-    SENSORS = (CN.FLW_0, CN.FLW_1, CN.FLW_2, CN.PSI_IN, CN.PSI_OUT, CN.RPM, CN.TORQUE)
+    SENSORS = (CN.FLW_0, CN.FLW_1, CN.FLW_2, CN.PSI_IN, CN.PSI_OUT, CN.RPM, CN.TORQUE,
+               CN.VLV_2, CN.VLV_12,CN.VLV_WTR,CN.VLV_AIR,CN.VLV_TST)
 
-    def __init__(self, adam_manager: AdamManager):
+
+    def __init__(self, adam_manager: AdamManager, callback=None):
         self._adam: AdamManager = adam_manager
+        self._callback = callback
         self._is_running = False
         self._points_num = 10
         self._active_flw = CN.FLW_2
@@ -55,6 +57,11 @@ class TestManager:
     def sensors(self):
         """показания датчиков"""
         return self._sensors
+
+    @property
+    def testMode(self):
+        """текущий режим"""
+        return self._testmode
 
     def switchConnection(self, state):
         """управление подключением к ADAM"""
@@ -158,32 +165,27 @@ class TestManager:
     def setFlowmeter_05(self):
         """переключение на 1/2 дюймовый расходомер"""
         logger.debug(self.setFlowmeter_05.__doc__)
-        # self._active_flw = CN.FLW_0
-        # self._adam.setValue(PARAMS[CN.VLV_2], True)
-        # self._adam.setValue(PARAMS[CN.VLV_12], True)
-        self._setFlowmeter({'flw': CN.FLW_0, 'vlv1': True, 'vlv2': True})
+        self._setFlowmeter(vlv1=True, vlv2=True)
 
     def setFlowmeter_1(self):
         """переключение на 1 дюймовый расходомер"""
         logger.debug(self.setFlowmeter_1.__doc__)
-        # self._active_flw = CN.FLW_1
-        # self._adam.setValue(PARAMS[CN.VLV_2], True)
-        # self._adam.setValue(PARAMS[CN.VLV_12], False)
-        self._setFlowmeter({'flw': CN.FLW_1, 'vlv1': False, 'vlv2': True})
+        self._setFlowmeter(vlv1=False, vlv2=True)
 
     def setFlowmeter_2(self):
         """переключение на 2 дюймовый расходомер"""
         logger.debug(self.setFlowmeter_2.__doc__)
-        # self._active_flw = CN.FLW_2
-        # self._adam.setValue(PARAMS[CN.VLV_2], False)
-        # self._adam.setValue(PARAMS[CN.VLV_12], False)
-        self._setFlowmeter({'flw': CN.FLW_2, 'vlv1': False, 'vlv2': False})
+        self._setFlowmeter(vlv1=False, vlv2=False)
 
-    def _setFlowmeter(self, params: dict):
+    def _setFlowmeter(self, vlv1: bool, vlv2: bool):
         """переключение расходомера"""
-        self._active_flw = params['flw']
-        self._adam.setValue(PARAMS[CN.VLV_2],  params['vlv2'])
-        self._adam.setValue(PARAMS[CN.VLV_12], params['vlv1'])
+        #                 кран1 кран2
+        # расходомер 0.5"   1     1
+        # расходомер   1"   0     1
+        # расходомер   2"   0     0
+        self._active_flw = CN.FLW_0 if vlv1 else CN.FLW_1 if vlv2 else CN.FLW_2
+        self._adam.setValue(PARAMS[CN.VLV_2],  vlv2)
+        self._adam.setValue(PARAMS[CN.VLV_12], vlv1)
 #endregion <- РАСХОДОМЕРЫ
 
 #region РЕЖИМЫ РАБОТЫ ->
@@ -195,33 +197,30 @@ class TestManager:
             TestMode.TEST: self._setMode_Test
         }[testmode]()
 
-    def switchPurge(self, state: bool) -> bool:
-        """вкл/выкл продувки"""
-        if state and self._is_running:
-            logger.error("Нельзя при работающем главном приводе")
-            return False
-        if not state and self._testmode != TestMode.PURGE:
-            logger.error("Стенд не в режиме продувки")
-            return False
-        self._setMode_Purge(state)
-        return True
-
-    def _setMode_Purge(self, state: bool):
+    def _setMode_Purge(self):
         """переключение в режим продувки"""
         logger.debug(self._setMode_Purge.__doc__)
-        if self._testmode != TestMode.IDLING:
-            self._setMode_Idling()
+        # если продувка уже включена - выключаем и выходим
+        if self._testmode == TestMode.PURGE:
+            self._adam.setValue(PARAMS[CN.VLV_AIR], False)
+            self._testmode = TestMode.IDLING
+            return
+        self._onEvent("Идёт переключение в режим продувки...")
         self._adam.setValue(PARAMS[CN.VLV_WTR], False)
         # ЗАДЕРЖКА
         pause(10)
-        self._adam.setValue(PARAMS[CN.VLV_AIR], state)
+        self._adam.setValue(PARAMS[CN.VLV_AIR], self._testmode != TestMode.PURGE)
+        self._onEvent(None)
         self._testmode = TestMode.PURGE
 
     def _setMode_Idling(self):
         """переключение в режим обкатки"""
         logger.debug(self._setMode_Idling.__doc__)
+        self._onEvent("Идёт переключение в режим обкатки...")
         self.setFlowmeter_2()
         self._adam.setValue(PARAMS[CN.VLV_TST], False)
+        pause(5)
+        self._onEvent(None)
         self._testmode = TestMode.IDLING
 
     def _setMode_Test(self):
@@ -230,7 +229,10 @@ class TestManager:
         if self._testmode == TestMode.PURGE:
             logger.error("Нельзя переключаться в режим тестирования при продувке")
             return
+        self._onEvent("Идёт переключение в режим теста...")
         self._adam.setValue(PARAMS[CN.VLV_TST], True)
+        pause(5)
+        self._onEvent(None)
         self._testmode = TestMode.TEST
 #endregion РЕЖИМЫ РАБОТЫ <-
 
@@ -244,6 +246,9 @@ class TestManager:
         self._adam.setValue(PARAMS[CN.VLV_WTR], True)
         # ЗАДЕРЖКА
         pause(1)
+        self._onEvent("Идёт заполнение водой...")
+        pause(10)
+        self._onEvent("ИДЁТ ИСПЫТАНИЕ...")
 
     def _getCalculatedVals(self, adam_data: dict):
         """получение расчётных значений """
@@ -253,4 +258,9 @@ class TestManager:
         pwr = calculatePower(adam_data[CN.TORQUE], rpm)
         flw, lft, pwr = applySpeedFactor(flw, lft, pwr, rpm)
         return flw, lft, pwr
+
+    def _onEvent(self, message):
+        """трансляция сообщения о событии"""
+        if self._callback:
+            self._callback(message)
 #endregion <- ПРОЧЕЕ

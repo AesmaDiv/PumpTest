@@ -8,10 +8,10 @@ from loguru import logger
 from jinja2 import FileSystemLoader, Environment
 from jinja2.exceptions import  UndefinedError, TemplateSyntaxError
 
-from PyQt5.QtGui import QPageSize
-from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtCore import QSize, QUrl, QObject
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtPrintSupport import QPrintDialog, QPrinter
+from PyQt6.QtCore import QSize, QUrl, QObject, QPoint, QMarginsF
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtGui import QPainter, QRegion, QPageLayout, QPageSize
 
 from Classes.Data.record import Record, Point, TestData
 from Classes.Graph.graph_manager import GraphManager, ChartType
@@ -22,12 +22,7 @@ from Classes.Data.db_tables import (Producer, Efficiency ,Type, Group, Material,
 
 class Report(QObject):
     """Класс протокола об испытании"""
-    _NAMES = {
-        "template_folder": "",
-        "template": "template.html",
-        "report": "report.pdf",
-        "image": "graph_image.jpg"
-    }
+    _PATH = {}
     _LIMITS = {
         'flw': (-15, 12),
         'lft': (-5, 5),
@@ -40,12 +35,15 @@ class Report(QObject):
 
     def __init__(self, template_folder, graph_manager: GraphManager, data_manager: DataManager):
         super().__init__()
-        Report._NAMES['template_folder'] = template_folder
-        self._webview = None
-        self._printer = None
+        Report._PATH = {
+          "root": template_folder,
+          "template": os.path.join(template_folder, "template.html"),
+          "report": os.path.join(template_folder, "report.pdf"),
+          "image": os.path.join(template_folder, "graph_image.jpg"),
+          "logo": os.path.join(template_folder, "logo.png"),
+        }
         self._graph_manager = graph_manager
         self._db_manager = data_manager
-        self._base_url = QUrl.fromLocalFile(template_folder + os.path.sep)
         self._template = self._loadTemplate()
 
     def show(self, window, testdata: TestData, webview=None):
@@ -54,54 +52,61 @@ class Report(QObject):
         context = Report._createContext(self._graph_manager, testdata)
         Report._showContext(window, context)
         if webview:
-            html = self._createWeb(self._template, self._graph_manager, context)
-            webview.setHtml(html, QUrl("file://"))
+            html = self._fillTemplate(self._template, self._graph_manager, context)
+            webview.setHtml(html, QUrl(f"file://{Report._PATH['root']}/"))
 
-    def print(self, parent, testdata: TestData):
-        """вывод на печать"""
-        logger.debug(self.print.__doc__)
-        if not self._printer:
-            self._initPrinter()
-        asyncio.run(self._print_async(parent, testdata))
-
-    async def _print_async(self, parent, testdata):
-        """вывод на печать (асинхронный метод)"""
-        html = await self._createHtml(testdata)
-        webview = QWebEngineView(parent=parent)
-        webview.show()
-        await Report._print(webview, html, self._printer)
-        Report._removeGraphImage()
-
-    def _initPrinter(self):
-        """инициализация представления и принтера при первом запросе"""
-        self._printer = QPrinter(QPrinter.ScreenResolution)
-        self._printer.setOutputFormat(QPrinter.NativeFormat)
-        self._printer.setPageMargins(12, 16, 12, 0, QPrinter.Millimeter)
-        self._printer.setPageSize(QPrinter.A4)
-
-    @staticmethod
-    async def _print(webview: QWebEngineView, html, printer):
-        """печать протокола испытания"""
-        webview.setZoomFactor(1)
-        # webview.setBaseSize(3508, 2480)
-        webview.setHtml(html, baseUrl=QUrl("file://"))
-        print("Report\t\t->диалог выбора принтера")
-        if QPrintDialog(printer).exec_():
-            print("Report\t\t->отправка протокола на печать")
-            page = webview.page()
-            page.print(printer, Report._onPrinted)
+    def print(self, testdata: TestData):
+        """вывод протокола на печать"""
+        async def print_async():
+            html = await self._createHtml(testdata)
+            protocol = await Report._buildProtocol(html)
+            printer = await Report._initPrinter()
+            if QPrintDialog(printer).exec():
+                await Report._printProtocol(protocol, printer)
+        asyncio.run(print_async())
 
     async def _createHtml(self, testdata):
         """генерирование протокола"""
         Report._addNamesForIDs(self._db_manager, testdata)
         context = Report._createContext(self._graph_manager, testdata)
-        result = Report._createWeb(self._template, self._graph_manager, context)
+        result = Report._fillTemplate(self._template, self._graph_manager, context)
         return result
 
     @staticmethod
-    def _createWeb(template, graph_manager: GraphManager, context: dict):
+    async def _buildProtocol(html):
+        """построение протокола"""
+        logger.debug(Report._buildProtocol.__doc__)
+        web = QWebEngineView()
+        web.setHtml(html, baseUrl=QUrl(f"file://{Report._PATH['root']}/"))
+        web.setZoomFactor(1)
+        web.showMaximized()
+        return web
+
+    @staticmethod
+    async def _initPrinter():
+        """инициализация принтера"""
+        logger.debug(Report._initPrinter.__doc__)
+        printer = QPrinter(mode=QPrinter.PrinterMode.ScreenResolution)
+        printer.setOutputFormat(QPrinter.OutputFormat.NativeFormat)
+        printer.setPageMargins(QMarginsF(12, 16, 12, 0), QPageLayout.Unit.Millimeter)
+        printer.setPageSize(QPageSize(QPageSize.PageSizeId.A3))
+        return printer
+
+    @staticmethod
+    async def _printProtocol(web, printer):
+        """отправка протокола в принтер"""
+        logger.debug(Report._printProtocol.__doc__)
+        painter = QPainter(printer)
+        web.render(
+            painter,
+            QPoint(0, 0),
+            web.childrenRegion())
+        painter.end()
+
+    @staticmethod
+    def _fillTemplate(template, graph_manager: GraphManager, context: dict):
         """генерирование HTML разметки протокола"""
-        logger.debug(Report._createWeb.__doc__)
+        logger.debug(Report._fillTemplate.__doc__)
         try:
             Report._createGraphImage(graph_manager)
             result = template.render(context)
@@ -114,9 +119,9 @@ class Report(QObject):
     def _loadTemplate():
         """загрузка html шаблона"""
         logger.debug(Report._loadTemplate.__doc__)
-        loader = FileSystemLoader(Report._NAMES['template_folder'])
+        loader = FileSystemLoader(Report._PATH["root"])
         jinja_env = Environment(loader=loader, autoescape=True)
-        result = jinja_env.get_template(Report._NAMES["template"])
+        result = jinja_env.get_template("template.html")
         return result
 
     @staticmethod
@@ -124,21 +129,10 @@ class Report(QObject):
         """сохранение графика испытания в jpg"""
         logger.debug(Report._createGraphImage.__doc__)
         img_size = QSize(794, 450)
-        path_to_img = os.path.join(Report._NAMES['template_folder'], Report._NAMES["image"])
+        path_to_img = os.path.join(Report._PATH["image"])
         graph_manager.switchPalette('report')
         graph_manager.renderToImage(img_size, path_to_img)
         graph_manager.switchPalette('application')
-
-    @staticmethod
-    def _removeGraphImage():
-        path_to_img = os.path.join(Report._NAMES['template_folder'], Report._NAMES["image"])
-        if os.path.exists(path_to_img):
-            os.remove(path_to_img)
-
-    @staticmethod
-    def _onPrinted(state: bool):
-        """callback вызова печати"""
-        print(f"Report\t\t->{'успех' if state else 'ошибка'}")
 
     @staticmethod
     def _createContext(graph_manager: GraphManager, testdata: TestData) -> dict:
@@ -160,7 +154,9 @@ class Report(QObject):
             "deltas": deltas,
             "vibration": vibration,
             "efficiency": efficiency,
-            "limits": Report._LIMITS
+            "limits": Report._LIMITS,
+            "path_to_logo": Report._PATH['logo'],
+            "path_to_graph": Report._PATH['image']
         }
         return result
 
@@ -542,3 +538,4 @@ class Report(QObject):
                 index = np.searchsorted(e1e2e3, [eff])[0]
                 result = (['-'] + class_names)[index]
         return result
+

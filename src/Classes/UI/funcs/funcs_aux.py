@@ -2,7 +2,7 @@
     Модуль вспомогательных функций
 """
 from time import time, sleep
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 from AesmaLib.message import Message
 
 
@@ -79,8 +79,8 @@ def askPassword():
 
 def pause(seconds: float):
     """задержка в секундах"""
-    print(f"PAUSE {seconds} seconds -> ...")
+    print(f"Пауза {seconds} секунд -> ...")
     for _ in range(seconds * 1000):
         QApplication.processEvents()
         sleep(0.001)
-    print(f"... -> UNPAUSE {seconds}")
+    print(f"... -> продолжение")

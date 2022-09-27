@@ -10,8 +10,8 @@ import numpy as np
 from loguru import logger
 from scipy.interpolate import make_interp_spline
 
-from PyQt5.QtGui import QPen, QColor
-from PyQt5.QtCore import Qt
+from PyQt6.QtGui import QPen, QColor
+from PyQt6.QtCore import Qt
 
 from AesmaLib.GraphWidget.axis import Axis
 
@@ -24,11 +24,11 @@ class ChartOptions(Flag):
 
 class ChartMeta:
     """Класс болванка для класса графика"""
-    def __init__(self, name: str = '', color: QColor = Qt.white,) -> None:
+    def __init__(self, name: str = '', color: QColor = QColor.fromRgb(255,255,255,255),) -> None:
         self.name = name
         self.visibility = True
         self._scale_coefs = (1.1, 1.1)
-        self._pen = QPen(color, 1, style=Qt.SolidLine)
+        self._pen = QPen(color, 1, style=Qt.PenStyle.SolidLine)
         self._axes = {}
 
     @property
@@ -63,7 +63,7 @@ class ChartMeta:
 class Chart(ChartMeta):
     """Класс кривой графика"""
     def __init__(self, points: list = None, name: str = '',
-                 color: QColor = Qt.white, options: ChartOptions = ChartOptions.Curve):
+                 color: QColor = Qt.GlobalColor.white, options: ChartOptions = ChartOptions.Curve):
         super().__init__(name=name, color=color)
         self._lim_coefs = (1, 1)
         self._options = options
