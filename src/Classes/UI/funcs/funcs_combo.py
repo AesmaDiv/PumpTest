@@ -18,7 +18,7 @@ def fillCombos_Pump(window, db_manager, initial=False):
     """инициализирует комбобоксы для насоса -->"""
     default_params = ('Name', ['ID', 'Name'])
     fillComboBox(window.cmbProducer, db_manager, Producer, *default_params)
-    fillComboBox(window.cmbType, db_manager, Type, 'Name', ['ID', 'Name', 'Producer'])
+    fillComboBox(window.cmbType, db_manager, Type, 'Name', ['ID', 'Name', 'Producer'], "Name")
     fillComboBox(window.cmbSerial, db_manager, Pump, 'Serial', ['ID', 'Serial', 'Type'])
     if initial:
         fillComboBox(window.cmbGroup, db_manager, Group, *default_params)
@@ -36,11 +36,12 @@ def fillCombos_Test(window, db_manager):
     fillComboBox(window.cmbSectionType, db_manager, SectionType, *default_params)
 
 
-def fillComboBox(combo, db_manager, table_class, display_key, keys):
+def fillComboBox(combo, db_manager, table_class, display_key, keys, sort_key=""):
     """инициализирует фильтр и заполняет комбобокс"""
     model = ComboItemModel(combo)
     setattr(model, 'TableClass', table_class)
-    data = db_manager.getListFor(table_class, keys)
+    unsorted = db_manager.getListFor(table_class, keys)
+    data = sorted(unsorted, key=lambda item: item[sort_key]) if sort_key else unsorted
     data.insert(0, {key: None for key in keys})
     model.fill(data, display_key)
     combo.setModel(model)

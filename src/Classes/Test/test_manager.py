@@ -16,7 +16,7 @@ class TestMode(Enum):
 
 class Flowmeter(Enum):
     """Расходомеры"""
-    FLW_05 = auto()
+    FLW_0 = auto()
     FLW_1 = auto()
     FLW_2 = auto()
 
@@ -24,7 +24,7 @@ class Flowmeter(Enum):
 class TestManager:
     """Менеджер управления процессом испытания"""
     SENSORS = (CN.FLW_0, CN.FLW_1, CN.FLW_2, CN.PSI_IN, CN.PSI_OUT, CN.RPM, CN.TORQUE,
-               CN.VLV_2, CN.VLV_12,CN.VLV_WTR,CN.VLV_AIR,CN.VLV_TST)
+               CN.VLV_2, CN.VLV_1,CN.VLV_WTR,CN.VLV_AIR,CN.VLV_TST)
 
 
     def __init__(self, adam_manager: AdamManager, callback=None):
@@ -80,10 +80,10 @@ class TestManager:
         self._adam.setValue(PARAMS[CN.VLV_WTR],     False)
         self._adam.setValue(PARAMS[CN.VLV_TST],     False)
         self._adam.setValue(PARAMS[CN.VLV_2],       False)
-        self._adam.setValue(PARAMS[CN.VLV_12],      False)
-        self._adam.setValue(PARAMS[CN.ROTATE],      False)
-        self._adam.setValue(PARAMS[CN.VLV_FLW],     0x0FFF)
-        self._adam.setValue(PARAMS[CN.SPEED],       0x0F84)
+        self._adam.setValue(PARAMS[CN.VLV_1],      False)
+        self._adam.setValue(PARAMS[CN.ROTATE],      True)
+        self._adam.setValue(PARAMS[CN.VLV_FLW],     0x0000)
+        self._adam.setValue(PARAMS[CN.SPEED],       0x0A7F)
         # ЗАДЕРЖКА
         pause(1)
         self._testmode = TestMode.IDLING
@@ -117,7 +117,7 @@ class TestManager:
         """обновление значений с датчиков"""
         flw, lft, pwr = self._getCalculatedVals(adam_data)
         self._sensors['RPM']    = round(adam_data[CN.RPM],0)
-        self._sensors['Torque'] = round(adam_data[CN.TORQUE],2)
+        self._sensors['Torque'] = abs(round(adam_data[CN.TORQUE],2))
         self._sensors['PsiIn']  = round(adam_data[CN.PSI_IN],2)
         self._sensors['PsiOut'] = round(adam_data[CN.PSI_OUT],2)
         self._sensors['Flow0']  = round(adam_data[CN.FLW_0],2)
@@ -133,8 +133,9 @@ class TestManager:
             'sliderSpeed': PARAMS[CN.SPEED],
             'sliderFlow': PARAMS[CN.VLV_FLW]
         }[name]
-        adam_value = int(slider_value * param.dig_max / param.val_rng)
-        self._adam.setValue(param, adam_value)
+        # пока управление сладйдерами напрямую - значение слайдера летит прямо в адам
+        # adam_value = int(slider_value * param.dig_max / param.val_rng)
+        self._adam.setValue(param, slider_value)
 
 #region ГЛАВНЫЙ ПРИВОД ->
     def _setEngineState(self, state: bool):
@@ -157,14 +158,14 @@ class TestManager:
     def switchFlowmeter(self, flowmeter: Flowmeter):
         """переключение активного расходомера"""
         {
-            Flowmeter.FLW_05: self.setFlowmeter_05,
+            Flowmeter.FLW_0: self.setFlowmeter_0,
             Flowmeter.FLW_1: self.setFlowmeter_1,
             Flowmeter.FLW_2: self.setFlowmeter_2
         }[flowmeter]()
 
-    def setFlowmeter_05(self):
+    def setFlowmeter_0(self):
         """переключение на 1/2 дюймовый расходомер"""
-        logger.debug(self.setFlowmeter_05.__doc__)
+        logger.debug(self.setFlowmeter_0.__doc__)
         self._setFlowmeter(vlv1=True, vlv2=True)
 
     def setFlowmeter_1(self):
@@ -185,7 +186,7 @@ class TestManager:
         # расходомер   2"   0     0
         self._active_flw = CN.FLW_0 if vlv1 else CN.FLW_1 if vlv2 else CN.FLW_2
         self._adam.setValue(PARAMS[CN.VLV_2],  vlv2)
-        self._adam.setValue(PARAMS[CN.VLV_12], vlv1)
+        self._adam.setValue(PARAMS[CN.VLV_1], vlv1)
 #endregion <- РАСХОДОМЕРЫ
 
 #region РЕЖИМЫ РАБОТЫ ->

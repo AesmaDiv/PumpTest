@@ -39,15 +39,22 @@ def groupClear(group: QGroupBox):
     group.repaint()
 
 
-def groupValidate(group: QGroupBox):
+def groupValidate(group: QGroupBox, names: list):
     """проверяет заполнение всех полей группы"""
     logger.debug(f"проверяет заполнение всех полей группы {group.objectName()}")
-    items = group.findChildren(QLineEdit) + group.findChildren(QComboBox)
-    empty_fields = [
-        item.toolTip() for item in items
-        if (item.objectName().startswith('txt') and not item.text()) or \
-        (item.objectName().startswith('cmb') and not item.currentText())
-    ]
+    # items = group.findChildren(QLineEdit) + group.findChildren(QComboBox)
+    # names = list(map(lambda i: i.objectName(), items))
+    # print(names)
+    empty_fields = []
+    for name in names:
+        if name.startswith('txt'):
+            widget: QLineEdit = group.findChild(QLineEdit, name)
+            if widget and not widget.text():
+                empty_fields.append(widget.toolTip())
+        if name.startswith('cmb'):
+            widget: QComboBox = group.findChild(QComboBox, name)
+            if widget and not widget.currentText():
+                empty_fields.append(widget.toolTip())
     if empty_fields:
         Message.show(
             "ВНИМАНИЕ",

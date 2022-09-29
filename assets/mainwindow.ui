@@ -40,6 +40,9 @@
 }
 QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
 	background-color: rgb(255, 255, 255);
+}
+QTextEdit, QLineEdit {
+	color: black;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -580,7 +583,7 @@ QTextEdit[readOnly=&quot;false&quot;],QLineEdit[readOnly=&quot;false&quot;] {
               </size>
              </property>
              <property name="text">
-              <string>Добавить</string>
+              <string>Изменить</string>
              </property>
             </widget>
             <widget class="QPushButton" name="btnPump_Save">
@@ -1368,7 +1371,7 @@ p, li { white-space: pre-wrap; }
              <enum>Qt::ClickFocus</enum>
             </property>
             <property name="toolTip">
-             <string>Месторождение</string>
+             <string>Дата сборки</string>
             </property>
             <property name="inputMethodHints">
              <set>Qt::ImhNone</set>
@@ -2352,7 +2355,7 @@ p, li { white-space: pre-wrap; }
         <number>4095</number>
        </property>
        <property name="value">
-        <number>4095</number>
+        <number>0</number>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -3396,8 +3399,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>96</width>
-          <height>26</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3659,10 +3662,10 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="maximum">
-          <number>3000</number>
+          <number>2783</number>
          </property>
          <property name="value">
-          <number>2910</number>
+          <number>2687</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

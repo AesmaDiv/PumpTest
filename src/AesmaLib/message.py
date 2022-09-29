@@ -1,7 +1,7 @@
 """
     Модуль содержит функции диалоговых окон"""
 import hashlib
-from PyQt6.QtWidgets import QLineEdit, QMessageBox, QInputDialog
+from PyQt6.QtWidgets import QMessageBox, QInputDialog
 from PyQt6.QtCore import Qt
 
 class Message:
@@ -17,8 +17,8 @@ class Message:
         """)
         msg.setWindowTitle(title)
         msg.setText(text)
-        is_ok = msg.addButton(accept, QMessageBox.AcceptRole)
-        msg.addButton(reject, QMessageBox.RejectRole)
+        is_ok = msg.addButton(accept, QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton(reject, QMessageBox.ButtonRole.RejectRole)
         msg.exec()
         return msg.clickedButton() == is_ok
 
@@ -33,9 +33,9 @@ class Message:
         """)
         msg.setWindowTitle(title)
         msg.setText(text)
-        msg.setTextInteractionFlags(Qt.TextEditable)
-        is_ok = msg.addButton(accept, QMessageBox.AcceptRole)
-        msg.addButton(reject, QMessageBox.RejectRole)
+        msg.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditable)
+        is_ok = msg.addButton(accept, QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton(reject, QMessageBox.ButtonRole.RejectRole)
         msg.exec()
         return msg.clickedButton() == is_ok
 
@@ -50,8 +50,8 @@ class Message:
         """)
         msg.setWindowTitle(title)
         msg.setText(text)
-        msg.setTextInteractionFlags(Qt.TextEditable)
-        buttons = [msg.addButton(name, QMessageBox.ActionRole) for name in choices]
+        msg.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditable)
+        buttons = [msg.addButton(name, QMessageBox.ButtonRole.ActionRole) for name in choices]
         msg.exec()
         return buttons.index(msg.clickedButton())
 
@@ -60,7 +60,7 @@ class Message:
         """вывод окна с полем ввода"""
         msg = QInputDialog()
         hash_func = hashlib.sha256()
-        hash_func.update(msg.getText(None, title, text, QLineEdit.Password)[0].encode('utf-8'))
+        hash_func.update(msg.getText(None, title, text, inputMethodHints=Qt.InputMethodHint.ImhHiddenText)[0].encode('utf-8'))
         result = hash_func.digest()
         return result
 

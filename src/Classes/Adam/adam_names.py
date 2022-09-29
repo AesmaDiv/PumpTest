@@ -20,7 +20,7 @@ class ChannelNames(Enum):
     ROTATE = auto()
     SPEED = auto()
     VLV_2 = auto()
-    VLV_12 = auto()
+    VLV_1 = auto()
     VLV_WTR = auto()
     VLV_AIR = auto()
     VLV_TST = auto()

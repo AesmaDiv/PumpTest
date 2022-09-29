@@ -52,7 +52,7 @@ class App(QApplication):
 
     def run(self):
         """запуск приложения"""
-        # self.setStyle('Fusion')
+        self.setStyle('Fusion')
         self._wnd_main.setTestData(self._tdt)
         self._wnd_main.setDataManager(self._dbm)
         self._wnd_type.setDataManager(self._dbm)

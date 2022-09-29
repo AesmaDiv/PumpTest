@@ -2,7 +2,6 @@
     Модуль содержит функции основного окна программы
 """
 import time
-from datetime import datetime
 from loguru import logger
 
 from PyQt6 import uic
@@ -28,7 +27,6 @@ from Classes.Data.report import Report
 from Classes.Graph.graph_manager import GraphManager
 
 from AesmaLib.message import Message
-
 
 class MainWindow(QMainWindow):
     """Класс описания функционала основного окна приложения"""
@@ -288,14 +286,14 @@ class MainWindow(QMainWindow):
         self.cmbSerial.currentIndexChanged.connect(self._onChangedCombo_Serials)
         self.cmbSerial.currentTextChanged.connect(self._onChangedCombo_SerialsText)
         #
-        self.btnPump_Edit.clicked.connect(self._onClickedInfo_Pump)
-        self.btnPump_Save.clicked.connect(self._onClickedInfo_Pump)
-        self.btnPump_Cancel.clicked.connect(self._onClickedInfo_Pump)
+        self.btnPump_Edit.clicked.connect(self._onClicked_InfoPump)
+        self.btnPump_Save.clicked.connect(self._onClicked_InfoPump)
+        self.btnPump_Cancel.clicked.connect(self._onClicked_InfoPump)
         #
-        self.btnTest_Edit.clicked.connect(self._onClickedInfo_Test)
-        self.btnTest_Save.clicked.connect(self._onClickedInfo_Test)
-        self.btnTest_Cancel.clicked.connect(self._onClickedInfo_Test)
-        self.btnTest_Order.clicked.connect(self._onClickedInfo_Test)
+        self.btnTest_Edit.clicked.connect(self._onClicked_InfoTest)
+        self.btnTest_Save.clicked.connect(self._onClicked_InfoTest)
+        self.btnTest_Cancel.clicked.connect(self._onClicked_InfoTest)
+        self.btnTest_Order.clicked.connect(self._onClicked_InfoTest)
         #
         self.btnGoTest.clicked.connect(self._onClicked_SwitchMode)
         self.btnGoInfo.clicked.connect(self._onClicked_SwitchMode)
@@ -394,11 +392,12 @@ class MainWindow(QMainWindow):
         """выбор производителя"""
         item = self.cmbProducer.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор производителя -> {item['Name'] if item else 'None'}")
-        if self._states['editing']['pump'] and item:
-            # ↓ фильтрует типоразмеры для данного производителя
-            self.cmbType.setCurrentIndex(0)
-            condition = {'Producer': item['ID']} if index else None
-            funcs_combo.filterByCondition(self.cmbType, condition)
+        # ↓ фильтрует типоразмеры для данного производителя
+        # if self._states['editing']['pump'] and item:
+        #     self._flags['producer'] = True
+        #     self.cmbType.setCurrentIndex(0)
+        #     condition = {'Producer': item['ID']} if index else None
+        #     funcs_combo.filterByCondition(self.cmbType, condition)
 
     def _onChangedCombo_Types(self, index):
         """выбор типоразмера"""
@@ -409,17 +408,14 @@ class MainWindow(QMainWindow):
         # ↑ выбирает производителя для данного типоразмера
         condition = {'ID': item['Producer']}
         funcs_combo.selectContains(self.cmbProducer, condition)
-        type_ = self._testdata.type_
         if self._states['editing']['pump']:
             # ↓ фильтрует серийники для данного типоразмера
-            condition = {'Type': item['ID']}
-            funcs_combo.filterByCondition(self.cmbSerial, condition)
+            # condition = {'Type': item['ID']}
+            # funcs_combo.filterByCondition(self.cmbSerial, condition)
             # читает и отображает данные об типоразмере
-            self._loadRecord(type_, item['ID'])
+            self._loadRecord(self._testdata.type_, item['ID'])
         self.graph_manager.displayCharts(self.frameGraphInfo)
-        self.lblPumpInfo.setText(
-            f"{self.cmbProducer.currentText()} : {self.cmbType.currentText()}"
-        )
+        self.lblPumpInfo.setText(f"{self.cmbProducer.currentText()} : {self.cmbType.currentText()}")
 
     def _onChangedCombo_Serials(self, index):
         """выбор заводского номера"""
@@ -440,18 +436,18 @@ class MainWindow(QMainWindow):
 #endregion      КОМБОБОКСЫ ->
 
 #region     ГРУППЫ ИНФОРМАЦИИ О НАСОСЕ И ИСПЫТАНИИ ->
-    def _onClickedInfo_Pump(self):
+    def _onClicked_InfoPump(self):
         """обработка нажания кнопки группы данных о насосе"""
-        logger.debug(self._onClickedInfo_Pump.__doc__)
+        logger.debug(self._onClicked_InfoPump.__doc__)
         {
             self.btnPump_Edit: self._editInfo_Pump,
             self.btnPump_Save: self._saveInfo_Pump,
             self.btnPump_Cancel: self._cancelInfo_Pump
         }[self.sender()]()
 
-    def _onClickedInfo_Test(self):
+    def _onClicked_InfoTest(self):
         """обработка нажания кнопки данных об испытании"""
-        logger.debug(self._onClickedInfo_Test.__doc__)
+        logger.debug(self._onClicked_InfoTest.__doc__)
         {
             self.btnTest_Edit: self._editInfo_Test,
             self.btnTest_Save: self._saveInfo_Test,
@@ -598,7 +594,7 @@ class MainWindow(QMainWindow):
         self.test_manager.updateSensors(adam_data)
         self._bindings['sens'].toWidgets()
         labels = (self.vlvAir, self.vlvWater, self.vlvTest, self.vlvF1, self.vlvF2)
-        keys = (CN.VLV_AIR, CN.VLV_WTR, CN.VLV_TST, CN.VLV_12, CN.VLV_2)
+        keys = (CN.VLV_AIR, CN.VLV_WTR, CN.VLV_TST, CN.VLV_1, CN.VLV_2)
         for label, key in zip(labels, keys):
             self._displayLabelState(label, adam_data[key])
 
@@ -608,7 +604,7 @@ class MainWindow(QMainWindow):
             return
         logger.debug(self._onToggled_Flowmeter.__doc__)
         {
-            self.radioFlow0: self.test_manager.setFlowmeter_05,
+            self.radioFlow0: self.test_manager.setFlowmeter_0,
             self.radioFlow1: self.test_manager.setFlowmeter_1,
             self.radioFlow2: self.test_manager.setFlowmeter_2
         }[self.sender()]()
@@ -618,7 +614,7 @@ class MainWindow(QMainWindow):
         if not state:
             return
         logger.debug(self._onToggled_Rotation.__doc__)
-        self.test_manager.setEngineRotation(self.sender() is self.radioRotationL)
+        self.test_manager.setEngineRotation(self.sender() is self.radioRotationR)
 
     def _onToggled_TestMode(self, state: bool):
         """изменение режима работы стенда"""
@@ -714,7 +710,7 @@ class MainWindow(QMainWindow):
         type_name = self.cmbType.currentText()
         if not funcs_info.checkExists_Type(self, type_name):
             producer_name = self.cmbProducer.currentText()
-            funcs_info.addNew_Type(type_name, producer_name)
+            funcs_info.addNew_Type(self, type_name, producer_name)
             return
         # проверка насоса по серийному номеру
         serial = self.cmbSerial.currentText()
@@ -751,7 +747,6 @@ class MainWindow(QMainWindow):
         logger.debug(self._editInfo_Test.__doc__)
         self._states['editing']['test'] = True
         self._states.update({'testId': self._testdata.test_.ID})
-        self.txtDateTime.setText(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         funcs_group.groupLock(self.groupTestInfo, False)
         funcs_group.groupLock(self.groupTestList, True)
         self.txtOrderNum.setEnabled(False)
@@ -761,12 +756,14 @@ class MainWindow(QMainWindow):
         logger.debug(self._saveInfo_Test.__doc__)
         # проверка номера наряд-заказа
         order_num = self.txtOrderNum.text()
-        test = funcs_info.findInfo_Test(self, order_num)
-        if test:
+        test, action = funcs_info.findInfo_Test(self, order_num)
+        if test and action == "select":
             self._testdata.test_.load(test)
             self._bindings['test'].toWidgets()
         # выполнение процедуры сохранения
-        elif not funcs_info.saveInfo_Test(self, self._bindings['test'], self._testdata.test_):
+        elif not funcs_info.saveInfo_Test(
+            self, self._bindings['test'], self._testdata.test_, action=="update"
+            ):
             return
         self._states['editing']['test'] = False
         self._testlist.refresh(self.db_manager)

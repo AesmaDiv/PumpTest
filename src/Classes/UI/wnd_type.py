@@ -32,7 +32,7 @@ class TypeWindow(QDialog):
             logger.error("Отсутствует привязка к менеджеру базы данных")
             return False
         self._prepareFields(data)
-        while self.exec_() == QDialog.Accepted:
+        while self.exec() == QDialog.DialogCode.Accepted:
             if self._checkAllFilled():
                 data = self._getFieldsData()
                 if self._checkFieldsData(data):

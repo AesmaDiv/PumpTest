@@ -1,7 +1,9 @@
 """
     Модуль содержит методы проверки и сохранения записей
 """
+from datetime import datetime
 from loguru import logger
+from Classes.UI.funcs import funcs_aux
 
 from Classes.UI.funcs.funcs_group import groupValidate
 from Classes.UI.bindings import Binding
@@ -44,56 +46,75 @@ def findInfo_Pump(wnd, serial: str, type_id: int) -> dict:
     return None
 
 
-def saveInfo_Pump(wnd, binding: Binding, pump_: Record) -> bool:
+def saveInfo_Pump(wnd, binding: Binding, pump_: Record, do_update: bool = False) -> bool:
     """сохранение данных о насосе"""
     logger.debug(saveInfo_Pump.__doc__)
-    result = False
-    if not groupValidate(wnd.groupPumpInfo):
-        logger.warning("Заполнены не все необходимые поля")
-        return result
+    # поля необходимые для заполнения
+    need_to_validate = [
+        'txtStages', 'txtLength', 'cmbConnection', 'cmbProducer',
+        'cmbGroup', 'cmbMaterial', 'cmbSize', 'cmbSerial', 'cmbType'
+    ]
+    if not groupValidate(wnd.groupPumpInfo, need_to_validate):
+        logger.warning("заполнены не все необходимые поля")
+        return False
     # сохраняем информацию о типоразмере
     type_data = wnd.cmbType.currentData()
-    if type_data:
+    if not type_data:
+        logger.warning("не удалось сохранить данные о насос")
+        return False
+    if not do_update:
         pump_.clear()
-        binding.toData()    # сохраняем значения из привязанных полей
-        data = dict(pump_.items())
-        data['Type'] = type_data['ID']
-        # записываем
-        result = wnd.db_manager.writeRecord(pump_.subclass, data)
-    logger.debug({
-        True: "данные о насосе успешно сохранены",
-        False: "не удалось сохранить данные о насосе"
-    }[result])
+    # сохраняем значения из привязанных полей
+    binding.toData()
+    data = dict(pump_.items())
+    data['Type'] = type_data['ID']
+    # записываем
+    result = wnd.db_manager.writeRecord(pump_.subclass, data)
+    logger.debug("данные о насосе успешно сохранены")
     return result
 
 
-def findInfo_Test(wnd, order_num: str) -> dict:
+def findInfo_Test(wnd, order_num: str) -> tuple:
     """проверка присутствия наряд-заказа в базе"""
     logger.debug(f"{findInfo_Test.__doc__} -> {order_num}")
     test = wnd.db_manager.findRecord_Test(order_num)
-    # если есть - выбираем
-    if test and Message.ask(
-        "Внимание",
-        "Запись с таким наряд-заказом "
-        "уже присутствует в базе данных.\n"
-        "Хотите выбрать её или создать новую?",
-        "Выбрать", "Отмена"
-        ):
-        return test
-    return None
+    # если есть
+    if test:
+        result = Message.choice(
+            "Внимание",
+            "Запись с таким наряд-заказом "
+            "уже присутствует в базе данных.\n"
+            "Хотите выбрать её, обновить или создать новую?",
+            ["Выбрать", "Обновить", "Отмена"]
+        )
+        if result < 2:
+            return (test, ("select", "update")[result])
+    return (None, None)
 
 
-def saveInfo_Test(wnd, binding: Binding, test_: Record) -> bool:
+def saveInfo_Test(wnd, binding: Binding, test_: Record, do_update: bool = False) -> bool:
     """сохранение нового теста"""
     logger.debug(saveInfo_Test.__doc__)
     result = False
-    if not groupValidate(wnd.groupTestInfo):
+    # поля необходимые для заполнения
+    need_to_validate = [
+        'txtDateAssembled', '', 'txtLocation', 'txtShaftOut', 'txtDaysRun',
+        'txtLease', 'txtShaftDiameter', 'txtWell', 'txtShaftIn', 'txtDateTime',
+        'txtShaftWobb', 'txtShaftMomentum', 'txtOrderNum',
+        'cmbCustomer', 'cmbSectionStatus', 'cmbSectionType', 'cmbOwner'
+    ]
+    if not groupValidate(wnd.groupTestInfo, need_to_validate):
         logger.warning("Заполнены не все необходимые поля")
         return result
     # сохраняем информацию об испытании
     pump_data = wnd.cmbSerial.currentData()
     if pump_data:
-        test_.clear()
+        if not do_update:
+            test_.clear()
+            test_['DateTime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        elif not funcs_aux.askPassword():
+            logger.error("Обновление записи отменено.")
+            return result
         binding.toData()    # сохраняем значения из привязанных полей
         data = dict(test_.items())
         data['Pump'] = pump_data['ID']

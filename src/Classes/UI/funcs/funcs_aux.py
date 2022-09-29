@@ -1,7 +1,7 @@
 """
     Модуль вспомогательных функций
 """
-from time import time, sleep
+from time import sleep
 from PyQt6.QtWidgets import QApplication
 from AesmaLib.message import Message
 
@@ -83,4 +83,4 @@ def pause(seconds: float):
     for _ in range(seconds * 1000):
         QApplication.processEvents()
         sleep(0.001)
-    print(f"... -> продолжение")
+    print("... -> продолжение")

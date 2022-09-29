@@ -10,7 +10,6 @@ from enum import Enum
 from array import array
 from loguru import logger
 
-
 class CommandType(Enum):
     """Типы команды"""
     READ = 0    # чтение
