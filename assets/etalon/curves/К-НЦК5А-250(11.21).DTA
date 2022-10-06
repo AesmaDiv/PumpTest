@@ -1,0 +1,38 @@
+                                        _PUMP CURVE MFR INFORMATION       _C_00_
+À›—                                     _  MANUFACTURER..................._A_30_
+ -Õ÷ 5¿-250(11.21)                      _  TYPE OR MODEL OF IMPELLER......_A_30_
+01.113.2021                             _  DATE OF CURVE MM/DD/YYYY......._A_11_
+2910                                    _  CURVE RPM......................_N_04_
+0                                       _  PUMP ROTATION 0=CW 1=CCW......._N_01_
+1                                       _  DATA TYPE 0=COEF 1=GRAPH......._N_01_
+0                                       _  UNITS OF MEASURE 0=METRIC 1=US._N_01_
+                                        _PUMP GRAPH INFORMATION           _C_00_
+15                                      _  MAX HEAD GRAPH VALUE..........._N_03_
+.30                                     _  HORSE POWER GRAPH VALUE........_N_03_
+30                                      _  EFF. GRAPH VALUE..............._N_03_
+                                        _PUMP RATE INFORMATION            _C_00_
+185                                     _  MIN RATE OPERATING RANGE ......_N_10_
+250                                     _  BEST RATE EFF. POINT .........._N_10_
+315                                     _  MAX RATE OPERATING RANGE......._N_10_
+388                                     _  MAX RATE VALUE FOR RATE CURVE.._N_10_
+                                        _HEAD DATA                        _C_00_
+0                                       _  COEF #0 OR HEAD @ 6/6 MAX RATE._A_20_
+4.315                                   _  COEF #1 OR HEAD @ 5/6 MAX RATE._A_20_
+6.821                                   _  COEF #2 OR HEAD @ 4/6 MAX RATE._A_20_
+7.726                                   _  COEF #3 OR HEAD @ 3/6 MAX RATE._A_20_
+7.915                                   _  COEF #4 OR HEAD @ 2/6 MAX RATE._A_20_
+8.189                                   _  COEF #5 OR HEAD @ 1/6 MAX RATE._A_20_
+8.147                                   _  COEF #6 OR HEAD @ ZERO RATE...._A_20_
+                                        _  COEF #7........................_A_20_
+                                        _  COEF #8........................_A_20_
+                                        _  COEF #9........................_A_20_
+                                        _HORSE POWER DATA                 _C_00_
+0.374349989093186                       _  COEF #0 OR HP @ 6/6 MAX RATE..._A_20_
+0.391237958525961                       _  COEF #1 OR HP @ 5/6 MAX RATE..._A_20_
+0.426421228177576                       _  COEF #2 OR HP @ 4/6 MAX RATE..._A_20_
+0.410940589530866                       _  COEF #3 OR HP @ 3/6 MAX RATE..._A_20_
+0.358869350446476                       _  COEF #4 OR HP @ 2/6 MAX RATE..._A_20_
+0.318056757650602                       _  COEF #5 OR HP @ 1/6 MAX RATE..._A_20_
+0.264578187780146                       _  COEF #6 OR HP @ ZERO RATE......_A_20_
+                                        _  COEF #7........................_A_20_
+                                        _  COEF #8........................_A_20_

@@ -4,7 +4,7 @@ from loguru import logger
 from Classes.Adam.adam_manager import AdamManager
 from Classes.Adam.adam_config import PARAMS
 from Classes.Adam.adam_names import ChannelNames as CN
-from Classes.UI.funcs.funcs_aux import pause, calculateLift, calculatePower, applySpeedFactor
+from Classes.UI.funcs.funcs_aux import pause
 
 
 class TestMode(Enum):
@@ -25,6 +25,9 @@ class TestManager:
     """Менеджер управления процессом испытания"""
     SENSORS = (CN.FLW_0, CN.FLW_1, CN.FLW_2, CN.PSI_IN, CN.PSI_OUT, CN.RPM, CN.TORQUE,
                CN.VLV_2, CN.VLV_1,CN.VLV_WTR,CN.VLV_AIR,CN.VLV_TST)
+    # Имена полей для данных с датчиков.
+    # Менять с осторожностью -> от них зависят привязки к полям формы
+    SENS_NAMES = ('RPM','Torque','PsiIn','PsiOut','Flow0','Flow1','Flow2','Flow','Lift','Power')
 
 
     def __init__(self, adam_manager: AdamManager, callback=None):
@@ -35,18 +38,7 @@ class TestManager:
         self._active_flw = CN.FLW_2
         self._testmode = TestMode.IDLING
         self._adam.setSensors(TestManager.SENSORS)
-        self._sensors = {
-            'RPM': 0.0,
-            'Torque': 0.0,
-            'PsiIn': 0.0,
-            'PsiOut': 0.0,
-            'Flow': 0.0,
-            'Lift': 0.0,
-            'Power': 0.0,
-            'Flow0': 0.0,
-            'Flow1': 0.0,
-            'Flow2': 0.0
-        }
+        self._sensors = dict.fromkeys(self.SENS_NAMES, 0.0)
 
     @property
     def isEngineRunning(self):
@@ -80,7 +72,7 @@ class TestManager:
         self._adam.setValue(PARAMS[CN.VLV_WTR],     False)
         self._adam.setValue(PARAMS[CN.VLV_TST],     False)
         self._adam.setValue(PARAMS[CN.VLV_2],       False)
-        self._adam.setValue(PARAMS[CN.VLV_1],      False)
+        self._adam.setValue(PARAMS[CN.VLV_1],       False)
         self._adam.setValue(PARAMS[CN.ROTATE],      True)
         self._adam.setValue(PARAMS[CN.VLV_FLW],     0x0000)
         self._adam.setValue(PARAMS[CN.SPEED],       0x0A7F)
@@ -113,19 +105,19 @@ class TestManager:
         self.setDefaults()
         return True
 
-    def updateSensors(self, adam_data: dict):
+    def updateSensors(self, adam_data: dict, stages: int, base_rpm: int):
         """обновление значений с датчиков"""
-        flw, lft, pwr = self._getCalculatedVals(adam_data)
-        self._sensors['RPM']    = round(adam_data[CN.RPM],0)
-        self._sensors['Torque'] = abs(round(adam_data[CN.TORQUE],2))
-        self._sensors['PsiIn']  = round(adam_data[CN.PSI_IN],2)
-        self._sensors['PsiOut'] = round(adam_data[CN.PSI_OUT],2)
-        self._sensors['Flow0']  = round(adam_data[CN.FLW_0],2)
-        self._sensors['Flow1']  = round(adam_data[CN.FLW_1],2)
-        self._sensors['Flow2']  = round(adam_data[CN.FLW_2],2)
-        self._sensors['Flow']   = round(flw, 2)
-        self._sensors['Lift']   = round(lft, 2)
-        self._sensors['Power']  = round(pwr, 2)
+        self._sensors['RPM']    = round(adam_data[CN.RPM],0)          # об.мин
+        self._sensors['Torque'] = abs(round(adam_data[CN.TORQUE],2))  # lb-in
+        self._sensors['PsiIn']  = round(adam_data[CN.PSI_IN],2)       # psi
+        self._sensors['PsiOut'] = round(adam_data[CN.PSI_OUT],2)      # psi
+        self._sensors['Flow0']  = round(adam_data[CN.FLW_0],2)        # м/сут
+        self._sensors['Flow1']  = round(adam_data[CN.FLW_1],2)        # м/сут
+        self._sensors['Flow2']  = round(adam_data[CN.FLW_2],2)        # м/сут
+        flw, lft, pwr = self._getCalculatedVals(float(base_rpm))
+        self._sensors['Flow']   = round(flw, 2)                       # м/сут
+        self._sensors['Lift']   = round(lft / float(stages), 2)       # метры
+        self._sensors['Power']  = round(pwr / float(stages), 2)       # кВт
 
     def sliderToAdam(self, name: str, slider_value: int):
         """установка значения канала из слайдера"""
@@ -251,13 +243,40 @@ class TestManager:
         pause(10)
         self._onEvent("ИДЁТ ИСПЫТАНИЕ...")
 
-    def _getCalculatedVals(self, adam_data: dict):
+    def _getCalculatedVals(self, base_rpm: float):
         """получение расчётных значений """
-        rpm = adam_data[CN.RPM]
-        flw = adam_data[self._active_flw]
-        lft = calculateLift(adam_data[CN.PSI_IN], adam_data[CN.PSI_OUT])
-        pwr = calculatePower(adam_data[CN.TORQUE], rpm)
-        flw, lft, pwr = applySpeedFactor(flw, lft, pwr, rpm)
+        flowmeter = {
+            CN.FLW_0: "Flow0",
+            CN.FLW_1: "Flow1",
+            CN.FLW_2: "Flow2"
+        }[self._active_flw]
+        flw = self._sensors[flowmeter]
+        lft = self._calculateLift()
+        pwr = self._calculatePower()
+        flw, lft, pwr = self._applySpeedFactor(base_rpm, flw, lft, pwr)
+        return flw, lft, pwr
+
+    def _calculateLift(self):
+        """рассчёт потребляемой мощности"""
+        psi_diff = (self._sensors['PsiOut'] - self._sensors['PsiIn'])
+        # 1 psi поднимает воду на 2.31 фута * перевод в метры
+        lift =  max(psi_diff, 0) * 2.31 * 0.3048
+        return lift
+
+    def _calculatePower(self):
+        """рассчёт потребляемой мощности"""
+        # перевод из lb-in в Н/м
+        npm = self._sensors['Torque'] * 0.113
+        power = self._sensors['RPM'] * npm / 9549
+        return power
+
+    def _applySpeedFactor(self, base_rpm: float, flw: float, lft: float, pwr: float):
+        """применение фактора скорости"""
+        if self._sensors['RPM']:
+            coeff = base_rpm / self._sensors['RPM']
+            flw *= coeff
+            lft *= coeff ** 2
+            pwr *= coeff ** 3
         return flw, lft, pwr
 
     def _onEvent(self, message):

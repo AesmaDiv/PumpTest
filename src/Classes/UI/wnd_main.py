@@ -271,7 +271,7 @@ class MainWindow(QMainWindow):
 
     def _registerEvents(self):
         """привязка событий элементов формы к обработчикам"""
-        self._testlist.selectionChanged.connect(self._onChangedTestlist)
+        self._testlist.selectionChanged.connect(self._onChanged_Testlist)
         self._testlist.menuSelected.connect(self._onMenuTestlist)
         #
         self.txtFilter_ID.textChanged.connect(self._onChangedFilter_Apply)
@@ -326,7 +326,7 @@ class MainWindow(QMainWindow):
 #region ОБРАБОТЧИКИ СОБЫТИЙ =>>
 
 #region     СПИСОК ТЕСТОВ ->
-    def _onChangedTestlist(self, item: dict):
+    def _onChanged_Testlist(self, item: dict):
         """изменение выбора теста"""
         if not item:
             return
@@ -591,7 +591,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot(dict)
     def _onAdam_DataReceived(self, adam_data: dict):
         """приход данных от ADAM5000TCP"""
-        self.test_manager.updateSensors(adam_data)
+        self.test_manager.updateSensors(adam_data, self._testdata.pump_['Stages'], self._testdata.type_['Rpm'])
         self._bindings['sens'].toWidgets()
         labels = (self.vlvAir, self.vlvWater, self.vlvTest, self.vlvF1, self.vlvF2)
         keys = (CN.VLV_AIR, CN.VLV_WTR, CN.VLV_TST, CN.VLV_1, CN.VLV_2)

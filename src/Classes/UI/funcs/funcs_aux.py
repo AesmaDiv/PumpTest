@@ -14,19 +14,6 @@ def parseFloat(text: str):
         result = 0.0
     return result
 
-
-def calculateLift(psi_in: float, psi_out: float):
-    """рассчёт потребляемой мощности"""
-    lift = (psi_out - psi_in) / 0.433
-    return lift
-
-
-def calculatePower(torque: float, rpm: float):
-    """рассчёт потребляемой мощности"""
-    power = rpm * torque / 5252.0
-    return power
-
-
 def calculateEff(flw: float, lft: float, pwr: float):
     """расчёт КПД"""
     return 9.81 * lft * flw / (24 * 3600 * pwr) * 100 \
@@ -45,16 +32,6 @@ def checkSameLength(arrays: list):
     iterator = iter(arrays)
     length = len(next(iterator))
     return all(len(item) == length for item in iterator)
-
-
-def applySpeedFactor(flw: float, lft: float, pwr: float, rpm: float):
-    """применение фактора скорости"""
-    if rpm:
-        coeff = 2910 / rpm
-        flw *= coeff
-        lft *= coeff ** 2
-        pwr *= coeff ** 3
-    return flw, lft, pwr
 
 
 def processMouseWheel(obj, event, coef):

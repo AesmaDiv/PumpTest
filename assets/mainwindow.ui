@@ -2626,7 +2626,7 @@ p, li { white-space: pre-wrap; }
              <enum>Qt::RightToLeft</enum>
             </property>
             <property name="text">
-             <string>об/мин</string>
+             <string>rpm</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -3305,7 +3305,7 @@ p, li { white-space: pre-wrap; }
              </size>
             </property>
             <property name="text">
-             <string>Н/м</string>
+             <string>lb-in</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -3699,8 +3699,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>96</width>
-          <height>26</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">
@@ -3803,8 +3803,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>96</width>
-          <height>26</height>
+          <width>271</width>
+          <height>195</height>
          </rect>
         </property>
         <attribute name="label">

@@ -1,7 +1,7 @@
 """
     Модуль содержит функции диалоговых окон"""
 import hashlib
-from PyQt6.QtWidgets import QMessageBox, QInputDialog
+from PyQt6.QtWidgets import QMessageBox, QInputDialog, QLineEdit
 from PyQt6.QtCore import Qt
 
 class Message:
@@ -60,7 +60,11 @@ class Message:
         """вывод окна с полем ввода"""
         msg = QInputDialog()
         hash_func = hashlib.sha256()
-        hash_func.update(msg.getText(None, title, text, inputMethodHints=Qt.InputMethodHint.ImhHiddenText)[0].encode('utf-8'))
+        hash_func.update(
+            msg.getText(
+                None, title, text, echo=QLineEdit.EchoMode.Password
+            )[0].encode('utf-8')
+        )
         result = hash_func.digest()
         return result
 

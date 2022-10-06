@@ -19,8 +19,8 @@ PARAMS = {
     ChannelNames.FLW_2:   Param(SlotType.ANALOG,  0, 2,  2054, 0x0000, 0xFFFF), # расходомер 2"
     ChannelNames.RPM:     Param(SlotType.ANALOG,  0, 6, 20000, 0x7FFF, 0xFFFF), # скорость вращения
     ChannelNames.TORQUE:  Param(SlotType.ANALOG,  0, 5, 10000, 0x7FFF, 0xFFFF), # крутящий момент
-    ChannelNames.PSI_IN:  Param(SlotType.ANALOG,  0, 7,     0, 0x7FFF, 0xFFFF), # давление на входе
-    ChannelNames.PSI_OUT: Param(SlotType.ANALOG,  0, 4,   7.0, 0x7FFF, 0xFFFF), # давление на выходе
+    ChannelNames.PSI_IN:  Param(SlotType.ANALOG,  0, 7,    87, 0x0000, 0xFFFF), # давление на входе
+    ChannelNames.PSI_OUT: Param(SlotType.ANALOG,  0, 4,  6000, 0x0000, 0xFFFF), # давление на выходе
     # управление (_ в конце имени)
     ChannelNames.ENGINE:  Param(SlotType.DIGITAL, 2, 0,     0, 0x0000, 0xFF00), # гл.привод 0 - выкл <> 1 - вкл
     ChannelNames.ROTATE:  Param(SlotType.DIGITAL, 2, 1,     0, 0x0000, 0xFF00), # напр. вращения 0 - пр(отч) <> 1 - л(брж)

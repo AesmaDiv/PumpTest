@@ -101,8 +101,6 @@ class GraphManager(PumpGraph):
                 flws.append(p.Flw)
                 lfts.append(p.Lft)
                 pwrs.append(p.Pwr)
-            if is_etalon:
-                pwrs = list(map(lambda x: x * 0.7457, pwrs))
             effs = calculateEffs(flws, lfts, pwrs)
             return [flws, lfts, pwrs, effs]
         return [[], [], [], []]
