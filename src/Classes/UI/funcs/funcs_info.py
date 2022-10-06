@@ -50,10 +50,7 @@ def saveInfo_Pump(wnd, binding: Binding, pump_: Record, do_update: bool = False)
     """сохранение данных о насосе"""
     logger.debug(saveInfo_Pump.__doc__)
     # поля необходимые для заполнения
-    need_to_validate = [
-        'txtStages', 'txtLength', 'cmbConnection', 'cmbProducer',
-        'cmbGroup', 'cmbMaterial', 'cmbSize', 'cmbSerial', 'cmbType'
-    ]
+    need_to_validate = ['cmbProducer', 'cmbType', 'cmbSerial', 'txtStages', 'txtLength']
     if not groupValidate(wnd.groupPumpInfo, need_to_validate):
         logger.warning("заполнены не все необходимые поля")
         return False
@@ -98,10 +95,9 @@ def saveInfo_Test(wnd, binding: Binding, test_: Record, do_update: bool = False)
     result = False
     # поля необходимые для заполнения
     need_to_validate = [
-        'txtDateAssembled', '', 'txtLocation', 'txtShaftOut', 'txtDaysRun',
-        'txtLease', 'txtShaftDiameter', 'txtWell', 'txtShaftIn', 'txtDateTime',
-        'txtShaftWobb', 'txtShaftMomentum', 'txtOrderNum',
-        'cmbCustomer', 'cmbSectionStatus', 'cmbSectionType', 'cmbOwner'
+        'txtDateTime', 'txtDateAssembled', 'cmbCustomer', 'txtOrderNum',
+        'txtDaysRun', 'cmbSectionStatus', 'cmbSectionType',
+        'txtShaftDiameter', 'txtShaftIn', 'txtShaftOut', 'txtShaftWobb', 'txtShaftMomentum'
     ]
     if not groupValidate(wnd.groupTestInfo, need_to_validate):
         logger.warning("Заполнены не все необходимые поля")

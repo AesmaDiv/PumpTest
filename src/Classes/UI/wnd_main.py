@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
             return False
         self._prepare()
         super().show()
-        self.move(1, 1)
+        self.move(10, 40)
         return True
 
     def closeEvent(self, close_event: QCloseEvent) -> None:
@@ -84,6 +84,7 @@ class MainWindow(QMainWindow):
         self.chkConnection.click()
 
     def displayMessage(self, message: str):
+        """callback для отображение сообщения"""
         self.statusMessage.setText(message)
 
 #region СВОЙСТВА =>>
@@ -272,19 +273,19 @@ class MainWindow(QMainWindow):
     def _registerEvents(self):
         """привязка событий элементов формы к обработчикам"""
         self._testlist.selectionChanged.connect(self._onChanged_Testlist)
-        self._testlist.menuSelected.connect(self._onMenuTestlist)
+        self._testlist.menuSelected.connect(self._onMenu_Testlist)
         #
-        self.txtFilter_ID.textChanged.connect(self._onChangedFilter_Apply)
-        self.txtFilter_DateTime.textChanged.connect(self._onChangedFilter_Apply)
-        self.txtFilter_OrderNum.textChanged.connect(self._onChangedFilter_Apply)
-        self.txtFilter_Serial.textChanged.connect(self._onChangedFilter_Apply)
-        self.btnFilterReset.clicked.connect(self._onClickedFilter_Reset)
+        self.txtFilter_ID.textChanged.connect(self._onChanged_FilterApply)
+        self.txtFilter_DateTime.textChanged.connect(self._onChanged_FilterApply)
+        self.txtFilter_OrderNum.textChanged.connect(self._onChanged_FilterApply)
+        self.txtFilter_Serial.textChanged.connect(self._onChanged_FilterApply)
+        self.btnFilterReset.clicked.connect(self._onClicked_FilterReset)
         self.radioOrderNum.toggled.connect(self._onToggled_TestlistColumn)
         #
-        self.cmbProducer.currentIndexChanged.connect(self._onChangedCombo_Producers)
-        self.cmbType.currentIndexChanged.connect(self._onChangedCombo_Types)
-        self.cmbSerial.currentIndexChanged.connect(self._onChangedCombo_Serials)
-        self.cmbSerial.currentTextChanged.connect(self._onChangedCombo_SerialsText)
+        self.cmbProducer.currentIndexChanged.connect(self._onChanged_Combo_Producers)
+        self.cmbType.currentIndexChanged.connect(self._onChanged_Combo_Types)
+        self.cmbSerial.currentIndexChanged.connect(self._onChanged_Combo_Serials)
+        self.cmbSerial.currentTextChanged.connect(self._onChanged_Combo_SerialsText)
         #
         self.btnPump_Edit.clicked.connect(self._onClicked_InfoPump)
         self.btnPump_Save.clicked.connect(self._onClicked_InfoPump)
@@ -301,7 +302,7 @@ class MainWindow(QMainWindow):
         self.btnAddPoint.clicked.connect(self._onClicked_PointAdd)
         self.btnRemovePoint.clicked.connect(self._onClicked_PointRemove)
         self.btnClearCurve.clicked.connect(self._onClicked_ClearCurve)
-        self.btnSaveCharts.clicked.connect(self._onClickedTestResult_Save)
+        self.btnSaveCharts.clicked.connect(self._onClicked_TestResult_Save)
         #
         self.chkConnection.clicked.connect(self._onAdam_Connection)
         self.radioFlow0.toggled.connect(self._onToggled_Flowmeter)
@@ -353,7 +354,7 @@ class MainWindow(QMainWindow):
         logger.debug(self._onToggled_TestlistColumn.__doc__)
         self._testlist.filterSwitch()
 
-    def _onMenuTestlist(self, action):
+    def _onMenu_Testlist(self, action):
         """выбор в контекстном меню списка тестов"""
         try:
             {
@@ -364,9 +365,9 @@ class MainWindow(QMainWindow):
         except KeyError:
             logger.error("Ошибка определения элемента контестного меню")
 
-    def _onChangedFilter_Apply(self, text: str):
+    def _onChanged_FilterApply(self, text: str):
         """изменение значения фильтра списка тестов"""
-        logger.debug(f"{self._onChangedFilter_Apply.__doc__} -> '{text}'")
+        logger.debug(f"{self._onChanged_FilterApply.__doc__} -> '{text}'")
         conditions = [
             self.txtFilter_ID.text(),
             self.txtFilter_DateTime.text(),
@@ -375,9 +376,9 @@ class MainWindow(QMainWindow):
         ]
         self._testlist.filterApply(conditions)
 
-    def _onClickedFilter_Reset(self):
+    def _onClicked_FilterReset(self):
         """нажатие кнопки сброса фильтра"""
-        logger.debug(self._onClickedFilter_Reset.__doc__)
+        logger.debug(self._onClicked_FilterReset.__doc__)
         funcs_group.groupClear(self.groupTestList)
         funcs_group.groupClear(self.groupTestInfo)
         funcs_group.groupClear(self.groupPumpInfo)
@@ -388,7 +389,7 @@ class MainWindow(QMainWindow):
 #endregion      <- СПИСОК ТЕСТОВ
 
 #region     КОМБОБОКСЫ ->
-    def _onChangedCombo_Producers(self, index):
+    def _onChanged_Combo_Producers(self, index):
         """выбор производителя"""
         item = self.cmbProducer.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор производителя -> {item['Name'] if item else 'None'}")
@@ -399,7 +400,7 @@ class MainWindow(QMainWindow):
         #     condition = {'Producer': item['ID']} if index else None
         #     funcs_combo.filterByCondition(self.cmbType, condition)
 
-    def _onChangedCombo_Types(self, index):
+    def _onChanged_Combo_Types(self, index):
         """выбор типоразмера"""
         item = self.cmbType.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор типоразмера -> {item['Name'] if item else 'None'}")
@@ -417,7 +418,7 @@ class MainWindow(QMainWindow):
         self.graph_manager.displayCharts(self.frameGraphInfo)
         self.lblPumpInfo.setText(f"{self.cmbProducer.currentText()} : {self.cmbType.currentText()}")
 
-    def _onChangedCombo_Serials(self, index):
+    def _onChanged_Combo_Serials(self, index):
         """выбор заводского номера"""
         item = self.cmbSerial.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор заводского номера -> {item['Serial'] if item else 'None'}")
@@ -427,7 +428,7 @@ class MainWindow(QMainWindow):
             condition = {'ID': item['Type']}
             funcs_combo.selectContains(self.cmbType, condition)
 
-    def _onChangedCombo_SerialsText(self, text):
+    def _onChanged_Combo_SerialsText(self, text):
         """выбор заводского номера"""
         if not self._states['editing']['pump']:
             logger.debug(f"выбор заводского номера '{text}' по названию")
@@ -518,9 +519,9 @@ class MainWindow(QMainWindow):
         self.graph_manager.clearPointsFromCharts()
         self.graph_manager.drawCharts(self.frameGraphTest)
 
-    def _onClickedTestResult_Save(self):
+    def _onClicked_TestResult_Save(self):
         """нажата кнопка сохранения результатов теста"""
-        logger.debug(self._onClickedTestResult_Save.__doc__)
+        logger.debug(self._onClicked_TestResult_Save.__doc__)
         self.graph_manager.saveTestdata()
         test_ = self._testdata.test_
         result = self.db_manager.writeRecord(test_.subclass, dict(test_))
@@ -591,7 +592,8 @@ class MainWindow(QMainWindow):
     @pyqtSlot(dict)
     def _onAdam_DataReceived(self, adam_data: dict):
         """приход данных от ADAM5000TCP"""
-        self.test_manager.updateSensors(adam_data, self._testdata.pump_['Stages'], self._testdata.type_['Rpm'])
+        self.test_manager.updateSensors(
+            adam_data, self._testdata.pump_['Stages'], self._testdata.type_['Rpm'])
         self._bindings['sens'].toWidgets()
         labels = (self.vlvAir, self.vlvWater, self.vlvTest, self.vlvF1, self.vlvF2)
         keys = (CN.VLV_AIR, CN.VLV_WTR, CN.VLV_TST, CN.VLV_1, CN.VLV_2)
