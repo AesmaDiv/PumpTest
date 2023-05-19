@@ -90,7 +90,8 @@ def groupSave(group: QGroupBox, record, keep_id=False):
 
 def groupLock(group: QGroupBox, state: bool):
     """блокирует поля группы от изменений"""
-    logger.debug(f"{'устанавливает' if state else 'снимает'} блокировку полей группы {group.objectName()}")
+    logger.debug(f"{'устанавливает' if state else 'снимает'} "
+                 f"блокировку полей группы {group.objectName()}")
     widgets = group.findChildren(QWidget)
     for widget in widgets:
         if isinstance(widget, QLineEdit | QTextEdit):

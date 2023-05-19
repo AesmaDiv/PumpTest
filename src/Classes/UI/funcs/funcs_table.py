@@ -92,12 +92,12 @@ def addToTable_points(table_view, point_data: list):
     """добавление точки в таблицу"""
     if len(point_data) == 5:
         data = {
-            'flw': round(point_data[0], 1),
-            'lft': round(point_data[1], 2),
-            'pwr': round(point_data[2], 4),
-            'eff': round(point_data[3], 1),
-            'lft_real': round(point_data[1] * point_data[4], 2),
-            'pwr_real': round(point_data[2] * point_data[4], 2)
+            'flw': str(round(point_data[0], 1)),
+            'lft': str(round(point_data[1], 2)),
+            'pwr': str(round(point_data[2], 4)),
+            'eff': str(round(point_data[3], 2)),
+            'lft_real': str(round(float(point_data[1]) * float(point_data[4]), 2)),
+            'pwr_real': str(round(float(point_data[2]) * float(point_data[4]), 4))
         }
         addRow(table_view, data)
 

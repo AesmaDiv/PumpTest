@@ -35,7 +35,7 @@ class Binding:
         for widget in widgets:
             obj_name = widget.objectName()
             name = obj_name[3:]
-            if name in ('Producer', 'Type'):
+            if name == 'Producer':
                 continue
             prp_name = 'text'
             if isinstance(widget, QTextEdit):
@@ -43,8 +43,8 @@ class Binding:
             if isinstance(widget, QComboBox):
                 prp_name = 'currentIndex'
                 # исключительные случаи
-                if name == 'Serial':
-                    prp_name = 'currentText'
+                # if name == 'Serial':
+                #     prp_name = 'currentText'
             # setattr(self, name, )
             self.bindings.update({name: bind(obj_name, prp_name)})
 

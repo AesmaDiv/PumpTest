@@ -27,9 +27,9 @@ class Customer(Base):
 
 
 @dataclass
-class Group(Base):
+class Party(Base):
     """Класс заказчика"""
-    __tablename__ = 'Groups'
+    __tablename__ = 'Parties'
     ID = Column('ID', INTEGER, primary_key=True)
     Name = Column('Name', VARCHAR)
 
@@ -95,7 +95,6 @@ class Test(Base):
     """Класс испытания"""
     __tablename__ = 'Tests'
     ID = Column('ID', INTEGER, primary_key=True)
-    Pump = Column('Pump', INTEGER, ForeignKey("Pumps.ID"))
     DateTime = Column('DateTime', String)
     DateAssembled = Column('DateAssembled', String)
     Customer = Column('Customer', INTEGER, ForeignKey("Customers.ID"))
@@ -118,22 +117,14 @@ class Test(Base):
     Powers = Column('Powers', VARCHAR)
     Comments = Column('Comments', VARCHAR)
     Vibrations = Column('Vibrations', VARCHAR)
-
-
-@dataclass
-class Pump(Base):
-    """Класс насоса"""
-    __tablename__ = 'Pumps'
-    ID = Column('ID', INTEGER, primary_key=True)
     Serial = Column('Serial', VARCHAR)
     Type = Column('Type', INTEGER, ForeignKey("Types.ID"))
-    Group = Column('Group', INTEGER, ForeignKey("Groups.ID"))
+    Party = Column('Party', INTEGER, ForeignKey("Parties.ID"))
     Material = Column('Material', INTEGER, ForeignKey("Materials.ID"))
     Size = Column('Size', INTEGER, ForeignKey("Sizes.ID"))
     Length = Column('Length', VARCHAR)
     Stages = Column('Stages', INTEGER)
     Connection = Column('Connection', INTEGER, ForeignKey("Connections.ID"))
-    Test = relationship("Test")
 
 
 @dataclass

@@ -8,7 +8,6 @@ from PyQt6.QtCore import pyqtSignal, QObject
 
 from Classes.Adam.adam_5k import Adam5K, Param, SlotType
 from Classes.Adam import adam_config as config
-from Classes.UI.funcs import funcs_aux as calcs
 
 
 class AdamManager(QObject):
@@ -43,6 +42,7 @@ class AdamManager(QObject):
         }
 
     def reloadConfig(self):
+        """перезагрузка конфигурации"""
         self._adam.pause()
         try:
             global config

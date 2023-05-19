@@ -11,12 +11,12 @@ from jinja2.exceptions import  UndefinedError, TemplateSyntaxError
 from PyQt6.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt6.QtCore import QSize, QUrl, QObject, QPoint, QMarginsF
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtGui import QPainter, QRegion, QPageLayout, QPageSize
+from PyQt6.QtGui import QPainter, QPageLayout, QPageSize
 
 from Classes.Data.record import Record, Point, TestData
 from Classes.Graph.graph_manager import GraphManager, ChartType
 from Classes.Data.db_manager import DataManager
-from Classes.Data.db_tables import (Producer, Efficiency ,Type, Group, Material,
+from Classes.Data.db_tables import (Producer, Efficiency ,Type, Party, Material,
     Size, Connection, Customer, Owner, SectionStatus, SectionType)
 
 
@@ -36,7 +36,7 @@ class Report(QObject):
     def __init__(self, template_folder, graph_manager: GraphManager, data_manager: DataManager):
         super().__init__()
         Report._PATH = {
-          "root": template_folder,
+          "root": os.path.join(template_folder, ''),
           "template": os.path.join(template_folder, "template.html"),
           "report": os.path.join(template_folder, "report.pdf"),
           "image": os.path.join(template_folder, "graph_image.jpg"),
@@ -46,14 +46,14 @@ class Report(QObject):
         self._db_manager = data_manager
         self._template = self._loadTemplate()
 
-    def show(self, window, testdata: TestData, webview=None):
+    def show(self, window, testdata: TestData, size_name, webview=None):
         """отображение протокола в элементе WebEngineView"""
         logger.debug(self.show.__doc__)
-        context = Report._createContext(self._graph_manager, testdata)
+        context = Report._createContext(self._graph_manager, testdata, size_name)
         Report._showContext(window, context)
         if webview:
             html = self._fillTemplate(self._template, self._graph_manager, context)
-            webview.setHtml(html, QUrl(f"file://{Report._PATH['root']}/"))
+            webview.setHtml(html, QUrl.fromLocalFile(Report._PATH['root']))
 
     def print(self, testdata: TestData):
         """вывод протокола на печать"""
@@ -68,7 +68,7 @@ class Report(QObject):
     async def _createHtml(self, testdata):
         """генерирование протокола"""
         Report._addNamesForIDs(self._db_manager, testdata)
-        context = Report._createContext(self._graph_manager, testdata)
+        context = Report._createContext(self._graph_manager, testdata, '-')
         result = Report._fillTemplate(self._template, self._graph_manager, context)
         return result
 
@@ -77,7 +77,7 @@ class Report(QObject):
         """построение протокола"""
         logger.debug(Report._buildProtocol.__doc__)
         web = QWebEngineView()
-        web.setHtml(html, baseUrl=QUrl(f"file://{Report._PATH['root']}/"))
+        web.setHtml(html, QUrl.fromLocalFile(Report._PATH['root']))
         web.setZoomFactor(1)
         web.showMaximized()
         return web
@@ -88,8 +88,9 @@ class Report(QObject):
         logger.debug(Report._initPrinter.__doc__)
         printer = QPrinter(mode=QPrinter.PrinterMode.ScreenResolution)
         printer.setOutputFormat(QPrinter.OutputFormat.NativeFormat)
-        printer.setPageMargins(QMarginsF(12, 16, 12, 0), QPageLayout.Unit.Millimeter)
-        printer.setPageSize(QPageSize(QPageSize.PageSizeId.A3))
+        printer.setPageMargins(QMarginsF(10, 10, 10, 0), QPageLayout.Unit.Millimeter)
+        printer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+        printer.setFullPage(False)
         return printer
 
     @staticmethod
@@ -109,7 +110,7 @@ class Report(QObject):
         logger.debug(Report._fillTemplate.__doc__)
         try:
             Report._createGraphImage(graph_manager)
-            result = template.render(context)
+            result = template.render(context).replace('None', '-')
         except (TypeError, UndefinedError, TemplateSyntaxError) as err:
             logger.error(f"Protocol::createWeb error:\t{err}")
             result = ""
@@ -135,7 +136,7 @@ class Report(QObject):
         graph_manager.switchPalette('application')
 
     @staticmethod
-    def _createContext(graph_manager: GraphManager, testdata: TestData) -> dict:
+    def _createContext(graph_manager: GraphManager, testdata: TestData, size_name: str) -> dict:
         """создание контекста для заполнение шаблона данными об испытании"""
         logger.debug(Report._createContext.__doc__)
         deltas = Report._getDeltas(graph_manager, testdata)
@@ -144,9 +145,9 @@ class Report(QObject):
         point_rng = Report._getPointsForRanges(graph_manager, testdata)
         point_tst = Report._insertsPoints(point_tst, point_rng)
         point_etl = Report._getPointsForEtalon(graph_manager, point_tst)
-        efficiency = Report._getEfficiency(testdata.pump_.SizeName, point_rng)
+        point_rng = list(filter(lambda x: x.Flw != deltas['opt'], point_rng))
+        efficiency = Report._getEfficiency(size_name, point_rng)
         result = {
-            "info_pump": testdata.pump_,
             "info_test": testdata.test_,
             "info_type": testdata.type_,
             "point_tst": point_tst,
@@ -165,16 +166,20 @@ class Report(QObject):
         """добавление имён полей для id полей"""
         def func(info: Record, tables: tuple):
             prop_name = ""
-            get_name = lambda x: x['ID'] == info[prop_name]
             for table in tables:
                 prop_name = table.__name__
                 if prop_name in info.keys():
                     items = data_manager.getListFor(table, ('ID', 'Name'))
-                    name = next(filter(get_name, items), {"Name": ""}).get('Name')
+                    name = next(
+                        filter(lambda x: x['ID'] == info[prop_name], items),
+                        {"Name": ""}
+                    ).get('Name')
                     setattr(info, f"{prop_name}Name", name)
         func(testdata.type_, (Producer, Efficiency))
-        func(testdata.pump_, (Type, Group, Material, Size, Connection))
-        func(testdata.test_, (Customer, Owner, SectionStatus, SectionType))
+        func(testdata.test_,
+            (Customer, Owner, SectionStatus, SectionType,
+             Type, Party, Material, Size, Connection)
+        )
 
     @staticmethod
     def _insertsPoints(dst: list, src: list) -> list:
@@ -195,12 +200,14 @@ class Report(QObject):
     @staticmethod
     def _getPointsForRanges(graph_manager: GraphManager, testdata: TestData) -> list:
         """получение точек для границ рабочей зоны"""
-        flows = (
+        flows = [
             testdata.type_['Min'],
             testdata.type_['Nom'],
-            testdata.type_['Max']
-        )
-        return Report._getPointsFor(graph_manager, flows, ChartType.TEST)
+            testdata.type_['Max'],
+        ]
+        if 'Opt' in testdata.dlts_.keys():
+            flows.append(testdata.dlts_['Opt'])
+        return Report._getPointsFor(graph_manager, sorted(flows), ChartType.TEST)
 
     @staticmethod
     def _getPointsForEtalon(graph_manager: GraphManager, test_points: list) -> list:
@@ -243,10 +250,10 @@ class Report(QObject):
                 'eff': None,
                 'vbr': None,
                 'wob': None,
-                'mom': None
+                'mom': None,
+                'opt': None,
         }
-        point_dlt = Report._getDeltaList(graph_manager, testdata)
-        if point_dlt:
+        if point_dlt:= Report._getDeltaList(graph_manager, testdata):
             # транспонирование массивов значений
             point_dlt = np.array(point_dlt).T.tolist()
             tst = testdata.test_
@@ -258,7 +265,8 @@ class Report(QObject):
                 'eff': max(point_dlt[3], key=abs),
                 'vbr': max(tst.values_vbr) if tst.values_vbr else 0.0,
                 'wob': tst['ShaftWobb'],
-                'mom': tst['ShaftMomentum']
+                'mom': tst['ShaftMomentum'],
+                'opt': testdata.dlts_['Opt']
             })
         return result
 
@@ -275,12 +283,13 @@ class Report(QObject):
         point_etl = Report._getPointsFor(graph_manager, flw_rng, ChartType.ETALON)
         # расчёт отклонений
         if all((point_tst, point_etl)):
-            func = lambda t, e: [
-                round(t.Flw, 2),
-                round(100.0 * (-1 + t.Lft / e.Lft), 2),
-                round(100.0 * (-1 + t.Pwr / e.Pwr), 3),
-                round(t.Eff - e.Eff, 2)
-            ]
+            def func(t, e):
+                return [
+                    round(t.Flw, 2),
+                    round(100.0 * (-1 + t.Lft / e.Lft), 2),
+                    round(100.0 * (-1 + t.Pwr / e.Pwr), 3),
+                    round(t.Eff - e.Eff, 2)
+                ]
             result = [func(t,e) for t,e in zip(point_tst, point_etl)]
         return result
 
@@ -294,8 +303,9 @@ class Report(QObject):
         curve = chart.regenerateCurve()
         if len(curve):
             flw_nom = float(testdata.type_['Nom'])
-            flw_opt = Report._getEffMaxPoint(curve)[0]
-            result = 100.0 * (flw_opt / flw_nom - 1)
+            flw_opt = Report._getEffMaxPoint(curve)
+            testdata.dlts_['Opt'] = round(flw_opt[0], 2)
+            result = 100.0 * (flw_opt[0] / flw_nom - 1)
         return round(result, 2)
 
     @staticmethod
@@ -316,8 +326,12 @@ class Report(QObject):
         """отображение итоговых результатов испытания"""
         lmt = context['limits']
         dlt = context['deltas']
-        color = lambda name: "green" if dlt[name] and \
-            lmt[name][0]  <= dlt[name] <= lmt[name][1] else "red"
+        def color_tst(name):
+            cond = dlt[name] is not None and lmt[name][0] <= dlt[name] <= lmt[name][1]
+            return "green" if cond else "red"
+        def color_aux(name):
+            cond = dlt[name] is not None and dlt[name] <= lmt[name]
+            return "green" if cond else "red"
         window.lblTestResult_1.setText(
     f"""<table width=200 cellspacing=2>
         <thead>
@@ -331,26 +345,25 @@ class Report(QObject):
             <tr>
                 <td>Отклонение оптимальной подачи, %</td>
                 <td>{lmt['flw'][0]} .. {lmt['flw'][1]}</td>
-                <td style='color: {color('flw')};'>{dlt['flw']}</td>
+                <td style='color: {color_tst('flw')};'>{dlt['flw']}</td>
             </tr>
             <tr>
                 <td>Отклонение напора, %</td>
                 <td>{lmt['lft'][0]} .. {lmt['lft'][1]}</td>
-                <td style='color: {color('lft')};'>{dlt['lft']}</td>
+                <td style='color: {color_tst('lft')};'>{dlt['lft']}</td>
             </tr>
             <tr>
                 <td>Отклонение мощности, %</td>
                 <td>{lmt['pwr'][0]} .. {lmt['pwr'][1]}</td>
-                <td style='color: {color('pwr')};'>{dlt['pwr']}</td>
+                <td style='color: {color_tst('pwr')};'>{dlt['pwr']}</td>
             </tr>
             <tr>
                 <td>Отклонение КПД, %</td>
                 <td>{lmt['eff'][0]} .. {lmt['eff'][1]}</td>
-                <td style='color: {color('eff')};'>{dlt['eff']}</td>
+                <td style='color: {color_tst('eff')};'>{dlt['eff']}</td>
             </tr>
         </tbody>
     </table>""")
-        color = lambda name: "green" if dlt[name] and (dlt[name] <= lmt[name]) else "red"
         window.lblTestResult_2.setText(
     f"""<table width=200 cellspacing=2>
         <thead>
@@ -364,17 +377,17 @@ class Report(QObject):
             <tr>
                 <td>Вибрация, мм</td>
                 <td>&#8804; {lmt['vbr']}</td>
-                <td style='color: {color('vbr')};'>{dlt['vbr']}</td>
+                <td style='color: {color_aux('vbr')};'>{dlt['vbr']}</td>
             </tr>
             <tr>
                 <td>Радиальное биение, мм</td>
                 <td>&#8804; {lmt['wob']}</td>
-                <td style='color: {color('wob')};'>{dlt['wob']}</td>
+                <td style='color: {color_aux('wob')};'>{dlt['wob']}</td>
             </tr>
             <tr>
                 <td>Момент проворота, кВт</td>
                 <td>&#8804; {lmt['mom']}</td>
-                <td style='color: {color('mom')};'>{dlt['mom']}</td>
+                <td style='color: {color_aux('mom')};'>{dlt['mom']}</td>
             </tr>
             <tr>
                 <td>Энергоэффективность</td>
@@ -538,4 +551,3 @@ class Report(QObject):
                 index = np.searchsorted(e1e2e3, [eff])[0]
                 result = (['-'] + class_names)[index]
         return result
-

@@ -50,11 +50,11 @@ class Markers(QFrame):
                 pass
         return super().eventFilter(obj, event_)
 
-    def setPointLinesVis(self, value: bool):
+    def setPointLinesVisibility(self, value: bool):
         """установка видимости для линий отбивания точки"""
         self._point_lines['vis'] = value
 
-    def setPointLinesMax(self, value: float):
+    def setPointLinesMaximum(self, value: float):
         """установка максимального значения расхода для текущего типоразмера"""
         pos = self.translateValueToPixel(QPointF(value, 0), "etl_lft")
         self._point_lines['max'] = pos.x()
@@ -93,7 +93,7 @@ class Markers(QFrame):
         """перенос маркера на другой холст"""
         left, top, _, _ = graph.getMargins()
         size = graph.getDrawArea()
-        self._area.setGeometry(left, top, int(size.width()), int(size.height()))
+        self._area.setGeometry(left, top, int(size.width()) - 3, int(size.height()) - 2)
 
     def addKnots(self):
         """добавление узлов"""
@@ -106,12 +106,12 @@ class Markers(QFrame):
             self._markers[name]['knots'].append(self._markers[name]['pos'])
             self._area.repaint()
 
-    def removeKnots(self):
+    def removeLastKnots(self):
         """удаление узлов"""
         for name in self._names:
-            self.removeKnot(name)
+            self.removeLastKnot(name)
 
-    def removeKnot(self, name: str):
+    def removeLastKnot(self, name: str):
         """удаление узла по имени"""
         if name in self._markers and len(self._markers[name]['knots']) > 0:
             self._markers[name]['knots'].pop()

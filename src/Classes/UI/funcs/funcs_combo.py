@@ -4,36 +4,34 @@
 from PyQt6.QtWidgets import QComboBox
 
 from Classes.UI.models import ComboItemModel
-from Classes.Data.db_tables import (Customer, Producer, Type, Pump, Owner,
-    Material, Size, SectionStatus, SectionType, Group, Connection)
+from Classes.Data.db_tables import (Customer, Producer, Test, Type, Owner,
+    Material, Size, SectionStatus, SectionType, Party, Connection)
 
 
-def fillCombos(window, db_manager):
+def fillCombos(window, db_manager, initial=True):
     """инициализирует комбобоксы -->"""
-    fillCombos_Pump(window, db_manager, initial=True)
-    fillCombos_Test(window, db_manager)
-
-
-def fillCombos_Pump(window, db_manager, initial=False):
-    """инициализирует комбобоксы для насоса -->"""
-    default_params = ('Name', ['ID', 'Name'])
-    fillComboBox(window.cmbProducer, db_manager, Producer, *default_params)
-    fillComboBox(window.cmbType, db_manager, Type, 'Name', ['ID', 'Name', 'Producer'], "Name")
-    fillComboBox(window.cmbSerial, db_manager, Pump, 'Serial', ['ID', 'Serial', 'Type'])
+    fillCombos_Pump_Producer(window, db_manager)
+    fillCombos_Pump_Type(window, db_manager)
     if initial:
-        fillComboBox(window.cmbGroup, db_manager, Group, *default_params)
-        fillComboBox(window.cmbMaterial, db_manager, Material, *default_params)
-        fillComboBox(window.cmbSize, db_manager, Size, *default_params)
-        fillComboBox(window.cmbConnection, db_manager, Connection, *default_params)
+        defaults = ('Name', ['ID', 'Name'])
+        fillComboBox(window.cmbParty, db_manager, Party, *defaults)
+        fillComboBox(window.cmbMaterial, db_manager, Material, *defaults)
+        fillComboBox(window.cmbSize, db_manager, Size, *defaults)
+        fillComboBox(window.cmbConnection, db_manager, Connection, *defaults)
+    fillComboBox(window.cmbCustomer, db_manager, Customer, *defaults)
+    fillComboBox(window.cmbOwner, db_manager, Owner, *defaults)
+    fillComboBox(window.cmbSectionStatus, db_manager, SectionStatus, *defaults)
+    fillComboBox(window.cmbSectionType, db_manager, SectionType, *defaults)
 
 
-def fillCombos_Test(window, db_manager):
-    """инициализирует комбобоксы для теста -->"""
-    default_params = ('Name', ['ID', 'Name'])
-    fillComboBox(window.cmbCustomer, db_manager, Customer, *default_params)
-    fillComboBox(window.cmbOwner, db_manager, Owner, *default_params)
-    fillComboBox(window.cmbSectionStatus, db_manager, SectionStatus, *default_params)
-    fillComboBox(window.cmbSectionType, db_manager, SectionType, *default_params)
+def fillCombos_Pump_Producer(window, db_manager):
+    """инициализирует комбобокс для производителей"""
+    fillComboBox(window.cmbProducer, db_manager, Producer, 'Name', ['ID', 'Name'])
+
+
+def fillCombos_Pump_Type(window, db_manager):
+    """инициализирует комбобокс для типоразмеров"""
+    fillComboBox(window.cmbType, db_manager, Type, 'Name', ['ID', 'Name', 'Producer'])
 
 
 def fillComboBox(combo, db_manager, table_class, display_key, keys, sort_key=""):
@@ -49,7 +47,7 @@ def fillComboBox(combo, db_manager, table_class, display_key, keys, sort_key="")
 
 def resetFilters_pumpInfo(window):
     """сбрасывает фильт для комбобоксов насоса"""
-    resetFilter(window.cmbSerial)
+    # resetFilter(window.cmbSerial)
     resetFilter(window.cmbType)
 
 

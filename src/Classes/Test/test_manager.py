@@ -1,3 +1,6 @@
+"""
+    Модуль управления процессом испытания
+"""
 from enum import Enum, auto
 from loguru import logger
 
@@ -117,7 +120,7 @@ class TestManager:
         flw, lft, pwr = self._getCalculatedVals(float(base_rpm))
         self._sensors['Flow']   = round(flw, 2)                       # м/сут
         self._sensors['Lift']   = round(lft / float(stages), 2)       # метры
-        self._sensors['Power']  = round(pwr / float(stages), 2)       # кВт
+        self._sensors['Power']  = round(pwr / float(stages), 4)       # кВт
 
     def sliderToAdam(self, name: str, slider_value: int):
         """установка значения канала из слайдера"""
@@ -201,7 +204,7 @@ class TestManager:
         self._onEvent("Идёт переключение в режим продувки...")
         self._adam.setValue(PARAMS[CN.VLV_WTR], False)
         # ЗАДЕРЖКА
-        pause(10)
+        # pause(10)
         self._adam.setValue(PARAMS[CN.VLV_AIR], self._testmode != TestMode.PURGE)
         self._onEvent(None)
         self._testmode = TestMode.PURGE
@@ -212,7 +215,7 @@ class TestManager:
         self._onEvent("Идёт переключение в режим обкатки...")
         self.setFlowmeter_2()
         self._adam.setValue(PARAMS[CN.VLV_TST], False)
-        pause(5)
+        # pause(5)
         self._onEvent(None)
         self._testmode = TestMode.IDLING
 
@@ -224,7 +227,7 @@ class TestManager:
             return
         self._onEvent("Идёт переключение в режим теста...")
         self._adam.setValue(PARAMS[CN.VLV_TST], True)
-        pause(5)
+        # pause(5)
         self._onEvent(None)
         self._testmode = TestMode.TEST
 #endregion РЕЖИМЫ РАБОТЫ <-
@@ -235,12 +238,12 @@ class TestManager:
         logger.debug(self._fillWithWater.__doc__)
         self._adam.setValue(PARAMS[CN.VLV_AIR], False)
         # ЗАДЕРЖКА
-        pause(1)
+        # pause(1)
         self._adam.setValue(PARAMS[CN.VLV_WTR], True)
         # ЗАДЕРЖКА
-        pause(1)
+        # pause(1)
         self._onEvent("Идёт заполнение водой...")
-        pause(10)
+        # pause(10)
         self._onEvent("ИДЁТ ИСПЫТАНИЕ...")
 
     def _getCalculatedVals(self, base_rpm: float):
@@ -267,7 +270,7 @@ class TestManager:
         """рассчёт потребляемой мощности"""
         # перевод из lb-in в Н/м
         npm = self._sensors['Torque'] * 0.113
-        power = self._sensors['RPM'] * npm / 9549
+        power = self._sensors['RPM'] * npm / 9549.0
         return power
 
     def _applySpeedFactor(self, base_rpm: float, flw: float, lft: float, pwr: float):

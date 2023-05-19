@@ -17,6 +17,6 @@
 		]
 	},
 	"settings": {
-    	"python.pythonPath": "./_venv/bin/python",
+    	"python.defaultInterpreterPath": "/home/aesmadiv/.venv/work/bin/python",
 	}
 }

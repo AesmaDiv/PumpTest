@@ -12,13 +12,6 @@ from Classes.Data.record import Record
 from AesmaLib.message import Message
 
 
-def checkExists_Type(wnd, type_name: str) -> int:
-    """проверка присутствия типоразмера"""
-    logger.debug(f"{checkExists_Type.__doc__} {type_name}")
-    index = wnd.cmbType.findText(type_name)
-    return index >= 0
-
-
 def addNew_Type(wnd, type_name: str, producer_name: str=""):
     """запрос на добавление нового типоразмера"""
     logger.debug(f"{addNew_Type.__doc__} {type_name}")
@@ -40,7 +33,7 @@ def findInfo_Pump(wnd, serial: str, type_id: int) -> dict:
         "Насос с таким заводским номером "
         "уже присутствует в базе данных.\n"
         "Хотите выбрать его?",
-        "Выбрать", "Отмена"
+        "Выбрать","Отмена"
         ):
         return pump
     return None
@@ -50,7 +43,7 @@ def saveInfo_Pump(wnd, binding: Binding, pump_: Record, do_update: bool = False)
     """сохранение данных о насосе"""
     logger.debug(saveInfo_Pump.__doc__)
     # поля необходимые для заполнения
-    need_to_validate = ['cmbProducer', 'cmbType', 'cmbSerial', 'txtStages', 'txtLength']
+    need_to_validate = ['cmbProducer', 'cmbType', 'txtSerial', 'txtStages', 'txtLength']
     if not groupValidate(wnd.groupPumpInfo, need_to_validate):
         logger.warning("заполнены не все необходимые поля")
         return False
@@ -67,8 +60,12 @@ def saveInfo_Pump(wnd, binding: Binding, pump_: Record, do_update: bool = False)
     data['Type'] = type_data['ID']
     # записываем
     result = wnd.db_manager.writeRecord(pump_.subclass, data)
-    logger.debug("данные о насосе успешно сохранены")
-    return result
+    pump_['ID'] = result if result else None
+    logger.debug({
+        True: "данные о насосе успешно сохранены",
+        False: "не удалось сохранить данные о насосе"
+    }[bool(result)])
+    return bool(result)
 
 
 def findInfo_Test(wnd, order_num: str) -> tuple:
@@ -81,7 +78,7 @@ def findInfo_Test(wnd, order_num: str) -> tuple:
             "Внимание",
             "Запись с таким наряд-заказом "
             "уже присутствует в базе данных.\n"
-            "Хотите выбрать её, обновить или создать новую?",
+            "Хотите выбрать её или обновить?",
             ["Выбрать", "Обновить", "Отмена"]
         )
         if result < 2:
@@ -95,6 +92,7 @@ def saveInfo_Test(wnd, binding: Binding, test_: Record, do_update: bool = False)
     result = False
     # поля необходимые для заполнения
     need_to_validate = [
+        'cmbProducer', 'cmbType', 'cmbSerial', 'txtStages', 'txtLength',
         'txtDateTime', 'txtDateAssembled', 'cmbCustomer', 'txtOrderNum',
         'txtDaysRun', 'cmbSectionStatus', 'cmbSectionType',
         'txtShaftDiameter', 'txtShaftIn', 'txtShaftOut', 'txtShaftWobb', 'txtShaftMomentum'
@@ -103,21 +101,19 @@ def saveInfo_Test(wnd, binding: Binding, test_: Record, do_update: bool = False)
         logger.warning("Заполнены не все необходимые поля")
         return result
     # сохраняем информацию об испытании
-    pump_data = wnd.cmbSerial.currentData()
-    if pump_data:
-        if not do_update:
-            test_.clear()
-            test_['DateTime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        elif not funcs_aux.askPassword():
-            logger.error("Обновление записи отменено.")
-            return result
-        binding.toData()    # сохраняем значения из привязанных полей
-        data = dict(test_.items())
-        data['Pump'] = pump_data['ID']
-        # записываем
-        result = wnd.db_manager.writeRecord(test_.subclass, data)
+    if not do_update:
+        test_.clear()
+        test_['DateTime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    elif not funcs_aux.askPassword():
+        logger.error("Обновление записи отменено.")
+        return result
+    # сохраняем значения из привязанных полей
+    binding.toData()
+    data = dict(test_.items())
+    # записываем
+    result = wnd.db_manager.writeRecord(test_.subclass, data)
     logger.debug({
         True: "данные об испытании успешно сохранены",
         False: "не удалось сохранить данные об испытании"
-    }[result])
-    return result
+    }[bool(result)])
+    return bool(result)

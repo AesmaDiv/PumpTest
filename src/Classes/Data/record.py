@@ -1,12 +1,12 @@
 """
     Модуль описывающий классы для Испытания, Насоса и Типоразмера
 """
-from loguru import logger
 from dataclasses import dataclass, field
+from loguru import logger
 import sqlalchemy as sql
 import numpy as np
 
-from Classes.Data.db_tables import Type, Pump, Test
+from Classes.Data.db_tables import Type, Test
 
 
 @dataclass
@@ -23,7 +23,6 @@ class TestData:
     """Класс для полной информации об испытании"""
     def __init__(self) -> None:
         self.test_ = RecordTest()
-        self.pump_ = RecordPump()
         self.type_ = RecordType()
         self.dlts_ = field(default_factory=dict)
 
@@ -31,18 +30,16 @@ class TestData:
         """очистка информации о записи"""
         logger.debug(self.clear.__doc__)
         self.test_.clear()
-        self.pump_.clear()
         self.type_.clear()
         self.dlts_ = {}
 
     def load(self, data: list):
         """парсинг данных полученных из БД"""
         logger.debug(self.load.__doc__)
-        if data and len(data) > 3:
+        if data and len(data) == 3:
             self.test_.load(data[0])
-            self.pump_.load(data[1])
-            self.type_.load(data[2])
-            self.type_.ProducerName = data[3]['Name']
+            self.type_.load(data[1])
+            self.type_.ProducerName = data[2]['Name']
 
 
 class Record():
@@ -185,11 +182,6 @@ class RecordType(Record):
         self.points  = []
         if self.__class__ is RecordType:
             self.ProducerName = ""
-
-
-class RecordPump(Record):
-    """Класс информации о насосе"""
-    subclass=Pump
 
 
 class RecordTest(RecordType):

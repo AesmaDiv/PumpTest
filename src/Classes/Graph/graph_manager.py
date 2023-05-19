@@ -36,7 +36,7 @@ class GraphManager(PumpGraph):
         super().__init__(100, 100, parent=None)
         self._testdata = testdata
         self._markers = None
-        self._limits = {'lft':(0.95, 1.05), 'pwr': (0.92, 1.08), 'eff': (0.98, 1.02)}
+        self._limits = {'lft':(0.95, 1.05), 'pwr': (0.92, 1.08), 'eff': (1.0, 1.0)}
         self.setMargins([10, 10, 10, 10])
 
     def initMarkers(self, host):
@@ -178,21 +178,13 @@ class GraphManager(PumpGraph):
                 param['name']
             )
 
-    def markersAddKnots(self):
-        """добавление узлов (точки)"""
-        self._markers.addKnots()
-
-    def markersRemoveKnots(self):
-        """удаление узлов (точки)"""
-        self._markers.removeKnots()
-
     def markersClearKnots(self):
         """очистка узлов (всех точек)"""
         self._markers.clearAllKnots()
 
     def setPointLines_max(self, value):
         """установка макс.значения расхода для линий отбивания точек"""
-        self._markers.setPointLinesMax(value)
+        self._markers.setPointLinesMaximum(value)
 
     def setPointLines_num(self, value):
         """установка кол-ва линий для отбивания точек"""
@@ -211,9 +203,11 @@ class GraphManager(PumpGraph):
 
     def addPointsToCharts(self, flw, lft, pwr, eff):
         """добавление точек напора и мощности на график"""
+        self._markers.addKnots()
         self._addPointToChart('tst_lft', flw, lft)
         self._addPointToChart('tst_pwr', flw, pwr)
         self._addPointToChart('tst_eff', flw, eff)
+        self.drawCharts(self._markers)
 
     def _addPointToChart(self, chart_name: str, value_x: float, value_y: float):
         """добавление точки на график"""
@@ -239,11 +233,13 @@ class GraphManager(PumpGraph):
             return chart
         logger.error(f"Не найден эталон для {chart_name}")
 
-    def clearPointsFromCharts(self):
+    def clearTestCharts(self):
         """удаление всех точек из графиков напора и мощности"""
+        self._markers.clearAllKnots()
         self._clearPointsFromChart('tst_lft')
         self._clearPointsFromChart('tst_pwr')
         self._clearPointsFromChart('tst_eff')
+        self.drawCharts(self._markers)
 
     def _clearPointsFromChart(self, chart_name: str):
         """удаление всех точек из графика"""
@@ -253,9 +249,11 @@ class GraphManager(PumpGraph):
 
     def removeLastPointsFromCharts(self):
         """удаление последних точек из графиков напора и мощности"""
+        self._markers.removeLastKnots()
         self._removeLastPointFromChart('tst_lft')
         self._removeLastPointFromChart('tst_pwr')
         self._removeLastPointFromChart('tst_eff')
+        self.drawCharts(self._markers)
 
     def _removeLastPointFromChart(self, chart_name: str):
         """удаление последней точки из графика"""
@@ -263,16 +261,16 @@ class GraphManager(PumpGraph):
         if chart is not None:
             chart.removePoint()
             if chart.isEmpty:
-                self._markers.setPointLinesMax(0)
+                self._markers.setPointLinesMaximum(0)
 
     def switchChartsVisibility(self, state):
         """переключение видимости для кривых"""
         # если включено - показывать все графики
         # если выключено - только тестовые (напор / мощность)
-        self.setVisibleCharts(['etl_lft', 'etl_pwr', 'tst_lft', 'tst_pwr'] if not state else 'all')
+        self.setChartsVisibility(['etl_lft', 'etl_pwr', 'tst_lft', 'tst_pwr'] if not state else 'all')
         # переключение видимости линий для отбивания точек
         # если выключена видимость всех - показывается линии
-        self._markers.setPointLinesVis(not state)
+        self._markers.setPointLinesVisibility(not state)
         self.drawCharts(self._markers)
 
     def generateResultText(self):
@@ -325,7 +323,7 @@ class GraphManager(PumpGraph):
         if not chart:
             return 0.0
         curve = chart.regenerateCurve()
-        if not len(curve):
+        if len(curve) == 0:
             return 0.0
         nominal = float(self._testdata.type_['Nom'])
         optimal = self._getEffMaxPoint(curve)[0]

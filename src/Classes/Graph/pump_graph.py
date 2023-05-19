@@ -75,11 +75,11 @@ class PumpGraph(Graph):
         """получение графика по имени"""
         return self._charts[name] if name in self._charts else None
 
-    def setVisibleCharts(self, names_of_charts_to_show: list = 'all'):
+    def setChartsVisibility(self, names_of_charts_to_show: list = 'all'):
         """установка флага видимости для кривых"""
-        cond = lambda x:  names_of_charts_to_show == 'all' or x in names_of_charts_to_show
         for chart in self._charts.values():
-            chart.visibility = cond(chart.name)
+            visibility = names_of_charts_to_show == 'all' or chart.name in names_of_charts_to_show
+            chart.visibility = visibility
 
     def clearCharts(self):
         """удаление всех кривых"""
@@ -227,7 +227,7 @@ class PumpGraph(Graph):
 
     def _drawCharts(self, painter: QPainter):
         """отрисовка всех графиков"""
-        # logger.debug(f"{self._drawCharts.__doc__} ->")
+        logger.debug(f"{self._drawCharts.__doc__} ->")
         transform = QTransform()
         self._prepareChartsData()
         self._setCanvasTransform(painter, transform)
@@ -245,7 +245,7 @@ class PumpGraph(Graph):
         """отрисовка узлов и кривых"""
         # logger.debug(f"{self._drawChartsKnotsAndCurves.__doc__} ->")
         for chart, data in self._charts_data.items():
-            if not data['knots'].size or not chart.visibility:
+            if not chart.visibility or not data['knots'].size:
                 continue
             pen = painter.pen()
             brush = painter.brush()
@@ -255,7 +255,7 @@ class PumpGraph(Graph):
                 # logger.debug(f"отрисовка узлов для {chart.name}")
                 PumpGraph._drawKnots(painter, data['knots'])
             painter.setBrush(brush)
-            # logger.debug(f"отрисовка кривой для {chart.name}")
+            logger.debug(f"отрисовка кривой для {chart.name}")
             PumpGraph._drawCurve(painter, data['curve'])
             painter.setPen(pen)
 
@@ -365,6 +365,8 @@ class PumpGraph(Graph):
     def _getChartLimit(self, chart: Chart, curve):
         """получение координат точек описывающих пределы допуска"""
         result = chart.createEmptyPoints()
+        if chart.limitCoefs == (1.0, 1.0):
+            return result
         if ChartOptions.Limits in chart.options and curve['x'].any():
             # logger.debug(f"{self._getChartLimit.__doc__} {chart.name}")
             ranges = self._range_pixels

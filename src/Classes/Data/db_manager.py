@@ -4,10 +4,10 @@
 """
 import os
 from loguru import logger
-from sqlalchemy import create_engine, MetaData, exc
+from sqlalchemy import create_engine, MetaData, Row, exc
 from sqlalchemy.orm.session import sessionmaker
 
-from Classes.Data.db_tables import Producer, Pump, Test, Type
+from Classes.Data.db_tables import Producer, Test, Type
 from Classes.Data.record import Record
 
 
@@ -21,6 +21,7 @@ class DataManager:
 
     @property
     def isConnected(self):
+        """статус подключения к БД"""
         return self._ready
 
     def execute(self, func, *args, **kwargs):
@@ -54,41 +55,39 @@ class DataManager:
             )
             return query.one() if query.count() else None
         result = self.execute(func)
-        return DataManager._convertToDict(result)
+        return DataManager._recordToDict(result)
 
-    def loadRecord_Pump(self, rec_id) -> list:
+    def loadRecord_Pump(self, serial) -> list:
         """загружаем полную информацию о насосе"""
         def func(**kwargs):
             query = kwargs['session'].query(
-                Pump, Type, Producer
+                Test, Type, Producer
             ).where(
-                Pump.ID == rec_id
+                Test.Serial == serial
             ).where(
-                Type.ID == Pump.Type
+                Type.ID == Test.Type
             ).where(
                 Producer.ID == Type.Producer
             )
             return query.one() if query.count() else None
         result = self.execute(func)
-        return [DataManager._convertToDict(item) for item in result]
+        return [DataManager._recordToDict(item) for item in result]
 
     def loadRecord_All(self, rec_id) -> list:
         """загружаем полную информацию о записи"""
         def func(**kwargs):
             query = kwargs['session'].query(
-                Test, Pump, Type, Producer
+                Test, Type, Producer
             ).where(
                 Test.ID == rec_id
             ).where(
-                Pump.ID == Test.Pump
-            ).where(
-                Type.ID == Pump.Type
+                Type.ID == Test.Type
             ).where(
                 Producer.ID == Type.Producer
             )
             return query.one() if query.count() else None
         result = self.execute(func)
-        return [DataManager._convertToDict(item) for item in result]
+        return [DataManager._recordToDict(item) for item in result]
 
     def removeRecord(self, db_table, rec_id):
         """удаляет текущую запись из БД"""
@@ -101,7 +100,7 @@ class DataManager:
             session_.close()
             self._engine.dispose()
 
-    def writeRecord(self, db_table, data: dict) -> bool:
+    def writeRecord(self, db_table, data: dict) -> int:
         """записывает данные в БД (data должен содержать ключ ID)"""
         def func(**kwargs):
             data_ = data.copy()
@@ -114,23 +113,21 @@ class DataManager:
                 kwargs['session'].commit()
                 data.update({'ID': item.ID })
             except exc.IntegrityError:
-                return False
-            return item.ID > 0
+                return 0
+            return item.ID
         return self.execute(func)
 
     def getTestsList(self) -> list:
         """получает список тестов"""
         def func(**kwargs):
             query = kwargs['session'].query(
-                    Test.ID, Test.DateTime, Test.OrderNum, Pump.Serial
-                ).filter(
-                    Test.Pump == Pump.ID
+                    Test.ID, Test.DateTime, Test.OrderNum, Test.Serial
                 ).order_by(
                     Test.ID.desc()
                 ).all()
             return query
         result = self.execute(func)
-        return list(map(dict, result))
+        return self._itemsToDicts(result)
 
     def getListFor(self, table_class, fields) -> list:
         """получает список элементов из таблицы"""
@@ -139,7 +136,7 @@ class DataManager:
             result = kwargs['session'].query(*columns).all()
             return result
         result = self.execute(func)
-        return list(map(dict, result))
+        return self._itemsToDicts(result)
 
     def findRecord_Type(self, type_name, producer_id):
         """возвращает запись с введенным именем типоразмера"""
@@ -155,23 +152,21 @@ class DataManager:
                 return query.all()
             return None
         result = self.execute(func)
-        return DataManager._convertToDict(result)
+        return DataManager._recordToDict(result)
 
     def findRecord_Pump(self, serial, type_id) -> Record:
         """возвращает запись с введенным серийным номером"""
         def func(**kwargs):
             query = kwargs['session'].query(
-                Pump
+                Test
             ).where(
-                Pump.Serial == serial
-            ).filter(
-                Pump.Type == type_id
+                Test.Serial == serial
             )
             if query.count():
                 return query.one()
             return None
         result = self.execute(func)
-        return DataManager._convertToDict(result)
+        return DataManager._recordToDict(result)
 
     def findRecord_Test(self, order_num) -> Record:
         """возвращает запись с введенным номером наряд-заказа"""
@@ -183,20 +178,25 @@ class DataManager:
             )
             return query.one() if query.count() else None
         result = self.execute(func)
-        return DataManager._convertToDict(result)
+        return DataManager._recordToDict(result)
 
     def _checkConnection(self, path_to_db):
         if os.path.exists(path_to_db):
             self._engine = create_engine(f'sqlite:///{path_to_db}')
-            self._meta = MetaData(self._engine)
+            # self._meta = MetaData(self._engine)
             return True
         return False
 
     @staticmethod
-    def _convertToDict(record: Record) -> dict:
+    def _recordToDict(record: Record) -> dict:
         try:
             return record.__dict__ if record else {}
         except AttributeError as err:
             logger.error(f"Error convering {record.__name__} to dictionary")
             logger.error(str(err))
             return {}
+
+    @staticmethod
+    def _itemsToDicts(data):
+        result = list(map(lambda item: item._asdict(), data))
+        return result;

@@ -57,6 +57,7 @@ def askPassword():
 def pause(seconds: float):
     """задержка в секундах"""
     print(f"Пауза {seconds} секунд -> ...")
+    # sleep(0.1)
     for _ in range(seconds * 1000):
         QApplication.processEvents()
         sleep(0.001)

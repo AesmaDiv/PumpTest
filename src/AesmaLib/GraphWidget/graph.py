@@ -62,7 +62,7 @@ class Graph(QWidget):
 
     def removeChart(self, name: str):
         """удаление кривой по имени"""
-        if name not in self._charts.keys():
+        if name not in self._charts:
             return
         logger.debug(f"{self.removeChart.__doc__} {name}")
         del self._charts[name]
@@ -71,7 +71,7 @@ class Graph(QWidget):
 
     def replaceChart(self, chart: Chart, name: str):
         """замена кривой по имени"""
-        if name not in self._charts.keys():
+        if name not in self._charts:
             return
         logger.debug(f"{self.replaceChart.__doc__} {name}")
         self._charts.update({name: chart})
@@ -98,7 +98,7 @@ class Graph(QWidget):
 
     def _drawGrid(self, painter: QPainter):
         """отрисовка сетки графика"""
-        if not len(self._charts):
+        if len(self._charts) == 0:
             return
         logger.debug(f"{self._drawGrid.__doc__} ->")
         step_x, step_y = self._getSteps()
@@ -128,7 +128,8 @@ class Graph(QWidget):
         """отрисовка линий сетки для оси X"""
         logger.debug(self._drawGridLines_x.__doc__)
         axis: Axis = self._charts[self._base_chart].getAxis('x')
-        condition = lambda x, y: x == 0 or x == self._divs_x or y == 0
+        def condition(x, y):
+            return x == 0 or x == self._divs_x or y == 0
         for i, div in axis.generateDivSteps():
             self._style['grid']['pen'].setStyle(Qt.PenStyle.SolidLine if condition(i, div) else Qt.PenStyle.DotLine)
             coord = i * step + self._margins[0]
