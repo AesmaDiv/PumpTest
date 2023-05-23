@@ -174,7 +174,7 @@ class MainWindow(QMainWindow):
         self._initStatusBar()
         funcs_table.initTable_points(self)
         funcs_table.initTable_vibrations(self)
-        self.tabWidget.setTabVisible(0, False)
+        self.tabWidget.setTabVisible(0, True)
         self.graph_manager.initMarkers(self.gridGraphTest)
         funcs_group.groupLock(self.groupTestInfo, True)
 
@@ -333,9 +333,7 @@ class MainWindow(QMainWindow):
             return
         self._clearInfo()
         self._loadInfo(item['ID'])
-        if self._report:
-            size_name = self.cmbSize.currentData()['Name']
-            self._report.show(self, self._testdata, size_name)
+        self._displayResult(self.webEngineView)
         logger.info(f"{'===' * 25}")
         print(f"TEST SELECT {(time.time_ns() - x) / 1000000}")
 
@@ -612,6 +610,7 @@ class MainWindow(QMainWindow):
         self.graph_manager.clearCharts()
         self.graph_manager.markersClearKnots()
         self._testdata.clear()
+        self._report.clear()
 
     def _loadInfo(self, test_id: int):
         """загрузка и отображаем информации о выбранной записи"""
@@ -704,6 +703,14 @@ class MainWindow(QMainWindow):
         funcs_group.groupLock(self.groupTestInfo, True)
         funcs_group.groupLock(self.groupTestList, any(self._states['editing'].values()))
 
+    def _displayResult(self, webview = None):
+        """отображение таблицы результата испытания"""
+        if self._report:
+            logger.debug(self._displayResult.__doc__)
+            context = self._report.generate(self._testdata)
+            self._showResultOnForm(context)
+            self._report.show(self._testdata, webview)
+
 #endregion      <-- ДЕЙСТВИЯ С ДАННЫМИ
 
 #region     ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ ->
@@ -723,5 +730,80 @@ class MainWindow(QMainWindow):
         self._testlist.refresh(self.db_manager)
         self.graph_manager.drawCharts(self.frameGraphInfo)
 #endregion      <-- ДЕЙСТВИЯ ОТНОСЯЩИЕСЯ К ИСПЫТАНИЮ
+
+    def _showResultOnForm(self, context):
+        """отображение итоговых результатов испытания"""
+        lmt = context['limits']
+        dlt = context['deltas']
+        def color_tst(name):
+            cond = dlt[name] is not None and lmt[name][0] <= dlt[name] <= lmt[name][1]
+            return "green" if cond else "red"
+        def color_aux(name):
+            cond = dlt[name] is not None and dlt[name] <= lmt[name]
+            return "green" if cond else "red"
+        self.lblTestResult_1.setText(
+    f"""<table width=200 cellspacing=2>
+        <thead>
+            <tr>
+                <th width=200>параметр</th>
+                <th width=70>допуск</th>
+                <th width=70>данные</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Отклонение оптимальной подачи, %</td>
+                <td>{lmt['flw'][0]} .. {lmt['flw'][1]}</td>
+                <td style='color: {color_tst('flw')};'>{dlt['flw']}</td>
+            </tr>
+            <tr>
+                <td>Отклонение напора, %</td>
+                <td>{lmt['lft'][0]} .. {lmt['lft'][1]}</td>
+                <td style='color: {color_tst('lft')};'>{dlt['lft']}</td>
+            </tr>
+            <tr>
+                <td>Отклонение мощности, %</td>
+                <td>{lmt['pwr'][0]} .. {lmt['pwr'][1]}</td>
+                <td style='color: {color_tst('pwr')};'>{dlt['pwr']}</td>
+            </tr>
+            <tr>
+                <td>Отклонение КПД, %</td>
+                <td>{lmt['eff'][0]} .. {lmt['eff'][1]}</td>
+                <td style='color: {color_tst('eff')};'>{dlt['eff']}</td>
+            </tr>
+        </tbody>
+    </table>""")
+        self.lblTestResult_2.setText(
+    f"""<table width=200 cellspacing=2>
+        <thead>
+            <tr>
+                <th width=200>параметр</th>
+                <th width=70>допуск</th>
+                <th width=70>данные</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Вибрация, мм</td>
+                <td>&#8804; {lmt['vbr']}</td>
+                <td style='color: {color_aux('vbr')};'>{dlt['vbr']}</td>
+            </tr>
+            <tr>
+                <td>Радиальное биение, мм</td>
+                <td>&#8804; {lmt['wob']}</td>
+                <td style='color: {color_aux('wob')};'>{dlt['wob']}</td>
+            </tr>
+            <tr>
+                <td>Момент проворота, кВт</td>
+                <td>&#8804; {lmt['mom']}</td>
+                <td style='color: {color_aux('mom')};'>{dlt['mom']}</td>
+            </tr>
+            <tr>
+                <td>Энергоэффективность</td>
+                <td/>
+                <td style='color: black;'>{context['efficiency']}</td>
+            </tr>
+        </tbody>
+    </table>""")
 
 #endregion <<= ФУНКЦИИ К ОБРАБОТЧИКАМ СОБЫТИЙ

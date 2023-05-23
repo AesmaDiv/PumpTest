@@ -45,15 +45,21 @@ class Report(QObject):
         self._graph_manager = graph_manager
         self._db_manager = data_manager
         self._template = self._loadTemplate()
+        self._context = {}
 
-    def show(self, window, testdata: TestData, size_name, webview=None):
+    def clear(self):
+        """очистка контекста"""
+        logger.debug(self.clear.__doc__)
+        self._context = {}
+
+    def show(self, testdata: TestData, webview=None):
         """отображение протокола в элементе WebEngineView"""
         logger.debug(self.show.__doc__)
-        context = Report._createContext(self._db_manager, self._graph_manager, testdata, size_name)
-        Report._showResultOnForm(window, context)
-        if webview:
-            html = self._fillTemplate(self._template, self._graph_manager, context)
-            webview.setHtml(html, QUrl.fromLocalFile(Report._PATH['root']))
+        async def show_async():
+            if webview:
+                html = await self._createHtml(testdata)
+                webview.setHtml(html, QUrl.fromLocalFile(Report._PATH['root']))
+        asyncio.run(show_async())
 
     def print(self, testdata: TestData):
         """вывод протокола на печать"""
@@ -67,10 +73,39 @@ class Report(QObject):
                 await Report._printProtocol(protocol, printer)
         asyncio.run(print_async())
 
+    def generate(self, testdata: TestData) -> dict:
+        """создание контекста для заполнение шаблона данными об испытании"""
+        logger.debug(Report.generate.__doc__)
+        Report._addNamesForIDs(self._db_manager, testdata)
+        deltas = Report._getDeltas(self._graph_manager, testdata)
+        vibration = Report._getMaxVibration(testdata)
+        point_tst = Report._getPointsForTest(testdata)
+        point_rng = Report._getPointsForRanges(self._graph_manager, testdata)
+        point_tst = Report._insertsPoints(point_tst, point_rng)
+        point_etl = Report._getPointsForEtalon(self._graph_manager, point_tst)
+        point_rng = list(filter(lambda x: x.Flw != deltas['opt'], point_rng))
+        efficiency = Report._getEfficiency(testdata.test_.SizeName, point_rng)
+        self._context = {
+            "info_test": testdata.test_,
+            "info_type": testdata.type_,
+            "point_tst": point_tst,
+            "point_etl": point_etl,
+            "deltas": deltas,
+            "vibration": vibration,
+            "efficiency": efficiency,
+            "limits": Report._LIMITS,
+            "path_to_logo": Report._PATH['logo'],
+            "path_to_graph": Report._PATH['image']
+        }
+        return self._context
+
     async def _createHtml(self, testdata):
         """генерирование протокола"""
-        context = Report._createContext(self._db_manager, self._graph_manager, testdata, '-')
-        result = Report._fillTemplate(self._template, self._graph_manager, context)
+        result = Report._fillTemplate(
+            self._template,
+            self._graph_manager,
+            self._context or self.generate(testdata)
+        )
         return result
 
     @staticmethod
@@ -135,34 +170,6 @@ class Report(QObject):
         graph_manager.switchPalette('report')
         graph_manager.renderToImage(img_size, path_to_img)
         graph_manager.switchPalette('application')
-
-    @staticmethod
-    def _createContext(db_manager: DataManager, graph_manager: GraphManager,
-                       testdata: TestData, size_name: str) -> dict:
-        """создание контекста для заполнение шаблона данными об испытании"""
-        logger.debug(Report._createContext.__doc__)
-        Report._addNamesForIDs(db_manager, testdata)
-        deltas = Report._getDeltas(graph_manager, testdata)
-        vibration = Report._getMaxVibration(testdata)
-        point_tst = Report._getPointsForTest(testdata)
-        point_rng = Report._getPointsForRanges(graph_manager, testdata)
-        point_tst = Report._insertsPoints(point_tst, point_rng)
-        point_etl = Report._getPointsForEtalon(graph_manager, point_tst)
-        point_rng = list(filter(lambda x: x.Flw != deltas['opt'], point_rng))
-        efficiency = Report._getEfficiency(size_name, point_rng)
-        result = {
-            "info_test": testdata.test_,
-            "info_type": testdata.type_,
-            "point_tst": point_tst,
-            "point_etl": point_etl,
-            "deltas": deltas,
-            "vibration": vibration,
-            "efficiency": efficiency,
-            "limits": Report._LIMITS,
-            "path_to_logo": Report._PATH['logo'],
-            "path_to_graph": Report._PATH['image']
-        }
-        return result
 
     @staticmethod
     def _addNamesForIDs(data_manager: DataManager, testdata: TestData):
