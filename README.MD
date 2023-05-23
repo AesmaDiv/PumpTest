@@ -4,6 +4,7 @@
 
 ![ecn2](https://github.com/AesmaDiv/PumpTest/assets/34000496/5aedcf96-22bf-40d1-bb8e-2aaf95e35847)
 
+![ecn3](https://github.com/AesmaDiv/PumpTest/assets/34000496/12d41ac9-7b45-411b-aa23-36e574e2186d)
 
 ![ecn4](https://github.com/AesmaDiv/PumpTest/assets/34000496/61ca5140-31cd-4d9a-a96e-c6fc700e07e2)
 
