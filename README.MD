@@ -1,6 +1,6 @@
 # Проект программного обеспечения стенда испытания ЭЦН
 
-![ecn1](https://github.com/AesmaDiv/PumpTest/assets/34000496/bfb6e2ed-57c3-44f2-9713-b9a915b13ae9)
+![ecn1](https://github.com/AesmaDiv/PumpTest/assets/34000496/7bb03281-32b3-4dc1-9c14-60be020c08a5)
 
 ![ecn2](https://github.com/AesmaDiv/PumpTest/assets/34000496/5aedcf96-22bf-40d1-bb8e-2aaf95e35847)
 
