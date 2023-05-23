@@ -185,6 +185,7 @@ class GraphManager(PumpGraph):
     def setPointLines_max(self, value):
         """установка макс.значения расхода для линий отбивания точек"""
         self._markers.setPointLinesMaximum(value)
+        self._markers.repaint()
 
     def setPointLines_num(self, value):
         """установка кол-ва линий для отбивания точек"""
@@ -260,8 +261,8 @@ class GraphManager(PumpGraph):
         chart: Chart = super().getChart(chart_name)
         if chart is not None:
             chart.removePoint()
-            if chart.isEmpty:
-                self._markers.setPointLinesMaximum(0)
+            # if chart.isEmpty:
+            #     self._markers.setPointLinesMaximum(0)
 
     def switchChartsVisibility(self, state):
         """переключение видимости для кривых"""

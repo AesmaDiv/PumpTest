@@ -80,7 +80,7 @@
             border: var(--border-style);
         }
         #graph-image {
-            width: 95%;
+            width: 90%;
         }
         table, th, td {
             width: 100%;
@@ -152,52 +152,52 @@
     <main>
         <p>Информация по насосу:</p>
         <div id="pump-info">
-            <span class="info-label">Производитель</span>
-            <span class="info-label">Типоразмер</span>
-            <span class="info-label">Исполнение</span>
-            <span class="info-label">Заводской номер</span>
+            <span class="info-label">Производитель :</span>
+            <span class="info-label">Типоразмер :</span>
+            <span class="info-label">Исполнение :</span>
+            <span class="info-label">Заводской номер :</span>
 
 
             <span class="info-value">{{info_type.ProducerName}}</span>
             <span class="info-value">{{info_type.Name}}</span>
-            <span class="info-value">{{info_type.GroupName}} / {{info_type.MaterialName}} / {{info_type.SizeName}}</span>
-            <span class="info-value">{{info_type.Serial }}</span>
+            <span class="info-value">{{info_test.PartyName}} / {{info_test.MaterialName}} / {{info_test.SizeName}}</span>
+            <span class="info-value">{{info_test.Serial}}</span>
             
-            <span class="info-label">Длина корпуса</span>
-            <span class="info-label">Кол-во ступеней</span>
-            <span class="info-label">Тип соединения</span>
+            <span class="info-label">Длина корпуса, м :</span>
+            <span class="info-label">Кол-во ступеней :</span>
+            <span class="info-label">Тип соединения :</span>
             <span class="info-label"></span>
             
-            <span class="info-value">{{info_type.Length}}</span>
-            <span class="info-value">{{info_type.Stages}}</span>
-            <span class="info-value">{{info_type.ConnectionName}}</span>
+            <span class="info-value">{{info_test.Length}}</span>
+            <span class="info-value">{{info_test.Stages}}</span>
+            <span class="info-value">{{info_test.ConnectionName}}</span>
             <span class="info-label"></span>
         </div>
         <p>Информация по испытанию:</p>
         <div id="test-info">
-            <span class="info-label">Дата теста</span>
-            <span class="info-label">Дата сборки</span>
-            <span class="info-label">Заказчик</span>
-            <span class="info-label">Собственник</span>
-            <span class="info-label">Месторождение</span>
-            <span class="info-label">Куст</span>
-            <span class="info-label">Скважина</span>
+            <span class="info-label">Дата теста :</span>
+            <span class="info-label">Дата сборки :</span>
+            <span class="info-label">Заказчик :</span>
+            <span class="info-label">Собственник :</span>
+            <span class="info-label">Месторождение :</span>
+            <span class="info-label">Куст :</span>
+            <span class="info-label">Скважина :</span>
             
             <span class="info-value">{{info_test.DateTime}}</span>
-            <span class="info-value">{{info_test.DateAssemblied}}</span>
+            <span class="info-value">{{info_test.DateAssembled}}</span>
             <span class="info-value">{{info_test.CustomerName}}</span>
             <span class="info-value">{{info_test.OwnerName}}</span>
             <span class="info-value">{{info_test.Location}}</span>
             <span class="info-value">{{info_test.Lease}}</span>
             <span class="info-value">{{info_test.Well}}</span>
             
-            <span class="info-label">Наряд-заказ №</span>
-            <span class="info-label">Суткопробег</span>
-            <span class="info-label">Статус секции</span>
-            <span class="info-label">Тип секции</span>
-            <span class="info-label">Диаметр вала, мм</span>
-            <span class="info-label">Вылет вала, мм</span>
-            <span class="info-label">Заглубление вала, мм</span>
+            <span class="info-label">Наряд-заказ № :</span>
+            <span class="info-label">Суткочый пробег :</span>
+            <span class="info-label">Статус секции :</span>
+            <span class="info-label">Тип секции :</span>
+            <span class="info-label">Диаметр вала, мм :</span>
+            <span class="info-label">Вылет вала, мм :</span>
+            <span class="info-label">Заглубление вала, мм :</span>
             
             <span class="info-value">{{info_test.OrderNum}}</span>
             <span class="info-value">{{info_test.DaysRun}}</span>
@@ -237,10 +237,10 @@
                     {% set delta_lft = (100 * (-1 + point_tst[i].Lft / point_etl[i].Lft)) | round(2) %}
                     {% set delta_pwr = (100 * (-1 + point_tst[i].Pwr / point_etl[i].Pwr)) | round(3) %}
                     {% set delta_eff = (point_tst[i].Eff - point_etl[i].Eff) | round(2) %}
-                    {% set rowstyle = 'font-weight: bold;' %}
+                    {% set rowstyle = 'background-color: rgb(230,230,230);' %}
                 {% endif %}
                 {% if point_tst[i].Flw == deltas['opt'] %}
-                    {% set rowstyle = rowstyle + 'border-top: 2px solid black; border-bottom: 2px solid black;' %}
+                    {% set rowstyle = rowstyle + 'font-weight: bold;' %}
                 {% endif %}
                 <tr style="{{rowstyle}}">
                     <td>{{i + 1}}</td>

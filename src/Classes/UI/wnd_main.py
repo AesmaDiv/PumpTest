@@ -382,7 +382,7 @@ class MainWindow(QMainWindow):
         item = self.cmbProducer.itemData(index, Qt.ItemDataRole.UserRole)
         logger.debug(f"выбор производителя -> {item['Name'] if item else 'None'}")
         # ↓ фильтрует типоразмеры для данного производителя
-        # if self._states['editing']['pump'] and item:
+        # if item and self._states['editing']['pump']:
         #     self._flags['producer'] = True
         #     self.cmbType.setCurrentIndex(0)
         #     condition = {'Producer': item['ID']} if index else None
@@ -435,9 +435,7 @@ class MainWindow(QMainWindow):
         if spin.value() == spin.maximum():
             self.graph_manager.setPointLines_max(current_vals[0])
         if not self.graph_manager.checkPointExists(current_vals[0]):
-            # self.graph_manager.markersAddKnots()
             self.graph_manager.addPointsToCharts(*current_vals)
-            # self.graph_manager.drawCharts(self.frameGraphTest)
             current_vals.append(self._testdata.test_.Stages)
             funcs_table.addToTable_points(self.tablePoints, current_vals)
             spin.setValue(int(spin.value()) - 1)
@@ -445,13 +443,13 @@ class MainWindow(QMainWindow):
     def _onClicked_PointRemove(self):
         """нажата кнопка удаления точки"""
         logger.debug(self._onClicked_PointRemove.__doc__)
+        if self.spinPointLines.value() == self.spinPointLines.maximum():
+            return
         funcs_table.removeLastRow(self.tablePoints)
+        self.graph_manager.removeLastPointsFromCharts()
+        self.spinPointLines.setValue(int(self.spinPointLines.value()) + 1)
         if self.spinPointLines.value() == self.spinPointLines.maximum():
             self.graph_manager.setPointLines_max(0)
-        # self.graph_manager.markersRemoveKnots()
-        self.graph_manager.removeLastPointsFromCharts()
-        # self.graph_manager.drawCharts(self.frameGraphTest)
-        self.spinPointLines.setValue(int(self.spinPointLines.value()) + 1)
 
     def _onToggled_PointsMode(self):
         """переключение значений точек реальные / на ступень"""
@@ -640,8 +638,9 @@ class MainWindow(QMainWindow):
     def _printInfo(self):
         """вывод протокола на печать"""
         logger.debug(self._printInfo.__doc__)
-        if self._report:
-            self._report.print(self._testdata)
+        _ = self._report and self._report.print(self._testdata)
+        # if self._report:
+        #     self._report.print(self._testdata)
 
     def _deleteInfo(self):
         """запрос на удаление текущей записи"""

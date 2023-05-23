@@ -49,8 +49,8 @@ class Report(QObject):
     def show(self, window, testdata: TestData, size_name, webview=None):
         """отображение протокола в элементе WebEngineView"""
         logger.debug(self.show.__doc__)
-        context = Report._createContext(self._graph_manager, testdata, size_name)
-        Report._showContext(window, context)
+        context = Report._createContext(self._db_manager, self._graph_manager, testdata, size_name)
+        Report._showResultOnForm(window, context)
         if webview:
             html = self._fillTemplate(self._template, self._graph_manager, context)
             webview.setHtml(html, QUrl.fromLocalFile(Report._PATH['root']))
@@ -61,14 +61,15 @@ class Report(QObject):
             html = await self._createHtml(testdata)
             protocol = await Report._buildProtocol(html)
             printer = await Report._initPrinter()
-            if QPrintDialog(printer).exec():
+            # в этом месте выскакивает ошибка, которую ловит faulthandler
+            # но при этом всё работает
+            if QPrintDialog(printer).exec() == QPrintDialog.DialogCode.Accepted:
                 await Report._printProtocol(protocol, printer)
         asyncio.run(print_async())
 
     async def _createHtml(self, testdata):
         """генерирование протокола"""
-        Report._addNamesForIDs(self._db_manager, testdata)
-        context = Report._createContext(self._graph_manager, testdata, '-')
+        context = Report._createContext(self._db_manager, self._graph_manager, testdata, '-')
         result = Report._fillTemplate(self._template, self._graph_manager, context)
         return result
 
@@ -136,9 +137,11 @@ class Report(QObject):
         graph_manager.switchPalette('application')
 
     @staticmethod
-    def _createContext(graph_manager: GraphManager, testdata: TestData, size_name: str) -> dict:
+    def _createContext(db_manager: DataManager, graph_manager: GraphManager,
+                       testdata: TestData, size_name: str) -> dict:
         """создание контекста для заполнение шаблона данными об испытании"""
         logger.debug(Report._createContext.__doc__)
+        Report._addNamesForIDs(db_manager, testdata)
         deltas = Report._getDeltas(graph_manager, testdata)
         vibration = Report._getMaxVibration(testdata)
         point_tst = Report._getPointsForTest(testdata)
@@ -322,7 +325,7 @@ class Report(QObject):
         return max(vbr) if vbr else 0.0
 
     @staticmethod
-    def _showContext(window, context):
+    def _showResultOnForm(window, context):
         """отображение итоговых результатов испытания"""
         lmt = context['limits']
         dlt = context['deltas']
